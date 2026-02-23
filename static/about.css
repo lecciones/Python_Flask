@@ -1,0 +1,152 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.promo-banner {
+    position: relative;
+    background: linear-gradient(to right, #4cc9f0, #1e90ff, #0077b6);
+    height: 130px; /* Slightly taller to fit the images better */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: white;
+}
+
+.banner-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    max-width: 60%; /* Prevents text from hitting the side images */
+    z-index: 2;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Position Left Image */
+.header-img-left {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%); /* Centers vertically */
+    height: 90px;
+    width: auto;
+    z-index: 1;
+}
+
+/* Position Right Image */
+.header-img-right {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%; /* Makes the plane image fill the height of the banner */
+    width: auto;
+    z-index: 1;
+}
+
+/* Mobile Responsive: Hide images or shrink text if screen is too small */
+@media (max-width: 600px) {
+    .header-img-left, .header-img-right {
+        height: 60px;
+    }
+    .banner-title {
+        font-size: 1.2rem;
+    }
+}
+
+.sale-badge {
+    display: inline-block;
+    border: 2px dashed white;
+    padding: 5px 15px;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+}
+
+/* Destinations */
+.main-content { padding: 40px; }
+
+.destinations-container {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.dest-group { flex: 1; }
+
+h2 {
+    color: #4fc3f7;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.image-row {
+    display: flex;
+    gap: 10px;
+}
+
+.card {
+    flex: 1;
+    height: 110px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
+}
+
+/* 3-Column Grid for Links */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 40px;
+}
+
+.info-item h3 {
+    color: #4fc3f7;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.info-item p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #666;
+}
+
+/* Footer Button */
+.footer-action {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.home-btn {
+    background-color: #4fc3f7;
+    color: white;
+    border: none;
+    padding: 12px 60px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.home-btn:hover {
+    background-color: #29b6f6;
+}
+
+
+@media (max-width: 768px) {
+    .destinations-container, .info-grid {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+    }
+}

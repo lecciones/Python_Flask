@@ -1,0 +1,103 @@
+/* General Page Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f8ff; /* Light blue background */
+    margin: 0;
+    color: #333;
+}
+
+/* Card Container */
+.checkin-wrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+}
+
+.checkin-card {
+    background-color: #e6f5ff; /* Matches the card tint */
+    width: 100%;
+    max-width: 550px;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Typography */
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.subtitle {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 30px;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #fff;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+input::placeholder {
+    color: #bbb;
+}
+
+/* Buttons */
+.btn-primary {
+    width: 100%;
+    background-color: #4dbbee; /* Sky blue */
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #3ca9db;
+}
+
+.separator {
+    text-align: center;
+    margin: 15px 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-secondary {
+    width: 100%;
+    background-color: white;
+    color: #4dbbee;
+    border: 1px solid #4dbbee;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-secondary:hover {
+    background-color: #f0faff;
+}

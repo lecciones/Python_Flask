@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+</head>
+<body>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='check_in.css') }}">
+</head>
+<body>
+
+   <body>
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="https://via.placeholder.com/120x40?text=AeroTicket" alt="Logo"> 
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#">Book</a>
+                <a href="#">Manage</a>
+                <a href="#">Travel Info</a>
+                <a href="#">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="checkin-wrapper">
+        <div class="checkin-card">
+            <h1>Check-in</h1>
+            <p class="subtitle">Type in your details to check in for your flight</p>
+
+            <form class="checkin-form">
+                <div class="form-group">
+                    <label for="booking-ref">Booking Reference Number</label>
+                    <input type="text" id="booking-ref" placeholder="e.g 1AB234C or 012345678">
+                </div>
+
+                <div class="form-group">
+                    <label for="last-name">Last name or email address</label>
+                    <input type="text" id="last-name" placeholder="Enter last name or email address">
+                </div>
+
+                <button type="submit" class="btn-primary">Continue as guest</button>
+                
+                <div class="separator">or</div>
+
+                <button type="button" class="btn-secondary">Continue as AeroTicket member</button>
+            </form>
+        </div>
+    </main>
+</body>
+</body>
+</html>

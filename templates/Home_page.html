@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTicket - Explore the World</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+</head>
+<body>
+   <header class = "main-header">
+    <nav>
+        
+        <div class="logo">
+          <img src="{{ url_for('static', filename='images/logo.png') }}">
+        </div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Flight</a>
+            <a href="#">Check-in</a>
+            <a href="#">About</a>
+        </div>
+    </nav>
+</header>
+<div class="social-sidebar">
+    <a href="#"><img src="static/images/instagram.png"></a>
+    <a href="#"><img src="static/images/facebook.png"></a>
+    <a href="#"><img src="static/images/email.png"></a>
+</div>
+
+    <section class="hero-section">
+        <div class="content">
+            <h1><span>EXPLORE</span> THE WORLD</h1>
+            
+            <div class="search-box">
+                <div class="input-group">
+                    <input type="text" placeholder="AIRPORT">
+                </div>
+                <div class="input-group">
+                    <input type="text" placeholder="DD/MM/YYYY">
+                    <i class="far fa-calendar-alt"></i>
+                </div>
+                <div class="input-group">
+                    <input type="text" placeholder="1 PASSENGER">
+                    <i class="fas fa-search"></i>
+                </div>
+                <button class="register-btn">Register</button>
+            </div>
+        </div>
+
+        <div class="plane-img">
+           <img src="{{ url_for('static', filename='images/Airplane.png') }}">
+        </div>
+
+        <div class="slider-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </section>
+    <footer class="footer-design">
+    <div class="footer-item">
+        <a href="#">Round-Trip</a>
+    </div>
+    <div class="footer-item">
+        <a href="#">Economy</a>
+    </div>
+    <div class="footer-item">
+        <button class="promo-btn">Promo Code</button>
+    </div>
+    <div class="footer-item checkbox-group">
+        <input type="checkbox" id="aero-only">
+        <label for="aero-only">AeroTicket Flights Only</label>
+    </div>
+</footer>
+
+<script>
+    window.addEventListener('scroll', function() {
+    const header = document.querySelector('main-header');
+    if (window.scrollY > 200){
+    } else {
+        header.classList.remove('scrolled');
+    }
+    });
+</script>
+</body>
+</html>
