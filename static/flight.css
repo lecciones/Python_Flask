@@ -1,0 +1,256 @@
+:root {
+    --brand-blue: #70c6f5;
+    --text-main: #4a4a4a;
+    --text-muted: #888;
+    --bg-card: #f9fdff; 
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: #ffffff;
+    margin: 0;
+    color: var(--text-main);
+}
+
+
+
+.main-header {
+    background-color: #ffffff;
+    padding: 5px 0; 
+    height: 90px;   
+    display: flex;
+    overflow: visible;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    margin-bottom: 0; 
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+  
+    white-space: nowrap; 
+}
+
+
+.nav-links a:nth-child(3) {
+    padding: 0 5px; 
+}
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 25px;
+    flex: 1;
+}
+
+.login-link {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 850px;
+    margin: 40px auto;
+}
+
+.section-title {
+    text-align: center;
+    font-weight: 300;
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+
+
+
+.flight-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    background-color: #E7F7FF;
+    position: relative;
+    overflow: hidden;
+}
+
+.badge {
+    background-color: var(--brand-blue);
+    color: white;
+    padding: 1px 10px;
+    font-size: 1.3rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 10px 10px;
+    font-weight: 300;
+}
+
+.card-body {
+    display: flex;
+    padding: 40px 30px 15px 30px;
+    align-items: center;
+    background-color: #E7F7FF;
+}
+
+
+
+.airline-logo {
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -15px;
+    margin-right: 25px;
+}
+
+
+.airline-logo img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+
+}
+
+
+.flight-info {
+    display: flex;
+    align-items: center;
+    flex: 3;
+}
+
+.time-block .time {
+    font-size: 1.8rem;
+    display: block;
+}
+
+.time-block .city {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.duration-line {
+    flex-grow: 1;
+    margin: 0 20px;
+    text-align: center;
+}
+
+.line {
+    display: block;
+    border-bottom: 1px dashed #ccc;
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.details-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+
+.price-section {
+    flex: 1;
+    text-align: right;
+    padding-left: 30px;
+}
+
+.price-container {
+    margin-bottom: 2px;
+}
+
+.currency { font-size: 0.8rem; }
+.amount { font-size: 1.8rem; font-weight: 400; }
+
+.per-guest {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+
+.select-btn {
+    background-color: var(--brand-blue);
+    color: white;
+    border: none;
+    padding: 4px 45px;
+    border-radius: 25px;
+    font-size: 1.7rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-weight: 400;
+}
+
+.select-btn:hover { opacity: 0.8; }
+
+.view-details {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-main);
+    margin-top: 10px;
+    text-decoration: none;
+}
+
+
+.card-footer {
+    display: flex;
+    justify-content: flex-start;
+    gap: 220px;
+    margin-left: 30px;
+    width: fit-content;
+    padding: 10px 0px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    background-color: #E7F7FF;
+    border-top: 0.5px solid rgba(0, 0, 0, 0.3);
+    margin-top: 0;
+}

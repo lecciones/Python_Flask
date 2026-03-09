@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AeroTicket - Boarding Pass</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='ticket.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="ticket">
+            <div class="stub">
+                <div class="top-blue">
+                    <span class="plane-icon">✈</span>
+                    <span class="seat-num">{{ ticket.seat }}</span>
+                </div>
+                <div class="stub-info">
+                    <p>FLIGHT: <br><strong>{{ ticket.flight }}</strong></p>
+                    <p>GATE: <br><strong>{{ ticket.gate }}</strong></p>
+                    <p>{{ ticket.date }}<br>{{ ticket.time }}</p>
+                    <div class="barcode-small">*{{ ticket.flight }}*</div>
+                    <p class="route-small">{{ ticket.origin }} ✈ {{ ticket.destination }}</p>
+                </div>
+            </div>
+
+            <div class="main-body">
+                <div class="top-blue-wide">
+                    <span class="plane-icon-wide">✈</span>
+                    <span class="title">BOARDING PASS</span>
+                </div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col">
+                            <label>NAME:</label>
+                            <div class="val">{{ ticket.name }}</div>
+                        </div>
+                        <div class="col">
+                            <label>FLIGHT:</label>
+                            <div class="val">{{ ticket.flight }}</div>
+                        </div>
+                        <div class="col">
+                            <label>GATE:</label>
+                            <div class="val">{{ ticket.gate }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row middle">
+                        <div class="route-display">
+                            <span class="city">{{ ticket.origin }}</span>
+                            <span class="plane-mid">✈</span>
+                            <span class="city">{{ ticket.destination }}</span>
+                        </div>
+                        <div class="barcode-large">*{{ ticket.flight }}{{ ticket.seat }}*</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <label>DATE:</label>
+                            <div class="val">{{ ticket.date }}</div>
+                        </div>
+                        <div class="col">
+                            <label>TIME:</label>
+                            <div class="val">{{ ticket.time }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="seat-box">
+                                <span class="seat-val">{{ ticket.seat }}</span>
+                                <label>SEAT</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Enjoy your flight at <span class="brand-text">Aero<span class="blue-text">Ticket</span></span></p>
+            <button class="home-btn">Home</button>
+        </div>
+    </div>
+
+</body>
+</html>

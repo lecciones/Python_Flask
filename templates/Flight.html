@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTicket - Flight Search</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='flight.css') }}">
+</head>
+<body>
+
+<header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#">Book</a>
+                <a href="#">Manage</a>
+                <a href="#">Travel Info</a>
+                <a href="#">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+   <main class="container">
+    
+    {% if flights|length > 0 %}
+        {% set first_flight = flights[0] %}
+        <div class="flight-card">
+            <div class="badge">{{ first_flight.class }}</div>
+            <div class="card-body">
+                <div class="flight-info">
+                    <div class="airline-logo">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket">
+</div>
+                    <div class="time-block">
+                        <span class="time">{{ first_flight.departure }}</span>
+                        <span class="city">MNL</span>
+                    </div>
+                    <div class="duration-line">
+                        <span class="line"></span>
+                        <div class="details-row">
+                            <span>1h 25m</span>
+                            <span>Non-stop</span>
+                        </div>
+                    </div>
+                    <div class="time-block">
+                        <span class="time">{{ first_flight.arrival }}</span>
+                        <span class="city">CEBU</span>
+                    </div>
+                </div>
+                <div class="price-section">
+                    <div class="price-container">
+                        <span class="currency">PHP</span>
+                        <span class="amount">{{ first_flight.price }}</span>
+                    </div>
+                    <span class="per-guest">/ 1 guest*</span>
+                    <button class="select-btn">Select</button>
+                    <a href="#" class="view-details">View Details ↓</a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span>7 kg per guest</span>
+                <span>Add Ons</span>
+                <span>58kg CO₂</span>
+            </div>
+        </div>
+    {% endif %}
+
+    <h2 class="section-title">Other Departing Flights</h2>
+
+    {% for flight in flights[1:] %}
+    <div class="flight-card">
+        <div class="badge">{{ flight.class }}</div>
+        
+        <div class="card-body">
+            <div class="flight-info">
+                            <div class="airline-logo">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket">
+</div>
+                <div class="time-block">
+                    <span class="time">{{ flight.departure }}</span>
+                    <span class="city">MNL</span>
+                </div>
+                <div class="duration-line">
+                    <span class="line"></span>
+                    <div class="details-row">
+                        <span>1h 25m</span>
+                        <span>Non-stop</span>
+                    </div>
+                </div>
+                <div class="time-block">
+                    <span class="time">{{ flight.arrival }}</span>
+                    <span class="city">CEBU</span>
+                </div>
+            </div>
+
+            <div class="price-section">
+                <div class="price-container">
+                    <span class="currency">PHP</span>
+                    <span class="amount">{{ flight.price }}</span>
+                </div>
+                <span class="per-guest">/ 1 guest*</span>
+                <button class="select-btn">Select</button>
+                <a href="#" class="view-details">View Details ↓</a>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <span>7 kg per guest</span>
+            <span>Add Ons</span>
+            <span>58kg CO₂</span>
+        </div>
+    </div>
+    {% endfor %}
+</main>
+
+</body>
+</html>
