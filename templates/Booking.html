@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AeroTicket | Flight Booking</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+</head>
+
+<body>
+
+   <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
+            </div>
+            
+            <nav class="nav-links">
+                <a href="{{ url_for('booking')}}">Book</a>
+                <a href="{{ url_for('manage')}}">Manage</a>
+                <a href="{{ url_for('travel')}}">Travel Info</a>
+                <a href="{{ url_for('explore')}}">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+
+
+<section class="booking-wrapper">
+
+    <div class="booking-card">
+
+        <h1>Book Your Flight</h1>
+        <p>Plan your journey anywhere in the world</p>
+
+        <form class="booking-form">
+
+            <div class="input-group">
+                <label>Departure</label>
+                <input type="text" placeholder="Enter departure airport">
+            </div>
+
+            <div class="input-group">
+                <label>Destination</label>
+                <input type="text" placeholder="Enter destination airport">
+            </div>
+
+            <div class="row">
+
+                <div class="input-group">
+                    <label>Departure Date</label>
+                    <input type="date">
+                </div>
+
+                <div class="input-group">
+                    <label>Return Date</label>
+                    <input type="date">
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="input-group">
+                    <label>Passengers</label>
+                    <select>
+                        <option>1 Passenger</option>
+                        <option>2 Passengers</option>
+                        <option>3 Passengers</option>
+                        <option>4 Passengers</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Class</label>
+                    <select>
+                        <option>Economy</option>
+                        <option>Business</option>
+                        <option>First Class</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <button type="submit" class="book-btn">Search Flights</button>
+
+        </form>
+
+    </div>
+
+</section>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family: Arial, Helvetica, sans-serif;
+}
+
+
+
+body{
+min-height:100vh;
+background: linear-gradient(135deg,#6fb6d9,#9cd0ea,#ffffff);
+}
+
+
+
+
+.main-header {
+    background-color: #ffffff;
+    padding: 5px 0; 
+    height: 90px;   
+    display: flex;
+    overflow: visible;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    margin-bottom: 0; 
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+  
+    white-space: nowrap; 
+}
+
+
+.nav-links a:nth-child(3) {
+    padding: 0 5px; 
+}
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 25px;
+    flex: 1;
+}
+
+.login-link {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+
+/* BOOKING AREA */
+
+.booking-wrapper{
+display:flex;
+justify-content:center;
+align-items:center;
+height:85vh;
+}
+
+/* CARD */
+
+.booking-card{
+background:white;
+padding:40px;
+width:600px;
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+text-align:center;
+}
+
+.booking-card h1{
+color:#4fa2c7;
+margin-bottom:5px;
+}
+
+.booking-card p{
+color:#777;
+margin-bottom:25px;
+}
+
+
+/* FORM */
+
+.booking-form{
+display:flex;
+flex-direction:column;
+gap:18px;
+}
+
+.input-group{
+display:flex;
+flex-direction:column;
+text-align:left;
+}
+
+.input-group label{
+margin-bottom:5px;
+font-size:14px;
+color:#444;
+}
+
+.input-group input,
+.input-group select{
+padding:12px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+
+/* TWO COLUMN ROW */
+
+.row{
+display:flex;
+gap:15px;
+}
+
+
+/* BUTTON */
+
+.book-btn{
+margin-top:10px;
+padding:14px;
+border:none;
+border-radius:8px;
+background:#5daed2;
+color:white;
+font-size:16px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.book-btn:hover{
+background:#4fa2c7;
+}

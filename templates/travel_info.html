@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AeroTicket | Travel Information</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='travel.css') }}">
+</head>
+
+<body>
+
+  <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
+            </div>
+            
+             <nav class="nav-links">
+                <a href="{{ url_for('booking')}}">Book</a>
+                <a href="{{ url_for('manage')}}">Manage</a>
+                <a href="{{ url_for('travel')}}">Travel Info</a>
+                <a href="{{ url_for('explore')}}">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+
+<section class="hero">
+
+    <div class="hero-text">
+        <h1>Travel Information</h1>
+        <p>Everything you need to know before your flight</p>
+    </div>
+
+</section>
+
+
+<section class="info-section">
+
+    <div class="info-card">
+        <h2>🛄 Baggage Policy</h2>
+        <p>
+        Each passenger is allowed one carry-on bag and one personal item.
+        Checked baggage allowances depend on ticket class and destination.
+        Make sure your baggage meets airline size and weight limits.
+        </p>
+    </div>
+
+
+    <div class="info-card">
+        <h2>🛂 Travel Documents</h2>
+        <p>
+        Ensure you bring a valid passport, visa (if required), and boarding pass.
+        Some destinations may require additional travel permits or vaccinations.
+        Always check government travel guidelines before departure.
+        </p>
+    </div>
+
+
+    <div class="info-card">
+        <h2>⏰ Airport Arrival Time</h2>
+        <p>
+        Arrive at least 2 hours before domestic flights and 3 hours before
+        international flights. This allows enough time for check-in,
+        security screening, and boarding procedures.
+        </p>
+    </div>
+
+
+    <div class="info-card">
+        <h2>💺 Seat Selection</h2>
+        <p>
+        Passengers may select their preferred seat during booking or
+        through the manage booking page. Additional fees may apply
+        depending on seat location and travel class.
+        </p>
+    </div>
+
+</section>
+
+
+<section class="tips">
+
+    <h2>Travel Tips</h2>
+
+    <div class="tips-grid">
+
+        <div class="tip">
+            <h3>Check Weather</h3>
+            <p>Review the weather conditions of your destination before traveling.</p>
+        </div>
+
+        <div class="tip">
+            <h3>Pack Smart</h3>
+            <p>Pack light and keep important documents in your carry-on bag.</p>
+        </div>
+
+        <div class="tip">
+            <h3>Stay Updated</h3>
+            <p>Monitor flight updates for possible delays or gate changes.</p>
+        </div>
+
+    </div>
+
+</section>
+
+<footer>
+
+    <p>© 2026 AeroTicket Airlines | Travel Safe</p>
+
+</footer>
+
+</body>
+</html>

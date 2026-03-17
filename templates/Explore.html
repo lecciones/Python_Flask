@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AeroTicket | Explore Destinations</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename ='explore.css')}}">
+</head>
+
+<body>
+
+   <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
+            </div>
+            
+           <nav class="nav-links">
+                <a href="{{ url_for('booking')}}">Book</a>
+                <a href="{{ url_for('manage')}}">Manage</a>
+                <a href="{{ url_for('travel')}}">Travel Info</a>
+                <a href="{{ url_for('explore')}}">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+
+<section class="explore-header">
+
+    <h1>Explore the World</h1>
+    <p>Discover amazing destinations and plan your next journey</p>
+
+</section>
+
+
+<section class="destinations">
+
+    <div class="destination-card">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e">
+        <div class="card-info">
+            <h3>Boracay</h3>
+            <p>Famous for its white sand beaches and crystal clear water.</p>
+            <button>View Flights</button>
+        </div>
+    </div>
+
+    <div class="destination-card">
+        <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad">
+        <div class="card-info">
+            <h3>Tokyo</h3>
+            <p>Experience modern technology mixed with rich culture.</p>
+            <button>View Flights</button>
+        </div>
+    </div>
+
+    <div class="destination-card">
+        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a">
+        <div class="card-info">
+            <h3>Paris</h3>
+            <p>The city of love with iconic landmarks and cuisine.</p>
+            <button>View Flights</button>
+        </div>
+    </div>
+
+    <div class="destination-card">
+        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470">
+        <div class="card-info">
+            <h3>Switzerland</h3>
+            <p>Explore breathtaking mountains and scenic landscapes.</p>
+            <button>View Flights</button>
+        </div>
+    </div>
+
+</section>
+
+
+<footer>
+
+<p>© 2026 AeroTicket Airlines | Explore New Horizons</p>
+
+</footer>
+
+</body>
+</html>

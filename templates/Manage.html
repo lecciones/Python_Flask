@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AeroTicket | Manage Booking</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='manage.css') }}">
+</head>
+
+<body>
+  <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
+            </div>
+            
+           <nav class="nav-links">
+                <a href="{{ url_for('booking')}}">Book</a>
+                <a href="{{ url_for('manage')}}">Manage</a>
+                <a href="{{ url_for('travel')}}">Travel Info</a>
+                <a href="{{ url_for('explore')}}">Explore</a>
+                <a href="#">About</a>
+            </nav>
+
+            <div class="header-right">
+                <a href="#" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+    </header>
+
+
+<section class="manage-container">
+
+    <div class="manage-header">
+        <h1>Manage Your Booking</h1>
+        <p>View, update, or cancel your reservation</p>
+    </div>
+
+
+    <div class="manage-box">
+
+        <form class="manage-form">
+
+            <div class="form-group">
+                <label>Booking Reference</label>
+                <input type="text" placeholder="Enter booking reference">
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="Enter your email">
+            </div>
+
+            <button class="search-btn">Find Booking</button>
+
+        </form>
+
+    </div>
+
+
+    <div class="booking-results">
+
+        <h2>Your Booking</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Passenger</th>
+                    <th>Flight</th>
+                    <th>Date</th>
+                    <th>Seat</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>John Doe</td>
+                    <td>AT102</td>
+                    <td>June 14</td>
+                    <td>12A</td>
+                    <td>Confirmed</td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="cancel-btn">Cancel</button>
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+</body>
+</html>

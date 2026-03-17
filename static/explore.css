@@ -1,0 +1,178 @@
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+background:#f4fbff;
+}
+
+/* NAVBAR */
+
+
+.main-header {
+    background-color: #ffffff;
+    padding: 5px 0; 
+    height: 90px;   
+    display: flex;
+    overflow: visible;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    margin-bottom: 0; 
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+  
+    white-space: nowrap; 
+}
+
+
+.nav-links a:nth-child(3) {
+    padding: 0 5px; 
+}
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 25px;
+    flex: 1;
+}
+
+.login-link {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.explore-header{
+text-align:center;
+padding:60px 20px;
+background:linear-gradient(135deg,#6fb6d9,#4fa2c7);
+color:white;
+}
+
+.explore-header h1{
+font-size:40px;
+margin-bottom:10px;
+}
+
+
+/* DESTINATIONS */
+
+.destinations{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:30px;
+padding:60px;
+}
+
+/* CARD */
+
+.destination-card{
+background:white;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+transition:0.3s;
+}
+
+.destination-card:hover{
+transform:translateY(-8px);
+}
+
+.destination-card img{
+width:100%;
+height:180px;
+object-fit:cover;
+}
+
+.card-info{
+padding:20px;
+text-align:center;
+}
+
+.card-info h3{
+color:#4fa2c7;
+margin-bottom:10px;
+}
+
+.card-info p{
+font-size:14px;
+color:#555;
+margin-bottom:15px;
+}
+
+.card-info button{
+background:#5daed2;
+border:none;
+padding:10px 18px;
+color:white;
+border-radius:6px;
+cursor:pointer;
+}
+
+.card-info button:hover{
+background:#4fa2c7;
+}
+
+
+/* FOOTER */
+
+footer{
+text-align:center;
+padding:20px;
+background:#4fa2c7;
+color:white;
+}
