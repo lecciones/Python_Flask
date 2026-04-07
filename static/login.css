@@ -13,55 +13,86 @@ body {
 }
 
 
+/* ===== SAME HEADER AS FLIGHT PAGE ===== */
+
 .main-header {
-    width: 100%;
-    background-color: #fff;
-    border-bottom: 1px solid #e0e0e0;
-    padding: 15px 0;
-    position: fixed;
+    background-color: #ffffff;
+    padding: 5px 0; 
+    height: 90px;   
+    display: flex;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
     top: 0;
-    left: 0;
-    z-index: 1000; 
+    z-index: 1000;
 }
 
 .header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 0 20px;
+}
+
+/* LOGO (same size as flight page) */
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+/* NAV LINKS */
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    align-items: center;
+    justify-content: center;
+    flex: 1;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #5bc0de; 
-    margin: 0 15px;
-    font-size: 15px;
-    font-weight: 500;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    white-space: nowrap;
 }
 
+/* RIGHT SIDE */
 .header-right {
     display: flex;
-    align-items: center;
-    color: #5bc0de;
+    justify-content: flex-end;
+    gap: 25px;
+    flex: 1;
 }
 
 .login-link {
     text-decoration: none;
-    color: #5bc0de;
-    font-weight: 500;
-    margin-right: 20px;
+    color: #4dbbee;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
     cursor: pointer;
-    font-size: 18px;
 }
-
 
 .modal-overlay {
     position: fixed;
@@ -165,3 +196,8 @@ input {
 .fa-google { color: #DB4437; }
 .fa-apple { color: #000; }
 .fa-weixin { color: #7BB32E; }
+
+.logo img {
+    height: 40px;
+    width: auto;
+}

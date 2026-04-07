@@ -9,31 +9,39 @@
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                <img src="https://via.placeholder.com/120x40?text=AeroTicket" alt="Logo"> </div>
-            
-            <nav class="nav-links">
-                <a href="#">Book</a>
-                <a href="#">Manage</a>
-                <a href="#">Travel Info</a>
-                <a href="#">Explore</a>
-                <a href="#">About</a>
-            </nav>
+  <header class="main-header">
+    <div class="header-container">
+        
 
-            <div class="header-right">
-                <a href="#" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
-                <i class="fas fa-search search-icon"></i>
-            </div>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
         </div>
-    </header>
+        
+   
+        <nav class="nav-links">
+            <a href="{{ url_for('booking') }}">Book</a>
+            <a href="{{ url_for('manage') }}">Manage</a>
+            <a href="{{ url_for('travel') }}">Travel Info</a>
+            <a href="{{ url_for('explore') }}">Explore</a>
+            <a href="#">About</a>
+        </nav>
+
+      
+        <div class="header-right">
+            <a href="{{ url_for('login') }}" class="login-link">
+                <i class="fas fa-user-circle"></i> Log in
+            </a>
+            <i class="fas fa-search search-icon"></i>
+        </div>
+
+    </div>
+</header>
 
     <div class="modal-overlay">
         <div class="login-card">
             <span class="close-btn">&times;</span>
             <div class="card-logo-container">
-                <img src="https://via.placeholder.com/80x40?text=Logo" alt="Card Logo">
+               <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
             </div>
             <h1>Hello!</h1>
             

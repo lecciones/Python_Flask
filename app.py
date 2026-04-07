@@ -16,6 +16,7 @@ def home():
 def login():
     return render_template("login_form.html")
 
+
 @app.route("/flight")
 def flight():
     flights = [
