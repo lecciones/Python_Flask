@@ -9,15 +9,13 @@
 </head>
 <body>
 
-  <header class="main-header">
+<header class="main-header">
     <div class="header-container">
-        
 
         <div class="logo">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
         </div>
-        
-   
+
         <nav class="nav-links">
             <a href="{{ url_for('booking') }}">Book</a>
             <a href="{{ url_for('manage') }}">Manage</a>
@@ -26,7 +24,6 @@
             <a href="#">About</a>
         </nav>
 
-      
         <div class="header-right">
             <a href="{{ url_for('login') }}" class="login-link">
                 <i class="fas fa-user-circle"></i> Log in
@@ -37,38 +34,81 @@
     </div>
 </header>
 
-    <div class="modal-overlay">
-        <div class="login-card">
-            <span class="close-btn">&times;</span>
-            <div class="card-logo-container">
-               <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+<div class="modal-overlay">
+    <div class="login-card">
+        <span class="close-btn">&times;</span>
+
+        <div class="card-logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+        </div>
+
+        <h1>Hello!</h1>
+
+        <p class="signup-text">
+            Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a>
+        </p>
+
+        <form action="/login" method="POST">
+            <div class="input-group">
+                <input type="email" name="email" placeholder="Email" required>
             </div>
-            <h1>Hello!</h1>
-            
-            <p class="signup-text">Don't have an account? <a href="#">Sign up</a></p>
-            
-            <form action="/login" method="POST">
-                <div class="input-group">
-                    <input type="email" name="email" placeholder="Email" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" name="password" placeholder="Password" required>
-                    <i class="far fa-eye eye-icon"></i>
-                </div>
-                <a href="#" class="forgot-link">Forgot password</a>
-                <button type="submit" class="login-btn">Login</button>
-            </form>
-            
-            <a href="#" class="guest-link">Continue as guest</a>
-            <div class="divider">or</div>
-            
-            <div class="social-container">
-                <div class="social-item"><i class="fab fa-google"></i><span>Google</span></div>
-                <div class="social-item"><i class="fab fa-apple"></i><span>Apple</span></div>
-                <div class="social-item"><i class="fab fa-weixin"></i><span>WeChat</span></div>
+
+            <div class="input-group">
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                <i class="far fa-eye eye-icon" id="togglePassword" style="cursor: pointer;"></i>
             </div>
+
+            <a href="#" class="forgot-link">Forgot password</a>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+
+        <a href="{{ url_for('home') }}" class="guest-link">Continue as guest</a>
+        <div class="divider">or</div>
+
+        <div class="social-container">
+            <a href="{{ url_for('google_login') }}" class="social-item">
+                <i class="fab fa-google"></i>
+                <span>Google</span>
+            </a>
+
+            <a href="{{ url_for('apple_login') }}" class="social-item">
+                <i class="fab fa-apple"></i>
+                <span>Apple</span>
+            </a>
+
+            <a href="{{ url_for('wechat_login') }}" class="social-item">
+                <i class="fab fa-weixin"></i>
+                <span>WeChat</span>
+            </a>
         </div>
     </div>
+</div>
+
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+    const closeBtn = document.querySelector('.close-btn');
+    const guestLink = document.querySelector('.guest-link');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    closeBtn.addEventListener('click', function() {
+        window.location.href = "{{ url_for('home') }}";
+    });
+
+    guestLink.addEventListener('click', function(e) {
+        const confirmGuest = confirm("Would you like to continue as a guest? Some features may be limited.");
+        if (!confirmGuest) {
+            e.preventDefault();
+        }
+    });
+</script>
 
 </body>
 </html>

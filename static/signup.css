@@ -1,3 +1,4 @@
+/* --- Global Reset & Layout --- */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -11,19 +12,17 @@ body {
     overflow: hidden; 
 }
 
-/* ===== HEADER ===== */
-
+/* --- Header Styling --- */
 .main-header {
     background-color: #ffffff;
-    padding: 5px 0; 
     height: 90px;   
     display: flex;
-    overflow: visible;
     align-items: center; 
-    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 1000;
+    overflow: visible; /* Allows logo to hang over the bottom edge */
 }
 
 .header-container {
@@ -36,51 +35,38 @@ body {
     padding: 0 20px;
 }
 
-/* LOGO */
-.logo {
-    display: flex;
-    justify-content: flex-start;
-    flex: 1;
-}
-
 .logo img {
-    height: 140px !important; 
+    height: 120px !important; /* Larger than header height */
     width: auto;
-    margin-top: -25px;   
-    margin-bottom: -25px; 
+    margin-top: 15px; /* Adjusts the "hang" depth */
     display: block;
     position: relative;
-    z-index: 5;  
+    z-index: 1001;
 }
 
-/* NAV LINKS */
 .nav-links {
     display: flex;
-    gap: 35px; 
-    align-items: center;
+    gap: 35px;
+    flex: 2;
     justify-content: center;
-    flex: 1;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #4dbbee;
+    color: #4dbbee; /* AeroTicket Blue */
     font-weight: 700;
     font-size: 1.1rem;
-    line-height: 1;
-    white-space: nowrap; 
+    transition: color 0.3s ease;
 }
 
-.nav-links a:nth-child(3) {
-    padding: 0 5px; 
+.nav-links a:hover {
+    color: #38a1d1;
 }
 
-/* RIGHT SIDE */
 .header-right {
+    flex: 1;
     display: flex;
     justify-content: flex-end;
-    gap: 25px;
-    flex: 1;
 }
 
 .login-link {
@@ -92,13 +78,7 @@ body {
     gap: 8px;
 }
 
-.search-icon {
-    color: #4dbbee;
-    font-size: 1.1rem;
-    cursor: pointer;
-}
-
-/* MODAL */
+/* --- Modal & Card Styling --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -134,94 +114,81 @@ body {
 }
 
 .card-logo-container img {
-    height: 50px; 
-    width: auto;
+    height: 50px;
     margin: 0 auto 10px auto;
     display: block;
 }
 
-h1 { 
-    font-weight: 400; 
-    margin-bottom: 20px; 
-    color: #333; 
-}
+h1 { font-weight: 400; margin-bottom: 20px; color: #333; }
 
-.signup-text {
-    text-align: left;
-    font-size: 13px;
-    margin-bottom: 20px;
+.signup-text { 
+    text-align: center; 
+    font-size: 13px; 
+    margin-bottom: 20px; 
     color: #666;
 }
 
-.signup-text a {
-    color: #4dbbee;
-    text-decoration: none;
-    font-weight: 700;
-    transition: color 0.3s ease;
+.signup-text a { 
+    color: #5bc0de; 
+    text-decoration: none; 
+    font-weight: 700; 
 }
 
-.signup-text a:hover {
-    color: #38a1d1;
-    text-decoration: underline;
-}
-
-.input-group { 
-    margin-bottom: 15px; 
-    position: relative; 
+/* --- Input Groups & Eye Icon Fix --- */
+.input-group {
+    margin-bottom: 15px;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 input {
     width: 100%;
     padding: 12px 15px;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
     background-color: #fafafa;
     outline: none;
-}
-
-.input-group {
-    position: relative;
-    display: flex;
-    align-items: center;
+    font-size: 14px;
 }
 
 .eye-icon {
     position: absolute;
     right: 15px;
+    top: 50%; /* Vertical centering */
+    transform: translateY(-50%); /* Corrects alignment */
+    cursor: pointer;
     color: #999;
-    transition: color 0.3s ease;
-}
-
-.eye-icon:hover {
-    color: #5bc0de;
-}
-
-.forgot-link, .guest-link {
-    display: block;
-    color: #5bc0de;
-    text-decoration: none;
-    font-size: 14px;
-    margin: 10px 0;
+    z-index: 5;
+    font-size: 1.1rem;
 }
 
 .login-btn {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     background-color: #5bc0de;
     color: white;
     border: none;
     border-radius: 25px;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
     margin-top: 10px;
+    transition: background 0.3s ease;
 }
 
+.login-btn:hover {
+    background-color: #46b0cf;
+}
+
+/* --- Divider Styling --- */
 .divider {
     margin: 25px 0;
     display: flex;
     align-items: center;
     color: #bbb;
     font-size: 12px;
+    text-transform: lowercase;
 }
 
 .divider::before, .divider::after {
@@ -232,49 +199,56 @@ input {
     margin: 0 10px;
 }
 
+/* --- Social Icons (Strictly No Box Lines) --- */
 .social-container { 
     display: flex; 
-    justify-content: space-around; 
+    justify-content: space-between;
+    padding: 0 10px;
+    width: 100%;
 }
 
-.social-container a {
-    text-decoration: none;
-    color: inherit;
+.social-item {
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 8px;
+    flex: 1;
+    border: none !important;
+    background: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+    -webkit-appearance: none;
 }
 
-.social-item { 
-    cursor: pointer; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 5px; 
+.social-item span { 
+    font-size: 12px; 
+    color: #777; 
+}
+
+.social-item i { 
+    font-size: 32px; 
 }
 
 .social-item:hover {
-    transform: translateY(-3px);
-    transition: transform 0.2s ease;
     opacity: 0.8;
 }
 
-.social-item i { font-size: 30px; }
-.social-item span { font-size: 12px; color: #777; }
-
-.fa-google {
-    background: conic-gradient(
-        from -45deg,
-        #ea4335 110deg,
-        #4285f4 110deg 180deg,
-        #34a853 180deg 270deg,
-        #fbbc05 270deg
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-    font-size: 32px;
-}
-
+/* --- Brand Colors --- */
 .fa-apple { color: #000; }
 .fa-weixin { color: #7BB32E; }
+
+/* Precise Multi-Color Google Icon */
+.fa-google {
+    background: conic-gradient(
+        from 45deg,
+        #4285f4 0deg 100deg,   /* Blue (Arm & Bottom Right) */
+        #34a853 100deg 180deg, /* Green (Bottom Arch) */
+        #fbbc05 180deg 230deg, /* Yellow (Mid Left) */
+        #ea4335 230deg 360deg  /* Red (Top Arch) */
+    ) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    display: inline-block;
+}

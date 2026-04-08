@@ -323,18 +323,36 @@ position: static;
     z-index: 10;
     flex-shrink: 0;
 }
-
 .footer-item a {
+    display: inline-block; 
     color: white;
     text-decoration: none;
     font-weight: 700; 
     font-size: 22px; 
     text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+   
+    padding: 10px 20px; 
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
+.footer-item a:hover {
+    background-color: white;
+    color: #73D0FF;
+    padding: 10px 20px; 
+    backdrop-filter: blur(5px); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
+}
+
+.footer-item a:active {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: scale(0.95); 
+}
 .promo-btn {
     background-color: transparent; 
-    color: white;                
+    color:#e0e0e0;                
     border: none;
     padding: 12px 35px; 
     border-radius: 8px;
@@ -345,8 +363,20 @@ position: static;
     transition: all 0.3s ease;
 }
 
+.promo-btn:hover{
+    background-color: white;
+    color: #73D0FF;
+    padding: 10px 20px; 
+    backdrop-filter: blur(5px); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
+}
 
-
+.promo-btn:active {
+      background: rgba(255, 255, 255, 0.3);
+    color:#e0e0e0;
+    transform: scale(0.95); 
+}
 
 .checkbox-group {
     display: flex;
