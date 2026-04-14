@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTicket - Seat Selection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='seat.css') }}" />
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
+        </div>
+        
+        <nav class="nav-links">
+            <a href="{{ url_for('booking')}}">Book</a>
+            <a href="{{ url_for('manage')}}">Manage</a>
+            <a href="{{ url_for('travel')}}">Travel Info</a>
+            <a href="{{ url_for('explore')}}">Explore</a>
+            <a href="{{ url_for('about')}}">About</a>
+        </nav>
+
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('logout') }}" class="login-link">
+                    <i class="fas fa-sign-out-alt"></i> Log out
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+            {% endif %}
+            <i class="fas fa-search search-icon"></i>
+        </div>
+    </header>
+
+    <main class="content">
+        <section class="search-section">
+            <div class="search-bar-wrapper">
+                <input type="text" id="seatSearch" placeholder="search seat (e.g. 5A)" class="slim-search">
+                <div class="search-inside">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </section>
+
+        <div class="booking-layout">
+            <div class="seat-map-container">
+                <div class="seat-map" id="seatMap">
+                    </div>
+            </div>
+
+            <div class="selection-sidebar">
+                <p id="selectionText">Please select a seat</p>
+                <div class="seat-card" id="seatNumber" onclick="confirmBooking()" style="cursor: pointer;">--</div>
+            </div>
+        </div>
+    </main>
+
+   <script>
+    const seatMap = document.getElementById('seatMap');
+    const seatNumberDisplay = document.getElementById('seatNumber');
+    const selectionText = document.getElementById('selectionText');
+    const seatSearch = document.getElementById('seatSearch');
+
+    const seatSvgContent = `
+    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <rect x="34" y="2" width="32" height="14" rx="5" fill="currentColor"/>
+        <path d="M22,35 Q22,22 50,22 Q78,22 78,35 L78,75 Q78,85 70,85 L30,85 Q22,85 22,75 Z" fill="currentColor"/>
+        <rect x="22" y="88" width="56" height="8" rx="3" fill="currentColor"/>
+    </svg>`;
+
+    for (let i = 1; i <= 12; i++) {
+        const row = document.createElement('div');
+        row.className = 'seat-row';
+        row.innerHTML = `
+            <div class="seat-group">${generateSeats(i, ['A', 'B', 'C'])}</div>
+            <div class="seat-group">${generateSeats(i, ['D', 'E'])}</div>
+        `;
+        seatMap.appendChild(row);
+    }
+
+    function generateSeats(rowNum, labels) {
+        return labels.map(label => {
+            const seatId = `${rowNum}${label}`;
+            return `
+                <div class="seat" data-id="${seatId}" onclick="updateSelection('${seatId}', this)">
+                    ${seatSvgContent}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateSelection(id, element) {
+        seatNumberDisplay.innerText = id;
+        selectionText.innerText = `You selected ${id} seat`;
+        
+        document.querySelectorAll('.seat').forEach(s => {
+            s.classList.remove('selected');
+            s.style.opacity = "1"; 
+        });
+        
+        element.classList.add('selected');
+    }
+
+    seatSearch.addEventListener('input', (e) => {
+        const query = e.target.value.toUpperCase();
+        const allSeats = document.querySelectorAll('.seat');
+        
+        allSeats.forEach(seat => {
+            const seatId = seat.getAttribute('data-id');
+            if (query === "") {
+                seat.style.opacity = "1";
+            } else if (seatId.includes(query)) {
+                seat.style.opacity = "1";
+                seat.style.transform = "scale(1.1)";
+            } else {
+                seat.style.opacity = "0.3";
+                seat.style.transform = "scale(1)";
+            }
+        });
+    });
+
+    function confirmBooking() {
+        const selectedSeat = seatNumberDisplay.innerText;
+        if (selectedSeat === "--") {
+            alert("Please select a seat first.");
+            return;
+        }
+
+        const currentParams = new URLSearchParams(window.location.search);
+        
+
+        currentParams.set('seat', selectedSeat);
+
+
+        window.location.href = "/booking?" + currentParams.toString();
+    }
+</script>
+</body>
+</html>

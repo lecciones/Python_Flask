@@ -1,102 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AeroTicket | Flight Booking</title>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroTicket | Flight Booking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+    <style>
+        /* Layout Alignment */
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1; /* Ensures equal width for side-by-side inputs */
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }
+
+        /* Input & Select Styling */
+        .input-group input, 
+        .white-panel-select {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box; /* Prevents padding from breaking width */
+        }
+
+        /* Selected Seat styling - Black Text */
+        #displaySeat {
+            background-color: #f1f9ff !important;
+            font-weight: bold !important;
+            color: #000000 !important; 
+            border: 1px solid #d1e9f5;
+        }
+
+        /* White Panel Dropdown Styling */
+        .white-panel-select {
+            background-color: #ffffff !important;
+            color: #4a4a4a !important;
+            cursor: pointer;
+            appearance: none; 
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg%20xmlns%3D"http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg"%20width%3D"292.4"%20height%3D"292.4"><path%20fill%3D"%23333"%20d%3D"M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z"%2F><%2Fsvg>');
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 12px auto;
+        }
+
+        .no-arrow {
+            background-image: none !important;
+        }
+
+        .book-btn {
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
-
-   <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
-            </div>
-            
-            <nav class="nav-links">
-                <a href="{{ url_for('booking')}}">Book</a>
-                <a href="{{ url_for('manage')}}">Manage</a>
-                <a href="{{ url_for('travel')}}">Travel Info</a>
-                <a href="{{ url_for('explore')}}">Explore</a>
-                <a href="#">About</a>
-            </nav>
-
-            <div class="header-right">
-                <a href="#" class="login-link">
-                    <i class="fas fa-user-circle"></i> Log in
-                </a>
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        </div>
-    </header>
-
-
+<header class="main-header">
+    <div class="logo">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+        </a>
+    </div>
+    <nav class="nav-links">
+        <a href="{{ url_for('booking')}}">Book</a>
+        <a href="{{ url_for('manage')}}">Manage</a>
+        <a href="{{ url_for('travel')}}">Travel Info</a>
+        <a href="{{ url_for('explore')}}">Explore</a>
+        <a href="{{ url_for('about')}}">About</a>
+    </nav>
+    <div class="header-right">
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}" class="login-link"><i class="fas fa-sign-out-alt"></i> Log out</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
+        {% endif %}
+        <i class="fas fa-search search-icon"></i>
+    </div>
+</header>
 
 <section class="booking-wrapper">
-
     <div class="booking-card">
+        <h1>Complete Your Booking</h1>
+        <p>Please enter passenger details to finalize your flight.</p>
 
-        <h1>Book Your Flight</h1>
-        <p>Plan your journey anywhere in the world</p>
-
-        <form class="booking-form">
-
+        <form class="booking-form" action="{{ url_for('payment') }}" method="POST">
             <div class="input-group">
-                <label>Departure</label>
-                <input type="text" placeholder="Enter departure airport">
-            </div>
-
-            <div class="input-group">
-                <label>Destination</label>
-                <input type="text" placeholder="Enter destination airport">
+                <label>Passenger Full Name</label>
+                <input type="text" name="passenger_name" placeholder="As shown on passport/ID" required>
             </div>
 
             <div class="row">
-
                 <div class="input-group">
-                    <label>Departure Date</label>
-                    <input type="date">
+                    <label>Departure</label>
+                    <select id="displayOrigin" name="origin" class="white-panel-select" onchange="handleSelectChange(this)">
+                        <option value="">Select Origin</option>
+                        <option value="Cebu (CEB)">Cebu (CEB)</option>
+                        <option value="Manila (MNL)">Manila (MNL)</option>
+                        <option value="Davao (DVO)">Davao (DVO)</option>
+                    </select>
                 </div>
-
                 <div class="input-group">
-                    <label>Return Date</label>
-                    <input type="date">
+                    <label>Destination</label>
+                    <select id="displayDest" name="destination" class="white-panel-select" onchange="handleSelectChange(this)">
+                        <option value="">Select Destination</option>
+                        <option value="Cebu (CEB)">Cebu (CEB)</option>
+                        <option value="Manila (MNL)">Manila (MNL)</option>
+                        <option value="Davao (DVO)">Davao (DVO)</option>
+                    </select>
                 </div>
-
             </div>
 
             <div class="row">
-
                 <div class="input-group">
-                    <label>Passengers</label>
-                    <select>
-                        <option>1 Passenger</option>
-                        <option>2 Passengers</option>
-                        <option>3 Passengers</option>
-                        <option>4 Passengers</option>
+                    <label>Selected Seat</label>
+                    <input type="text" id="displaySeat" name="selected_seat">
+                </div>
+                <div class="input-group">
+                    <label>Travel Class</label>
+                    <select id="displayClass" name="cabin_class" class="white-panel-select" onchange="handleSelectChange(this)">
+                        <option value="Economy">Economy</option>
+                        <option value="Premium Economy">Premium Economy</option>
+                        <option value="Business Class">Business Class</option>
+                        <option value="First Class">First Class</option>
                     </select>
                 </div>
-
-                <div class="input-group">
-                    <label>Class</label>
-                    <select>
-                        <option>Economy</option>
-                        <option>Business</option>
-                        <option>First Class</option>
-                    </select>
-                </div>
-
             </div>
 
-            <button type="submit" class="book-btn">Search Flights</button>
-
+            <button type="submit" class="book-btn">Confirm & Proceed to Payment</button>
         </form>
-
     </div>
-
 </section>
 
+<script>
+    function handleSelectChange(selectElement) {
+        if (selectElement.value !== "") {
+            selectElement.classList.add('no-arrow');
+        } else {
+            selectElement.classList.remove('no-arrow');
+        }
+    }
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const fields = [
+            { id: 'displaySeat', param: 'seat' },
+            { id: 'displayOrigin', param: 'origin' },
+            { id: 'displayDest', param: 'destination' },
+            { id: 'displayClass', param: 'cabin' }
+        ];
+
+        fields.forEach(field => {
+            const el = document.getElementById(field.id);
+            const val = urlParams.get(field.param);
+            if (val) {
+                el.value = val;
+                if (el.tagName === 'SELECT') handleSelectChange(el);
+            }
+        });
+    };
+</script>
 </body>
 </html>

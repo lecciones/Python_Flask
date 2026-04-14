@@ -4,126 +4,287 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroTicket - Flight Search</title>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='flight.css') }}">
 </head>
 <body>
-
 <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
-            </div>
-            
-            <nav class="nav-links">
-                <a href="{{ url_for('booking')}}">Book</a>
-                <a href="{{ url_for('manage')}}">Manage</a>
-                <a href="{{ url_for('travel')}}">Travel Info</a>
-                <a href="{{ url_for('explore')}}">Explore</a>
-                <a href="#">About</a>
-            </nav>
+    <div class="logo">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+        </a>
+    </div>
+    
+    <nav class="nav-links">
+        <a href="{{ url_for('booking')}}">Book</a>
+        <a href="{{ url_for('manage')}}">Manage</a>
+        <a href="{{ url_for('travel')}}">Travel Info</a>
+        <a href="{{ url_for('explore')}}">Explore</a>
+        <a href="{{ url_for('about')}}">About</a>
+    </nav>
 
-            <div class="header-right">
-                <a href="#" class="login-link">
-                    <i class="fas fa-user-circle"></i> Log in
-                </a>
-                <i class="fas fa-search search-icon"></i>
+    <div class="header-right">
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}" class="login-link">
+                <i class="fas fa-sign-out-alt"></i> Log out
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="login-link">
+                <i class="fas fa-user-circle"></i> Log in
+            </a>
+        {% endif %}
+        <i class="fas fa-search search-icon"></i>
+    </div>
+</header>
+
+<div class="footer-design">
+    <div class="footer-item" style="position: relative;">
+        <a href="javascript:void(0)" id="trip-type-toggle">
+            One-way <i class="fas fa-caret-down"></i>
+        </a>
+        <div class="selection-panel" id="trip-panel">
+            <div class="panel-option" onclick="selectTrip('Round-trip')">Round-trip</div>
+            <div class="panel-option" onclick="selectTrip('One-way')">One-way</div>
+        </div>
+    </div>
+    
+    <div class="vertical-divider"></div>
+
+    <div class="footer-item" style="position: relative;">
+        <a href="javascript:void(0)" id="guest-economy-toggle">
+            <i class="fas fa-user"></i> <span id="guest-summary">1 Guest Economy</span> <i class="fas fa-caret-down"></i>
+        </a>
+        
+        <div class="selection-panel guest-panel" id="guest-panel">
+            <div class="passenger-row">
+                <div class="label-col">
+                    <span class="p-title">Adult</span>
+                    <span class="p-subtitle">Above 12 years</span>
+                </div>
+                <div class="counter-col">
+                    <button class="count-btn" onclick="updateCount('adult', -1)">-</button>
+                    <span id="adult-count">{{ passengers.adults if passengers else 1 }}</span>
+                    <button class="count-btn" onclick="updateCount('adult', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="passenger-row">
+                <div class="label-col">
+                    <span class="p-title">Child</span>
+                    <span class="p-subtitle">2 – 11 years</span>
+                </div>
+                <div class="counter-col">
+                    <button class="count-btn" onclick="updateCount('child', -1)">-</button>
+                    <span id="child-count">{{ passengers.children if passengers else 0 }}</span>
+                    <button class="count-btn" onclick="updateCount('child', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="passenger-row">
+                <div class="label-col">
+                    <span class="p-title">Infant</span>
+                    <span class="p-subtitle">Below 2 years</span>
+                </div>
+                <div class="counter-col">
+                    <button class="count-btn" onclick="updateCount('infant', -1)">-</button>
+                    <span id="infant-count">{{ passengers.infants if passengers else 0 }}</span>
+                    <button class="count-btn" onclick="updateCount('infant', 1)">+</button>
+                </div>
+            </div>
+
+            <hr class="panel-divider">
+
+            <p class="cabin-label">Cabin class</p>
+            <div class="cabin-grid">
+                <div class="cabin-option" data-class="Economy" onclick="selectCabin(this, 'Economy')">Economy</div>
+                <div class="cabin-option" data-class="Business/Premium Flatbed" onclick="selectCabin(this, 'Business/Premium Flatbed')">Business/Premium Flatbed</div>
+                <div class="cabin-option" data-class="Premium Economy" onclick="selectCabin(this, 'Premium Economy')">Premium Economy</div>
+                <div class="cabin-option" data-class="First Class" onclick="selectCabin(this, 'First Class')">First Class</div>
             </div>
         </div>
-    </header>
+    </div>
 
-   <main class="container">
+    <div class="footer-item">
+        <input type="text" class="promo-input" placeholder="Promo Code">
+    </div>
+    <div class="footer-item checkbox-group">
+        <input type="checkbox" id="aero-only">
+        <label for="aero-only">AeroTicket Flights Only</label>
+    </div>
+</div>
+
+<main class="container">
+    <div id="no-flights-container" style="display: none;">
+        <h2 class="section-title">No flights found for your search.</h2>
+    </div>
+
+    <div id="flight-results-container">
+    </div>
+</main>
+
+<script>
+    let counts = { 
+        adult: parseInt("{{ passengers.adults if passengers else 1 }}"), 
+        child: parseInt("{{ passengers.children if passengers else 0 }}"), 
+        infant: parseInt("{{ passengers.infants if passengers else 0 }}") 
+    };
     
-    {% if flights|length > 0 %}
-        {% set first_flight = flights[0] %}
+    let currentCabin = "{{ passengers.cabin if passengers else 'Economy' }}";
+
+    const allFlights = [
+        {% for flight in flights %}
+        {
+            class: "{{ flight.class }}",
+            departure: "{{ flight.departure }}",
+            arrival: "{{ flight.arrival }}",
+            origin: "{{ flight.origin | upper }}",
+            destination: "{{ flight.destination | upper }}",
+            price: "{{ flight.price }}",
+            duration: "{{ flight.duration }}",
+            distance: "{{ flight.distance }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.cabin-option').forEach(opt => {
+            if (opt.getAttribute('data-class') === currentCabin) {
+                opt.classList.add('active');
+            }
+        });
+        updateDisplay();
+        filterFlights(currentCabin);
+    });
+
+    function setupToggle(toggleId, panelId) {
+        const toggle = document.getElementById(toggleId);
+        const panel = document.getElementById(panelId);
+        if (toggle && panel) {
+            toggle.addEventListener('click', function(e) {
+                const isShowing = panel.classList.contains('show');
+                document.querySelectorAll('.selection-panel').forEach(p => p.classList.remove('show'));
+                if (!isShowing) panel.classList.add('show');
+                e.stopPropagation();
+            });
+        }
+    }
+
+    setupToggle('trip-type-toggle', 'trip-panel');
+    setupToggle('guest-economy-toggle', 'guest-panel');
+
+    function selectTrip(type) {
+        document.getElementById('trip-type-toggle').innerHTML = `${type} <i class="fas fa-caret-down"></i>`;
+        document.getElementById('trip-panel').classList.remove('show');
+    }
+
+    function updateCount(type, change) {
+        counts[type] = Math.max(0, counts[type] + change);
+        if (type === 'adult') counts.adult = Math.max(1, counts.adult); 
+        document.getElementById(`${type}-count`).innerText = counts[type];
+        updateDisplay();
+    }
+
+    function selectCabin(element, name) {
+        document.querySelectorAll('.cabin-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        currentCabin = name;
+        updateDisplay();
+        filterFlights(name);
+    }
+
+    function updateDisplay() {
+        const total = counts.adult + counts.child + counts.infant;
+        const guestText = total === 1 ? 'Guest' : 'Guests';
+        const summary = document.getElementById('guest-summary');
+        if (summary) {
+            summary.innerText = `${total} ${guestText} ${currentCabin}`;
+        }
+    }
+
+    function filterFlights(cabinName) {
+        const container = document.getElementById('flight-results-container');
+        const noFlightsMsg = document.getElementById('no-flights-container');
+        
+        const matched = allFlights.filter(f => f.class.toLowerCase() === cabinName.toLowerCase());
+
+        if (matched.length === 0) {
+            container.innerHTML = "";
+            noFlightsMsg.style.display = "block";
+            return;
+        }
+
+        noFlightsMsg.style.display = "none";
+        let html = "";
+
+        html += renderCard(matched[0]);
+
+        if (matched.length > 1) {
+            html += `<h2 class="section-title">Other Departing Flights</h2>`;
+            for (let i = 1; i < matched.length; i++) {
+                html += renderCard(matched[i]);
+            }
+        }
+
+        container.innerHTML = html;
+    }
+
+    function renderCard(flight) {
+        return `
         <div class="flight-card">
-            <div class="badge">{{ first_flight.class }}</div>
+            <div class="badge">${flight.class}</div>
             <div class="card-body">
                 <div class="flight-info">
                     <div class="airline-logo">
-    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket">
-</div>
-                    <div class="time-block">
-                        <span class="time">{{ first_flight.departure }}</span>
-                        <span class="city">MNL</span>
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket">
                     </div>
+                    <div class="time-block">
+                        <span class="time">${flight.departure}</span>
+                        <span class="city">${flight.origin}</span>
+                    </div>
+                    
                     <div class="duration-line">
                         <span class="line"></span>
-                        <div class="details-row">
-                            <span>1h 25m</span>
-                            <span>Non-stop</span>
-                        </div>
+                        <span style="display:block; font-size: 11px; color:#666; margin-top:4px;">${flight.distance}</span>
                     </div>
+
                     <div class="time-block">
-                        <span class="time">{{ first_flight.arrival }}</span>
-                        <span class="city">CEBU</span>
+                        <span class="time">${flight.arrival}</span>
+                        <div class="city-details-row">
+                            <span class="city">${flight.destination}</span>
+                            <div class="details-row">
+                                <span>${flight.duration}</span>
+                                <span>Non-stop</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="price-section">
                     <div class="price-container">
                         <span class="currency">PHP</span>
-                        <span class="amount">{{ first_flight.price }}</span>
+                        <span class="amount">${flight.price}</span>
                     </div>
                     <span class="per-guest">/ 1 guest*</span>
-                    <button class="select-btn">Select</button>
+                    <button class="select-btn" onclick="goToSeats()">Select</button>
                     <a href="#" class="view-details">View Details ↓</a>
                 </div>
             </div>
-            <div class="card-footer">
+            <div class="card-footer" style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid #eee; margin-top: 10px; font-size: 0.8rem; color: #777;">
                 <span>7 kg per guest</span>
                 <span>Add Ons</span>
                 <span>58kg CO₂</span>
             </div>
-        </div>
-    {% endif %}
+        </div>`;
+    }
 
-    <h2 class="section-title">Other Departing Flights</h2>
+    function goToSeats() {
+        window.location.href = "{{ url_for('seats') }}";
+    }
 
-    {% for flight in flights[1:] %}
-    <div class="flight-card">
-        <div class="badge">{{ flight.class }}</div>
-        
-        <div class="card-body">
-            <div class="flight-info">
-                            <div class="airline-logo">
-    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket">
-</div>
-                <div class="time-block">
-                    <span class="time">{{ flight.departure }}</span>
-                    <span class="city">MNL</span>
-                </div>
-                <div class="duration-line">
-                    <span class="line"></span>
-                    <div class="details-row">
-                        <span>1h 25m</span>
-                        <span>Non-stop</span>
-                    </div>
-                </div>
-                <div class="time-block">
-                    <span class="time">{{ flight.arrival }}</span>
-                    <span class="city">CEBU</span>
-                </div>
-            </div>
-
-            <div class="price-section">
-                <div class="price-container">
-                    <span class="currency">PHP</span>
-                    <span class="amount">{{ flight.price }}</span>
-                </div>
-                <span class="per-guest">/ 1 guest*</span>
-                <button class="select-btn">Select</button>
-                <a href="#" class="view-details">View Details ↓</a>
-            </div>
-        </div>
-
-        <div class="card-footer">
-            <span>7 kg per guest</span>
-            <span>Add Ons</span>
-            <span>58kg CO₂</span>
-        </div>
-    </div>
-    {% endfor %}
-</main>
-
+    window.onclick = function(event) {
+        if (!event.target.closest('.footer-item')) {
+            document.querySelectorAll('.selection-panel').forEach(p => p.classList.remove('show'));
+        }
+    }
+</script>
 </body>
 </html>

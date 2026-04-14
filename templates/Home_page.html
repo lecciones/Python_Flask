@@ -2,87 +2,260 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1440">
     <title>AeroTicket - Explore the World</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+    <style>
+        :root {
+            --brand-blue: #73D0FF;
+            --brand-white: #FFFFFF;
+            --text-black: #333;
+            --sky-gradient: linear-gradient(to bottom left, var(--brand-blue) 50%, var(--brand-white));
+            /* This fills the blue area. Default is the gradient. */
+            --slider-bg: var(--sky-gradient);
+        }
+
+        .search-box input {
+            color: #4CB9F0 !important;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .search-box input::placeholder {
+            color: #4CB9F0 !important;
+            opacity: 1;
+            text-transform: uppercase;
+        }
+
+        #passenger-input {
+            color: #4CB9F0 !important;
+        }
+
+        /* This is the BLUE AREA. It now holds the expanding background images. */
+        .hero-section::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            
+            background-image: var(--slider-bg);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            clip-path: polygon(100% 0, 100% 100%, 25% 100%, 53% 50%, 25% 0);
+            z-index: 1; 
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        /* Keeps the floating airplane above the background images */
+        .plane-img {
+            z-index: 5;
+        }
+    </style>
 </head>
 <body>
-   <header class = "main-header">
-    <nav>
-        
-        <div class="logo">
-          <img src="{{ url_for('static', filename='images/logo.png') }}">
-        </div>
-        <div class="nav-links">
-            <a href="{{ url_for('home')}}">Home</a>
-            <a href="{{ url_for('flight')}}">Flight</a>
-            <a href="{{ url_for('check_in')}}">Check-in</a>
-            <a href="{{ url_for('about') }}">About</a>
-        </div>
-    </nav>
-</header>
-<div class="social-sidebar">
-    <a href="#"><img src="{{ url_for('static', filename='images/insta.png')}}"></a>
-    <a href="#"><img src="{{ url_for('static', filename='images/fb.png')}}"></a>
-    <a href="#"><img src="{{ url_for('static', filename='images/email.png')}}"></a>
-</div>
+    <header class="main-header">
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('home') }}">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('home')}}">Home</a>
+                <a href="{{ url_for('flight')}}">Flight</a>
+                <a href="{{ url_for('check_in')}}">Check-in</a>
+                <a href="{{ url_for('about') }}">About</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="social-sidebar">
+        <a href="#"><img src="{{ url_for('static', filename='images/insta.png')}}"></a>
+        <a href="#"><img src="{{ url_for('static', filename='images/fb.png')}}"></a>
+        <a href="#"><img src="{{ url_for('static', filename='images/email.png')}}"></a>
+    </div>
 
     <section class="hero-section">
         <div class="content">
-            <h1><span>EXPLORE</span> THE WORLD</h1>
+            <h1 id="hero-title"><span>EXPLORE</span> THE WORLD</h1>
             
-            <div class="search-box">
-                <div class="input-group">
-                    <input type="text" placeholder="AIRPORT">
+            <form action="{{ url_for('flight') }}" method="GET" style="display: contents;">
+                <div class="search-box">
+                    <div class="input-group">
+                        <input type="text" id="from-input" name="departure" placeholder="AIRPORT" autocomplete="off" required>
+                        <div class="search-panel" id="search-panel">
+                            <div id="panel-content"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="date-input" name="date" placeholder="DD/MM/YYYY" autocomplete="off" required>
+                        <i class="far fa-calendar-alt"></i>
+                        <div class="search-panel" id="date-panel">
+                            <label class="panel-label">SELECT DATE</label>
+                            <input type="date" id="calendar-picker" style="width: 100%; padding: 10px; border: 1px solid #eee; border-radius: 10px;">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="text" id="passenger-input" name="passengers_display" placeholder="1 PASSENGER" value="1 PASSENGER" autocomplete="off" required readonly>
+                        <i class="fas fa-search"></i>
+                        <div class="search-panel" id="passenger-panel">
+                            <label class="panel-label">TRAVELERS</label>
+                            <div class="passenger-selector">
+                                <div class="option-row">
+                                    <span>Adult</span>
+                                    <div class="counter-controls">
+                                        <button type="button" class="counter-btn" onclick="changeCount('adult', -1)">-</button>
+                                        <span class="count-value" id="count-adult">1</span>
+                                        <button type="button" class="counter-btn" onclick="changeCount('adult', 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="option-row">
+                                    <span>Child</span>
+                                    <div class="counter-controls">
+                                        <button type="button" class="counter-btn" onclick="changeCount('child', -1)">-</button>
+                                        <span class="count-value" id="count-child">0</span>
+                                        <button type="button" class="counter-btn" onclick="changeCount('child', 1)">+</button>
+                                    </div>
+                                </div>
+                                <div class="option-row">
+                                    <span>Infant</span>
+                                    <div class="counter-controls">
+                                        <button type="button" class="counter-btn" onclick="changeCount('infant', -1)">-</button>
+                                        <span class="count-value" id="count-infant">0</span>
+                                        <button type="button" class="counter-btn" onclick="changeCount('infant', 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if session.get('user_id') %}
+                        <button type="submit" class="register-btn">Search Flights</button>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="register-btn">Register</a>
+                    {% endif %}
                 </div>
-                <div class="input-group">
-                    <input type="text" placeholder="DD/MM/YYYY">
-                    <i class="far fa-calendar-alt"></i>
-                </div>
-                <div class="input-group">
-                    <input type="text" placeholder="1 PASSENGER">
-                    <i class="fas fa-search"></i>
-                </div>
-              <a href="{{ url_for('login') }}" class="register-btn">Register</a>
-            </div>
+                <input type="hidden" id="to-input" name="arrival">
+                <input type="hidden" name="adults" id="hidden-adults" value="1">
+                <input type="hidden" name="children" id="hidden-children" value="0">
+                <input type="hidden" name="infants" id="hidden-infants" value="0">
+            </form>
         </div>
 
         <div class="plane-img">
-           <img src="{{ url_for('static', filename='images/Airplane.png') }}">
+            <img id="hero-img" src="{{ url_for('static', filename='images/Airplane.png') }}">
         </div>
 
         <div class="slider-dots">
-            <span class="dot active"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
         </div>
     </section>
-    <footer class="footer-design">
-    <div class="footer-item">
-        <a href="#">Round-Trip</a>
-    </div>
-    <div class="footer-item">
-        <a href="#">Economy</a>
-    </div>
-    <div class="footer-item">
-        <button class="promo-btn">Promo Code</button>
-    </div>
-    <div class="footer-item checkbox-group">
-        <input type="checkbox" id="aero-only">
-        <label for="aero-only">AeroTicket Flights Only</label>
-    </div>
-</footer>
 
-<script>
-    window.addEventListener('scroll', function() {
-    const header = document.querySelector('main-header');
-    if (window.scrollY > 200){
-    } else {
-        header.classList.remove('scrolled');
-    }
+    <script>
+        const fromInput = document.getElementById('from-input');
+        const toInput = document.getElementById('to-input');
+        const searchPanel = document.getElementById('search-panel');
+        const panelContent = document.getElementById('panel-content');
+        const dateInput = document.getElementById('date-input');
+        const datePanel = document.getElementById('date-panel');
+        const passengerInput = document.getElementById('passenger-input');
+        const passengerPanel = document.getElementById('passenger-panel');
+
+        let counts = { adult: 1, child: 0, infant: 0 };
+
+        function changeCount(type, delta) {
+            if (type === 'adult' && counts.adult + delta < 1) return;
+            if (counts[type] + delta < 0) return;
+            counts[type] += delta;
+            document.getElementById(`count-${type}`).innerText = counts[type];
+            updatePassengerInput();
+        }
+
+        function updatePassengerInput() {
+            const total = counts.adult + counts.child + counts.infant;
+            passengerInput.value = `${total} ${total === 1 ? 'PASSENGER' : 'PASSENGERS'}`;
+            document.getElementById('hidden-adults').value = counts.adult;
+            document.getElementById('hidden-children').value = counts.child;
+            document.getElementById('hidden-infants').value = counts.infant;
+        }
+
+        const airports = ["Cebu", "Manila", "Davao"];
+        let selectedFrom = "";
+
+        fromInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); showFromOptions(); searchPanel.classList.add('active'); });
+        function showFromOptions() {
+            panelContent.innerHTML = `<label class="panel-label">FROM</label>`;
+            airports.forEach(a => { panelContent.innerHTML += `<div class="option" onclick="selectFrom('${a}', event)">${a.toUpperCase()}</div>`; });
+        }
+        function selectFrom(val, e) { e.stopPropagation(); selectedFrom = val; fromInput.value = val.toUpperCase() + " TO "; showToOptions(); }
+        function showToOptions() {
+            panelContent.innerHTML = `<label class="panel-label">TO</label>`;
+            airports.forEach(a => { if (a !== selectedFrom) { panelContent.innerHTML += `<div class="option" onclick="selectTo('${a}', event)">${a.toUpperCase()}</div>`; } });
+        }
+        function selectTo(val, e) { e.stopPropagation(); fromInput.value = `${selectedFrom} TO ${val}`.toUpperCase(); toInput.value = val; searchPanel.classList.remove('active'); }
+
+        dateInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); datePanel.classList.add('active'); });
+        document.getElementById('calendar-picker').addEventListener('change', (e) => { const date = new Date(e.target.value); dateInput.value = date.toLocaleDateString('en-GB'); datePanel.classList.remove('active'); });
+        passengerInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); passengerPanel.classList.add('active'); });
+        function closeAll() { searchPanel.classList.remove('active'); datePanel.classList.remove('active'); passengerPanel.classList.remove('active'); }
+        document.addEventListener('click', closeAll);
+
+        // Slider Logic
+        const slides = [
+            { title: '<span>EXPLORE</span> THE WORLD', image: null }, // Index 0 is the default gradient
+            { title: '<span>DISCOVER</span> NEW PLACES', image: "{{ url_for('static', filename='images/siargao.png') }}" },
+            { title: '<span>TRAVEL</span> WITH EASE', image: "{{ url_for('static', filename='images/view_plane.png') }}" },
+            { title: '<span>BOOK</span> YOUR DREAM', image: "{{ url_for('static', filename='images/sea.png') }}" }
+        ];
+
+       const dots = document.querySelectorAll('.dot');
+const heroTitle = document.getElementById('hero-title');
+const heroSection = document.querySelector('.hero-section');
+const planeContainer = document.querySelector('.plane-img'); // Select the airplane wrapper
+
+dots.forEach(dot => {
+    dot.addEventListener('click', function() {
+        const index = parseInt(this.getAttribute('data-index'));
+        
+ 
+        document.querySelector('.dot.active').classList.remove('active');
+        this.classList.add('active');
+        
+      
+        heroTitle.style.opacity = '0';
+        
+        setTimeout(() => {
+            heroTitle.innerHTML = slides[index].title;
+            
+          
+            if (index === 0) {
+              
+                heroSection.style.setProperty('--slider-bg', 'var(--sky-gradient)');
+                planeContainer.style.opacity = '1';
+                planeContainer.style.visibility = 'visible';
+            } else {
+              
+                heroSection.style.setProperty('--slider-bg', `url('${slides[index].image}')`);
+                planeContainer.style.opacity = '0';
+                planeContainer.style.visibility = 'hidden';
+            }
+            
+            heroTitle.style.opacity = '1';
+        }, 300); 
     });
-</script>
+});
+
+        updatePassengerInput();
+    </script>
 </body>
 </html>

@@ -9,27 +9,43 @@
 
 <body>
   <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo"> 
-            </div>
-            
-           <nav class="nav-links">
-                <a href="{{ url_for('booking')}}">Book</a>
-                <a href="{{ url_for('manage')}}">Manage</a>
-                <a href="{{ url_for('travel')}}">Travel Info</a>
-                <a href="{{ url_for('explore')}}">Explore</a>
-                <a href="#">About</a>
-            </nav>
+    <div class="logo">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+        </a>
+    </div>
+    
+    <nav class="nav-links">
+        <a href="{{ url_for('booking')}}">Book</a>
+        <a href="{{ url_for('manage')}}">Manage</a>
+        <a href="{{ url_for('travel')}}">Travel Info</a>
+        <a href="{{ url_for('explore')}}">Explore</a>
+        <a href="{{ url_for('about')}}">About</a> </nav>
 
-            <div class="header-right">
-                <a href="#" class="login-link">
-                    <i class="fas fa-user-circle"></i> Log in
-                </a>
-                <i class="fas fa-search search-icon"></i>
+    <div class="header-right">
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}" class="login-link">
+                <i class="fas fa-sign-out-alt"></i> Log out
+            </a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="login-link">
+                <i class="fas fa-user-circle"></i> Log in
+            </a>
+        {% endif %}
+        <i class="fas fa-search search-icon"></i>
+    </div>
+</header>
+
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div style="background: #d4edda; color: #155724; padding: 15px; text-align: center; border-bottom: 1px solid #c3e6cb;">
+                {{ message }}
             </div>
-        </div>
-    </header>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
 
 <section class="manage-container">

@@ -1,0 +1,197 @@
+:root {
+    --brand-blue: #70c6f5;
+    --primary-blue: #00aeef;
+    --light-blue: #87CEEB;
+    --text-main: #4a4a4a;
+    --text-muted: #888;
+    --bg-search: #f1f9ff;
+    --text-selection: #d1e9f5;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+    color: var(--text-main);
+}
+
+/* --- HEADER DESIGN --- */
+.main-header {
+    background-color: #ffffff;
+    padding: 5px 0; 
+    height: 90px;   
+    display: flex;
+    overflow: visible;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 1250px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 20px;
+}
+
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    flex: 1;
+}
+
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 1;
+    white-space: nowrap; 
+}
+
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+}
+
+.login-link {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-left: 60px;
+}
+
+/* --- SLIM SEARCH BAR DESIGN --- */
+.search-section {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    background-color: #ffffff;
+}
+
+.search-bar-wrapper {
+    position: relative;
+    width: 600px;
+}
+
+.search-bar-wrapper input {
+    width: 100%;
+    padding: 12px 25px;
+    border: 1px solid #e2f0f7;
+    border-radius: 30px;
+    background-color: var(--bg-search);
+    color: #b0b0b0;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-inside {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #444;
+}
+
+/* --- SEAT BOOKING LAYOUT - Centered --- */
+.booking-layout {
+    display: flex;
+    justify-content: center; /* Centers the whole block */
+    align-items: center;
+    padding: 40px 0;
+    gap: 100px; /* Reduced gap slightly to keep it compact */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.seat-map {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.seat-row {
+    display: flex;
+    gap: 35px; 
+}
+
+.seat-group {
+    display: flex;
+    gap: 6px;
+}
+
+.seat {
+    width: 32px;  /* Reduced from 40px */
+    height: 42px; /* Reduced from 50px */
+    color: var(--primary-blue);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.seat:hover {
+    transform: scale(1.1);
+}
+
+.seat.selected {
+    color: #0088cc;
+}
+
+
+.selection-sidebar {
+    text-align: center;
+    margin-top: -80px; 
+}
+
+#selectionText {
+    color: var(--text-selection);
+    font-size: 28px; 
+    font-weight: 300;
+    margin-bottom: 15px;
+}
+
+.seat-card {
+    background-color: #62c6eb;
+    color: white;
+    font-size: 50px; 
+    font-weight: 500;
+    padding: 25px 35px;
+    border-radius: 18px;
+    display: inline-block;
+    min-width: 110px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}

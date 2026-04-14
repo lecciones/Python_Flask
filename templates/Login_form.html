@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="viewport" content="width=1440">
     <title>AeroTicket Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
@@ -13,7 +13,9 @@
     <div class="header-container">
 
         <div class="logo">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+           <a href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+    </a>
         </div>
 
         <nav class="nav-links">
@@ -21,7 +23,7 @@
             <a href="{{ url_for('manage') }}">Manage</a>
             <a href="{{ url_for('travel') }}">Travel Info</a>
             <a href="{{ url_for('explore') }}">Explore</a>
-            <a href="#">About</a>
+            <a href="{{ url_for('about') }}">About</a>
         </nav>
 
         <div class="header-right">
@@ -41,7 +43,15 @@
         <div class="card-logo-container">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
         </div>
-
+        {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="flash-alert" style="color: green; margin-bottom: 10px; font-size: 0.9em;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
         <h1>Hello!</h1>
 
         <p class="signup-text">
@@ -62,7 +72,7 @@
             <button type="submit" class="login-btn">Login</button>
         </form>
 
-        <a href="{{ url_for('home') }}" class="guest-link">Continue as guest</a>
+       <a href="{{ url_for('home') }}" class="guest-link">Continue as guest</a>
         <div class="divider">or</div>
 
         <div class="social-container">

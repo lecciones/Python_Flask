@@ -12,14 +12,17 @@
     <header class="main-header">
         <div class="header-container">
             <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+                 <a href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+    </a>
             </div>
-            <nav class="nav-links">
-                <a href="#">Book</a>
-                <a href="#">Manage</a>
-                <a href="#">Travel Info</a>
-                <a href="#">Explore</a>
-            </nav>
+             <nav class="nav-links">
+            <a href="{{ url_for('booking') }}">Book</a>
+            <a href="{{ url_for('manage') }}">Manage</a>
+            <a href="{{ url_for('travel') }}">Travel Info</a>
+            <a href="{{ url_for('explore') }}">Explore</a>
+            <a href="{{ url_for('about') }}">About</a>
+        </nav>
             <div class="header-right">
                 <a href="{{ url_for('login') }}" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
             </div>
@@ -72,7 +75,7 @@
     </div>
 
     <script>
-        // Password Toggle Logic
+     
         const togglePassword = document.querySelector('#togglePassword');
         const passwordInput = document.querySelector('#password');
         
@@ -83,7 +86,7 @@
             this.classList.toggle('fa-eye-slash');
         });
 
-        // Close Button Logic
+
         document.querySelector('.close-btn').addEventListener('click', function() {
             window.location.href = "{{ url_for('home') }}";
         });
