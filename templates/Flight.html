@@ -130,6 +130,10 @@
     };
     
     let currentCabin = "{{ passengers.cabin if passengers else 'Economy' }}";
+    
+    // Capture date and time from Flask backend
+    const flightDate = "{{ flight_date }}";
+    const flightTime = "{{ flight_time }}";
 
     const allFlights = [
         {% for flight in flights %}
@@ -216,19 +220,19 @@
         noFlightsMsg.style.display = "none";
         let html = "";
 
-        html += renderCard(matched[0]);
+        html += renderCard(matched[0], 0);
 
         if (matched.length > 1) {
             html += `<h2 class="section-title">Other Departing Flights</h2>`;
             for (let i = 1; i < matched.length; i++) {
-                html += renderCard(matched[i]);
+                html += renderCard(matched[i], i);
             }
         }
 
         container.innerHTML = html;
     }
 
-    function renderCard(flight) {
+    function renderCard(flight, index) {
         return `
         <div class="flight-card">
             <div class="badge">${flight.class}</div>
@@ -264,7 +268,7 @@
                         <span class="amount">${flight.price}</span>
                     </div>
                     <span class="per-guest">/ 1 guest*</span>
-                    <button class="select-btn" onclick="goToSeats()">Select</button>
+                    <button class="select-btn" onclick='goToSeats(${JSON.stringify(flight)})'>Select</button>
                     <a href="#" class="view-details">View Details ↓</a>
                 </div>
             </div>
@@ -276,8 +280,22 @@
         </div>`;
     }
 
-    function goToSeats() {
-        window.location.href = "{{ url_for('seats') }}";
+    function goToSeats(flight) {
+        const baseUrl = "{{ url_for('seats') }}";
+        const params = new URLSearchParams({
+            origin: flight.origin,
+            destination: flight.destination,
+            cabin: flight.class,
+            price: flight.price,
+            adults: counts.adult,
+            children: counts.child,
+            infants: counts.infant,
+            date: flightDate,
+            time: flight.departure,
+            flight_no: 'AT' + Math.floor(Math.random() * 9000 + 1000)
+        });
+        
+        window.location.href = `${baseUrl}?${params.toString()}`;
     }
 
     window.onclick = function(event) {

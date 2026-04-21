@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hoolah | Shop now, pay later</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='hoolah.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="hoolah-wrapper">
+        <div class="hoolah-header">
+            <div class="hoolah-logo">hoolah<span>.</span></div>
+            <div class="close-btn">✕</div>
+        </div>
+
+        <div class="hoolah-container">
+            <div class="order-preview">
+                <p class="merchant-name">AeroTicket</p>
+                <h1 class="total-price">₹{{ amount }}</h1>
+                <p class="split-info">Split into 3 interest-free payments</p>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-item active">
+                    <div class="dot"></div>
+                    <div class="timeline-content">
+                        <span class="t-label">Pay today</span>
+                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="dot"></div>
+                    <div class="timeline-content">
+                        <span class="t-label">In 1 month</span>
+                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="dot"></div>
+                    <div class="timeline-content">
+                        <span class="t-label">In 2 months</span>
+                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-method-box">
+                <div class="pm-info">
+                    <img src="https://img.icons8.com/color/48/000000/visa.png" class="card-icon">
+                    <span class="card-mask">Visa •••• 5566</span>
+                </div>
+                <span class="edit-link">Edit</span>
+            </div>
+
+            <p class="terms-text">By clicking "Pay Now", you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>.</p>
+        </div>
+
+        <div class="hoolah-footer">
+            <button onclick="processHoolah()" class="btn-hoolah">
+                Pay ₹{{ (amount|replace(',','')|float / 3)|round(2) }} now
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function processHoolah() {
+            const btn = document.querySelector('.btn-hoolah');
+            btn.innerHTML = "Processing...";
+            btn.classList.add('loading');
+            
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2300);
+        }
+    </script>
+</body>
+</html>

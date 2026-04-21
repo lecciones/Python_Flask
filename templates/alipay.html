@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alipay - Global Payment Service</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='alipay.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="alipay-wrapper">
+        <div class="alipay-nav">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Alipay_logo.svg" alt="Alipay" class="ali-logo">
+            <span class="nav-lang">English | Help</span>
+        </div>
+
+        <div class="ali-container">
+            <div class="order-summary">
+                <div class="merchant-info">
+                    <span class="m-label">Merchant:</span>
+                    <span class="m-name">AeroTicket International</span>
+                </div>
+                <div class="amount-info">
+                    <span class="total-label">Total:</span>
+                    <span class="total-val">₹{{ amount }}</span>
+                </div>
+            </div>
+
+            <div class="payment-box">
+                <div class="tab-header">
+                    <div class="tab active">Login Pay</div>
+                    <div class="tab">Scan Pay</div>
+                </div>
+
+                <div class="form-content">
+                    <div class="input-group">
+                        <label>Account / Mobile Number</label>
+                        <input type="text" placeholder="Email or Mobile" value="user@aeroticket.com">
+                    </div>
+                    <div class="input-group">
+                        <label>Payment Password</label>
+                        <input type="password" placeholder="6-digit password" value="123456">
+                    </div>
+
+                    <div class="security-tip">
+                        🛡️ Verifying secure connection to Alipay...
+                    </div>
+
+                    <button onclick="handleAliPay()" class="btn-ali">Confirm Payment</button>
+                    
+                    <div class="ali-footer-links">
+                        <a href="#">Register</a> | <a href="#">Forgot Password?</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ali-legal">
+            <p>Ant Group © 2026 Alipay.com. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        function handleAliPay() {
+            const btn = document.querySelector('.btn-ali');
+            btn.innerHTML = "Processing...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

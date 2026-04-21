@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atome - Buy Now, Pay Later</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='atome.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="atome-wrapper">
+        <div class="atome-header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Atome_Logo.svg" alt="Atome" class="atome-logo">
+            <div class="close-x">✕</div>
+        </div>
+
+        <div class="atome-container">
+            <div class="merchant-header">
+                <div class="atome-badge">Installment</div>
+                <h2>AeroTicket</h2>
+                <p class="order-total">Total: ₹{{ amount }}</p>
+            </div>
+
+            <div class="installment-card">
+                <div class="section-label">PAYMENT PLAN</div>
+                
+                <div class="plan-row active">
+                    <div class="plan-circle">1</div>
+                    <div class="plan-details">
+                        <span class="plan-date">Today</span>
+                        <span class="plan-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+
+                <div class="plan-row">
+                    <div class="plan-circle">2</div>
+                    <div class="plan-details">
+                        <span class="plan-date">Next Month</span>
+                        <span class="plan-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+
+                <div class="plan-row">
+                    <div class="plan-circle">3</div>
+                    <div class="plan-details">
+                        <span class="plan-date">Month After</span>
+                        <span class="plan-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="promo-box">
+                <span class="promo-icon">🏷️</span>
+                <span class="promo-text">Use voucher for 10% off your first trip</span>
+                <span class="promo-arrow">›</span>
+            </div>
+
+            <div class="card-selector">
+                <span class="card-brand">VISA</span>
+                <span class="card-num">•••• 8899</span>
+                <span class="change-link">Change</span>
+            </div>
+        </div>
+
+        <div class="atome-footer">
+            <div class="footer-summary">
+                <span class="pay-label">Pay today</span>
+                <span class="pay-now-val">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
+            </div>
+            <button onclick="confirmAtome()" class="btn-confirm">Confirm Payment</button>
+        </div>
+    </div>
+
+    <script>
+        function confirmAtome() {
+            const btn = document.querySelector('.btn-confirm');
+            btn.innerHTML = "Processing...";
+            btn.style.background = "#e0c200";
+            
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

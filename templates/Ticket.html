@@ -2,83 +2,212 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroTicket - Boarding Pass</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='ticket.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&family=Libre+Barcode+39&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="main-container">
-        <div class="ticket">
-            <div class="stub">
-                <div class="top-blue">
-                    <span class="plane-icon">✈</span>
-                    <span class="seat-num">{{ ticket.seat }}</span>
-                </div>
-                <div class="stub-info">
-                    <p>FLIGHT: <br><strong>{{ ticket.flight }}</strong></p>
-                    <p>GATE: <br><strong>{{ ticket.gate }}</strong></p>
-                    <p>{{ ticket.date }}<br>{{ ticket.time }}</p>
-                    <div class="barcode-small">*{{ ticket.flight }}*</div>
-                    <p class="route-small">{{ ticket.origin }} ✈ {{ ticket.destination }}</p>
-                </div>
-            </div>
+        <div class="carousel-wrapper">
+            <button class="nav-btn" id="prevBtn">←</button>
+            <div class="tickets-carousel" id="ticketsCarousel">
+                {% if passengers and passengers|length > 0 %}
+                    {% for passenger in passengers %}
+                    <div class="flip-card">
+                        <div class="flip-card-inner">
+                            
+                            <!-- FRONT SIDE -->
+                            <div class="flip-card-front">
+                                <div class="ticket">
+                                    <div class="stub">
+                                        <div class="top-blue">
+                                            <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
+                                            <span class="seat-top">{{ passenger.seat }}</span>
+                                        </div>
+                                        <div class="stub-body">
+                                            <div class="info-row">
+                                                <div class="info-item">
+                                                    <label>FLIGHT:</label>
+                                                    <span class="val-blue">{{ flight.flight }}</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <label>GATE:</label>
+                                                    <span class="val-blue">{{ flight.gate }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="date-time-wrapper">
+                                                <div class="val-blue-sm date">{{ flight.date }}</div>
+                                                <div class="val-blue-sm">{{ flight.time }}</div>
+                                            </div>
 
-            <div class="main-body">
-                <div class="top-blue-wide">
-                    <span class="plane-icon-wide">✈</span>
-                    <span class="title">BOARDING PASS</span>
-                </div>
-                <div class="content">
-                    <div class="row">
-                        <div class="col">
-                            <label>NAME:</label>
-                            <div class="val">{{ ticket.name }}</div>
-                        </div>
-                        <div class="col">
-                            <label>FLIGHT:</label>
-                            <div class="val">{{ ticket.flight }}</div>
-                        </div>
-                        <div class="col">
-                            <label>GATE:</label>
-                            <div class="val">{{ ticket.gate }}</div>
-                        </div>
-                    </div>
+                                            <div class="barcode-sm">*{{ flight.flight }}*</div>
+                                            <div class="barcode-sub-sm">No : {{ loop.index }}234567890</div> 
+                                            
+                                            <div class="destination-label-sm">YOUR DESTINATION</div>
+                                            <div class="stub-route">
+                                                {{ flight.origin }} <span class="plane-mini">—</span> {{ flight.destination }}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                    <div class="row middle">
-                        <div class="route-display">
-                            <span class="city">{{ ticket.origin }}</span>
-                            <span class="plane-mid">✈</span>
-                            <span class="city">{{ ticket.destination }}</span>
-                        </div>
-                        <div class="barcode-large">*{{ ticket.flight }}{{ ticket.seat }}*</div>
-                    </div>
+                                    <div class="main-body">
+                                        <div class="top-blue-wide">
+                                            <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
+                                            <span class="boarding-title">BOARDING PASS</span>
+                                        </div>
+                                        <div class="main-content">
+                                            <div class="data-row">
+                                                <div class="data-col name-row">
+                                                    <label>NAME :</label>
+                                                    <div class="val-black">{{ passenger.name }}</div>
+                                                </div>
+                                                <div class="data-col move-right">
+                                                    <label>FLIGHT :</label>
+                                                    <div class="val-blue-lg">{{ flight.flight }}</div>
+                                                </div>
+                                                <div class="data-col move-right">
+                                                    <label>GATE :</label>
+                                                    <div class="val-blue-lg">{{ flight.gate }}</div>
+                                                </div>
+                                            </div>
 
-                    <div class="row">
-                        <div class="col">
-                            <label>DATE:</label>
-                            <div class="val">{{ ticket.date }}</div>
-                        </div>
-                        <div class="col">
-                            <label>TIME:</label>
-                            <div class="val">{{ ticket.time }}</div>
-                        </div>
-                        <div class="col">
-                            <div class="seat-box">
-                                <span class="seat-val">{{ ticket.seat }}</span>
-                                <label>SEAT</label>
+                                            <div class="destination-label-lg">YOUR DESTINATION</div>
+                                            <div class="route-banner">
+                                                <span class="city">{{ flight.origin }}</span>
+                                                <span class="plane-mid">→</span>
+                                                <span class="city">{{ flight.destination }}</span>
+                                            </div>
+
+                                            <div class="date-time-row"> 
+                                                <div class="info-item">
+                                                    <div class="val-blue-sm">{{ flight.date }}</div>
+                                                </div>
+                                                <div class="info-item">
+                                                    <div class="val-blue-sm">{{ flight.time }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- BARCODE SECTION - PRESERVED AS REQUESTED -->
+                                            <div class="barcode-wrap">
+                                                <div class="barcode-lg">*{{ loop.index }}*</div>
+                                                <div class="barcode-sub">No : {{ loop.index }}234567890123456789</div>
+                                            </div>
+
+                                            <div class="seat-wrapper">
+                                                <div class="seat-image-style">
+                                                    <div class="seat-number-box">{{ passenger.seat }}</div>
+                                                    <div class="seat-text-info">
+                                                        <div class="seat-main-label">SEAT</div>
+                                                        <div class="seat-class-label">{{ flight.class }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="cutout-top"></div>
+                                    <div class="cutout-bottom"></div>
+                                </div>
                             </div>
+
+                            <!-- BACK SIDE -->
+                            <div class="flip-card-back">
+                                <div class="ticket-back">
+                                    <div class="back-stub">
+                                        <div class="back-stub-top">
+                                            <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-back-sm" alt="logo">
+                                            <span class="label-white-sm">SEAT NUMBER :</span>
+                                        </div>
+                                        
+                                        <div class="back-seat-box">
+                                            <div class="seat-huge-blue">{{ passenger.seat }}</div>
+                                        </div>
+                                        
+                                        <div class="back-stub-bottom">
+                                            <span class="class-label-white">{{ flight.class }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="back-main">
+                                        <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-back-main" alt="aero">
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
-                </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 60px; background: white; border-radius: 24px;">
+                        <h3>⚠️ No passenger data available</h3>
+                        <p>Please complete your booking first.</p>
+                        <a href="{{ url_for('home') }}" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4eb8e9; color: white; text-decoration: none; border-radius: 8px;">Go to Home</a>
+                    </div>
+                {% endif %}
             </div>
+            <button class="nav-btn" id="nextBtn">→</button>
+        </div>
+        
+        <div class="counter-info" id="counterInfo">
+            {% if passengers %}
+                ✈️ {{ passengers|length }} Boarding Pass{{ 'es' if passengers|length > 1 else '' }} • Hover to flip • Use arrows to navigate ✈️
+            {% endif %}
         </div>
 
-        <div class="footer">
-            <p>Enjoy your flight at <span class="brand-text">Aero<span class="blue-text">Ticket</span></span></p>
-            <a href="{{ url_for('home')}}" class="home-btn">Home</a>
+        <div class="ticket-footer">
+            <p>Enjoy your flight at Aero<span class="brand-blue">Ticket</span></p>
+            <a href="{{ url_for('home') }}" class="btn-home">Home</a>
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const carousel = document.getElementById('ticketsCarousel');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Navigation functionality
+            if (prevBtn && nextBtn && carousel) {
+                prevBtn.addEventListener('click', () => {
+                    carousel.scrollBy({ left: -1030, behavior: 'smooth' });
+                });
+                
+                nextBtn.addEventListener('click', () => {
+                    carousel.scrollBy({ left: 1030, behavior: 'smooth' });
+                });
+            }
+            
+            // 3D tilt effect for all flip cards
+            const flipCards = document.querySelectorAll('.flip-card');
+            
+            flipCards.forEach(card => {
+                const cardInner = card.querySelector('.flip-card-inner');
+                
+                if (cardInner) {
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        
+                        let xAxis = (x - centerX) / 30;
+                        let yAxis = (y - centerY) / 30;
+                        
+                        const isFlipped = card.matches(':hover');
+                        let baseRotate = isFlipped ? 180 : 0;
+                        
+                        cardInner.style.transform = `rotateY(${baseRotate + xAxis}deg) rotateX(${-yAxis}deg)`;
+                    });
+                    
+                    card.addEventListener('mouseleave', () => {
+                        cardInner.style.transform = `rotateY(0deg) rotateX(0deg)`;
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

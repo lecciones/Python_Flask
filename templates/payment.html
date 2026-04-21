@@ -5,73 +5,268 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroTicket Integrations</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='payment.css') }}">
     <style>
-        body { background-color: #87CEFA; } /* Matching the sky blue background */
+        /* Highlight style for selected payment method */
+        .payment-card.selected {
+            border-color: #38bdf8;
+            background-color: #f0f9ff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+        
+        /* Passenger summary styling */
+        .passenger-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4eb8e9;
+        }
+        
+        .passenger-summary h3 {
+            color: #2c8fbb;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .passenger-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .passenger-tag {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .passenger-tag strong {
+            color: #4eb8e9;
+        }
     </style>
 </head>
 <body class="min-h-screen font-sans">
 
-    <nav class="bg-white px-10 py-4 flex justify-between items-center shadow-sm">
-        <div class="flex items-center space-x-2">
-            <div class="text-blue-400 font-bold text-xl italic">AeroTicket</div>
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
         </div>
-        <div class="hidden md:flex space-x-8 text-blue-400 font-semibold">
-            <a href="#" class="hover:text-blue-600">Book</a>
-            <a href="#" class="hover:text-blue-600">Manage</a>
-            <a href="#" class="hover:text-blue-600">Travel Info</a>
-            <a href="#" class="hover:text-blue-600">Explore</a>
-            <a href="#" class="hover:text-blue-600">About</a>
-        </div>
-        <div class="flex items-center space-x-4 text-blue-400">
-            <div class="flex items-center space-x-1 cursor-pointer">
-                <span>👤</span>
-                <span class="font-semibold">Log in</span>
-            </div>
-            <span class="cursor-pointer">🔍</span>
-        </div>
-    </nav>
+        
+        <nav class="nav-links">
+            <a href="{{ url_for('booking')}}">Book</a>
+            <a href="{{ url_for('manage')}}">Manage</a>
+            <a href="{{ url_for('travel')}}">Travel Info</a>
+            <a href="{{ url_for('explore')}}">Explore</a>
+            <a href="{{ url_for('about')}}">About</a>
+        </nav>
 
-    <main class="flex justify-center items-center py-20 px-4">
-        <div class="bg-white w-full max-w-4xl rounded-sm shadow-2xl p-8">
-            
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">Integrations</h1>
-                <button class="bg-sky-400 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-500 transition">
-                    Add Integration
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('logout') }}" class="login-link">
+                    <i class="fas fa-sign-out-alt"></i> Log out
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-link">
+                    <i class="fas fa-user-circle"></i> Log in
+                </a>
+            {% endif %}
+            <i class="fas fa-search search-icon"></i>
+        </div>
+    </div>
+</header>
+
+<main class="flex justify-center items-center py-20 px-4">
+    <div class="bg-white w-full max-w-4xl rounded-sm shadow-2xl p-8">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Payment Integration</h1>
+            <button id="openModal" class="bg-sky-400 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-500 transition">
+                Add Integration
+            </button>
+        </div>
+
+        <!-- Passenger Summary Section -->
+        <div class="passenger-summary">
+            <h3><i class="fas fa-users"></i> Passengers on this booking</h3>
+            <div class="passenger-list">
+                {% if passengers and passengers|length > 0 %}
+                    {% for passenger in passengers %}
+                        <div class="passenger-tag">
+                            <strong>{{ passenger.name }}</strong> - Seat {{ passenger.seat }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="passenger-tag">No passenger data available</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="flex space-x-8">
+                <button class="border-b-2 border-sky-400 pb-2 px-1 text-sm font-bold text-gray-800">
+                    Select Payment Method
                 </button>
-            </div>
+            </nav>
+        </div>
 
-            <div class="border-b border-gray-200 mb-6">
-                <nav class="flex space-x-8">
-                    <button class="border-b-2 border-sky-400 pb-2 px-1 text-sm font-bold text-gray-800">
-                        Integrate Payment Methods
-                    </button>
-                </nav>
-            </div>
+        <div class="flex flex-wrap gap-4 mb-8">
+            <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
+                <option>Sort</option>
+            </select>
+            <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
+                <option>Type</option>
+            </select>
+            <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
+                <option>Country</option>
+            </select>
+            <input type="text" id="methodSearch" placeholder="Search methods..." class="border border-gray-200 rounded px-3 py-2 text-sm flex-grow bg-gray-50 outline-none">
+        </div>
 
-            <div class="flex flex-wrap gap-4 mb-8">
-                <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
-                    <option>Sort</option>
-                </select>
-                <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
-                    <option>Type</option>
-                </select>
-                <select class="border border-gray-200 rounded px-3 py-2 text-sm text-gray-500 w-32 bg-gray-50">
-                    <option>Country</option>
-                </select>
-                <input type="text" placeholder="Search..." class="border border-gray-200 rounded px-3 py-2 text-sm flex-grow bg-gray-50 outline-none">
-            </div>
+        <!-- Hidden fields to preserve passenger data -->
+        <input type="hidden" name="origin" id="originHidden" value="{{ request.args.get('origin', '') }}">
+        <input type="hidden" name="destination" id="destinationHidden" value="{{ request.args.get('destination', '') }}">
+        <input type="hidden" name="cabin_class" id="cabinHidden" value="{{ request.args.get('cabin', '') }}">
+        <input type="hidden" name="price" id="priceHidden" value="{{ amount }}">
 
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <form action="{{ url_for('payment') }}" method="POST" id="paymentForm">
+            <input type="hidden" name="selected_method" id="selectedMethodInput" required>
+            
+            <!-- Preserve passenger data in hidden fields -->
+            <input type="hidden" name="origin" id="preserveOrigin">
+            <input type="hidden" name="destination" id="preserveDest">
+            <input type="hidden" name="cabin_class" id="preserveCabin">
+            <input type="hidden" name="selected_seats" id="preserveSeats">
+            
+            {% if passengers and passengers|length > 0 %}
+                {% for passenger in passengers %}
+                    <input type="hidden" name="passenger_name_{{ loop.index }}" value="{{ passenger.name }}">
+                    <input type="hidden" name="passenger_seat_{{ loop.index }}" value="{{ passenger.seat }}">
+                {% endfor %}
+                <input type="hidden" name="seat_count" value="{{ passengers|length }}">
+            {% endif %}
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
                 {% for item in integrations %}
-                <div class="border border-gray-100 rounded-lg p-6 flex items-center justify-center h-24 hover:shadow-lg hover:border-sky-200 transition-all cursor-pointer group bg-white">
-                    <img src="{{ item.logo }}" alt="{{ item.name }}" class="max-h-full max-w-full object-contain filter grayscale group-hover:grayscale-0 transition">
+                <div class="payment-card border border-gray-100 rounded-lg p-3 flex items-center justify-center h-32 bg-white cursor-pointer transition-all duration-300 hover:border-sky-200"
+                     onclick="selectPaymentMethod('{{ item.name }}', this)"
+                     data-name="{{ item.name }}">
+                    
+                    {% if item.logo.startswith('http') %}
+                        <img src="{{ item.logo }}" alt="{{ item.name }}" class="max-h-[80%] max-w-[80%] object-contain pointer-events-none">
+                    {% else %}
+                        <img src="{{ url_for('static', filename=item.logo) }}" alt="{{ item.name }}" class="max-h-[90%] max-w-[90%] object-contain pointer-events-none">
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
 
-        </div>
-    </main>
+            <div class="flex justify-center">
+                <button type="submit" class="bg-sky-500 text-white px-10 py-3 rounded-md font-bold text-lg hover:bg-sky-600 shadow-lg transition-all">
+                    Finalize Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<div id="integrationModal" class="fixed inset-0 bg-black bg-opacity-50 z-[2000] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 relative">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">New Payment Integration</h2>
+        
+        <form action="{{ url_for('add_integration') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Provider Name</label>
+                <input type="text" name="name" placeholder="e.g. Stripe" required
+                       class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-sky-400">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600 mb-1">Logo URL or Local Path</label>
+                <input type="text" name="logo" placeholder="images/new-logo.png" required
+                       class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-sky-400">
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" id="closeModal" class="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium">Cancel</button>
+                <button type="submit" class="bg-sky-400 text-white px-6 py-2 rounded-md font-bold hover:bg-sky-500 transition">Save Integration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('integrationModal');
+    const openBtn = document.getElementById('openModal');
+    const closeBtn = document.getElementById('closeModal');
+    const methodInput = document.getElementById('selectedMethodInput');
+    const paymentForm = document.getElementById('paymentForm');
+
+    // Modal Logic
+    openBtn.onclick = () => modal.classList.remove('hidden');
+    closeBtn.onclick = () => modal.classList.add('hidden');
+    window.onclick = (event) => {
+        if (event.target == modal) modal.classList.add('hidden');
+    }
+
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const origin = urlParams.get('origin') || '';
+    const destination = urlParams.get('destination') || '';
+    const cabinClass = urlParams.get('cabin') || 'Economy';
+    const price = urlParams.get('price') || '0.00';
+    const selectedSeats = urlParams.get('seat') || '';
+    
+    // Set hidden fields for form submission
+    document.getElementById('preserveOrigin').value = origin;
+    document.getElementById('preserveDest').value = destination;
+    document.getElementById('preserveCabin').value = cabinClass;
+    document.getElementById('preserveSeats').value = selectedSeats;
+    
+    // Payment Selection Logic
+    function selectPaymentMethod(name, element) {
+        // 1. Highlight the selection
+        document.querySelectorAll('.payment-card').forEach(card => card.classList.remove('selected'));
+        element.classList.add('selected');
+        
+        // 2. Assign name to hidden input
+        methodInput.value = name;
+        
+        // 3. Also add selected_method to URL for tracking
+        const formData = new FormData(paymentForm);
+        formData.append('selected_method', name);
+        
+        // 4. Submit the form to Python so it can save passenger names to session
+        setTimeout(() => {
+            paymentForm.submit();
+        }, 500);
+    }
+
+    // Search Logic
+    document.getElementById('methodSearch').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('.payment-card').forEach(card => {
+            const name = card.getAttribute('data-name').toLowerCase();
+            card.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+    });
+    
+    // Log passenger data for debugging
+    console.log('Payment page loaded with:', {
+        passengers: {{ passengers|tojson|safe }},
+        amount: '{{ amount }}',
+        origin: origin,
+        destination: destination,
+        cabinClass: cabinClass,
+        seats: selectedSeats
+    });
+</script>
 
 </body>
 </html>

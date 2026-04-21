@@ -1,0 +1,201 @@
+:root {
+    --atome-yellow: #fce300;
+    --atome-black: #1a1a1a;
+    --atome-gray: #f2f2f2;
+    --text-soft: #666;
+}
+
+body {
+    background-color: #fff;
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.atome-wrapper {
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.atome-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.atome-logo {
+    height: 24px;
+}
+
+.close-x {
+    font-size: 20px;
+    font-weight: 300;
+    cursor: pointer;
+}
+
+.atome-container {
+    padding: 0 25px;
+    flex: 1;
+}
+
+/* Merchant Header */
+.merchant-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.atome-badge {
+    display: inline-block;
+    background: var(--atome-black);
+    color: var(--atome-yellow);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.merchant-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.order-total {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Installment Plan */
+.installment-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    margin-bottom: 20px;
+}
+
+.plan-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+/* The vertical line connecting dots */
+.plan-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 25px;
+    width: 1px;
+    height: 25px;
+    background: #eee;
+}
+
+.plan-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    z-index: 2;
+}
+
+.plan-row.active .plan-circle {
+    background: var(--atome-black);
+    color: var(--atome-yellow);
+}
+
+.plan-details {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.plan-date {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.plan-amount {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* Other UI Elements */
+.promo-box {
+    background: #fff9c4;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.promo-arrow { margin-left: auto; color: #999; font-size: 20px; }
+
+.card-selector {
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-brand { font-weight: 800; font-style: italic; color: #1a1f71; }
+.card-num { flex: 1; font-size: 14px; color: var(--text-soft); }
+.change-link { font-size: 13px; font-weight: 700; color: #000; }
+
+/* Footer */
+.atome-footer {
+    padding: 20px 25px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.footer-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.pay-label { font-size: 14px; font-weight: 600; }
+.pay-now-val { font-size: 20px; font-weight: 800; }
+
+.btn-confirm {
+    width: 100%;
+    background: var(--atome-yellow);
+    color: var(--atome-black);
+    border: none;
+    padding: 18px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(252, 227, 0, 0.3);
+}

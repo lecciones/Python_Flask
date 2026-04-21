@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrabPay - Secure Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='grabpay.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="grab-container">
+        <div class="grab-header">
+            <div class="back-arrow">←</div>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Grab_logo.svg" alt="Grab" class="grab-logo">
+            <div class="placeholder"></div>
+        </div>
+
+        <div class="merchant-summary">
+            <div class="merchant-icon">AT</div>
+            <div class="merchant-text">
+                <h3>AeroTicket</h3>
+                <p>Flight Booking</p>
+            </div>
+            <div class="total-price">₹{{ amount }}</div>
+        </div>
+
+        <div class="payment-section">
+            <p class="label-text">PAY WITH</p>
+            
+            <div class="grab-card active">
+                <div class="wallet-icon">💳</div>
+                <div class="card-details">
+                    <span class="card-title">GrabPay Wallet</span>
+                    <span class="card-balance">Balance: ₹4,500.00</span>
+                </div>
+                <div class="grab-radio checked"></div>
+            </div>
+
+            <div class="grab-card">
+                <div class="wallet-icon">🏦</div>
+                <div class="card-details">
+                    <span class="card-title">Linked Bank Account</span>
+                    <span class="card-sub">State Bank of India</span>
+                </div>
+                <div class="grab-radio"></div>
+            </div>
+        </div>
+
+        <div class="rewards-box">
+            <div class="points-info">
+                <span class="star">⭐</span>
+                <span>Earn 152 GrabPoints</span>
+            </div>
+            <div class="toggle-container">
+                <div class="toggle-bg">
+                    <div class="toggle-circle"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-action">
+            <div class="security-text">
+                🛡️ Secured by GrabPay protection
+            </div>
+            <button onclick="payNow()" class="btn-grab">
+                Pay ₹{{ amount }}
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function payNow() {
+            const btn = document.querySelector('.btn-grab');
+            btn.innerHTML = "Processing Payment...";
+            btn.style.background = "#008a3c";
+            
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2200);
+        }
+    </script>
+</body>
+</html>

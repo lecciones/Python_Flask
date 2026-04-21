@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paytm Secure Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='paytm.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="paytm-container">
+        <div class="paytm-header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" alt="Paytm Logo" class="paytm-logo">
+            <div class="secure-badge">
+                <span class="lock-icon">🔒</span> 100% Secure
+            </div>
+        </div>
+
+        <div class="order-box">
+            <div class="order-info">
+                <span class="merchant-name">AeroTicket Booking</span>
+                <span class="order-id">Order ID: AT-{{ range(1000, 9999) | random }}</span>
+            </div>
+            <div class="amount-box">
+                <span class="currency">₹</span>
+                <span class="amount">{{ amount }}</span>
+            </div>
+        </div>
+
+        <div class="payment-methods">
+            <p class="section-title">SELECT AN OPTION TO PAY</p>
+            
+            <div class="method-card active">
+                <div class="radio-circle checked"></div>
+                <div class="method-details">
+                    <span class="method-name">Paytm Balance</span>
+                    <span class="method-sub">Low Balance: Add money to pay</span>
+                </div>
+                <span class="insufficient">₹0.00</span>
+            </div>
+
+            <div class="method-card">
+                <div class="radio-circle"></div>
+                <div class="method-details">
+                    <span class="method-name">Net Banking</span>
+                    <span class="method-sub">Choose from all major banks</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-area">
+            <p class="redirect-notice">You will be redirected to the Boarding Pass after payment.</p>
+            <button onclick="processPaytm()" class="btn-pay">
+                Pay Securely ₹{{ amount }}
+            </button>
+        </div>
+
+        <div class="paytm-footer">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" style="height:12px; opacity:0.3; filter: grayscale(1);">
+            <p>PCI DSS Compliant</p>
+        </div>
+    </div>
+
+    <script>
+        function processPaytm() {
+            const btn = document.querySelector('.btn-pay');
+            btn.innerHTML = "Processing...";
+            btn.style.opacity = "0.7";
+            
+            // Simulate bank processing delay
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Pay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='applepay.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="apple-pay-sheet">
+        <div class="sheet-header">
+            <div class="apple-logo-wrap">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" alt="Apple Pay" class="apple-logo">
+            </div>
+            <button class="cancel-btn">Cancel</button>
+        </div>
+
+        <div class="sheet-content">
+            <div class="info-row">
+                <span class="label">CARD</span>
+                <div class="card-info">
+                    <img src="https://img.icons8.com/color/48/000000/mastercard.png" class="mastercard-icon">
+                    <span class="card-text">Mastercard •••• 9901</span>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span class="label">SHIPPING</span>
+                <span class="value-text">user@aeroticket.com</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">METHOD</span>
+                <span class="value-text">Standard Shipping</span>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="total-row">
+                <span class="total-label">PAY AeroTicket</span>
+                <span class="total-amount">₹{{ amount }}</span>
+            </div>
+        </div>
+
+        <div class="auth-section">
+            <div class="face-id-wrap">
+                <div class="face-id-icon">
+                    <div class="face-line"></div>
+                </div>
+                <p id="status-text">Pay with Touch ID</p>
+            </div>
+            
+            <button onclick="authenticateApplePay()" class="apple-pay-button">
+                <span class="logo-white"></span> Pay
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function authenticateApplePay() {
+            const status = document.getElementById('status-text');
+            const icon = document.querySelector('.face-id-icon');
+            
+            status.innerHTML = "Processing...";
+            icon.classList.add('processing');
+
+            setTimeout(() => {
+                status.innerHTML = "Done";
+                status.style.color = "#34c759";
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

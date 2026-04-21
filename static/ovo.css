@@ -1,0 +1,182 @@
+:root {
+    --ovo-purple: #4c2a86;
+    --ovo-dark-purple: #3a1e68;
+    --ovo-bg: #f4f4f4;
+    --text-dark: #333;
+    --text-muted: #888;
+}
+
+body {
+    background-color: var(--ovo-bg);
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.ovo-app-container {
+    width: 100%;
+    max-width: 400px;
+    height: 90vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Header */
+.ovo-header {
+    background-color: var(--ovo-purple);
+    padding: 20px;
+    color: white;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ovo-logo {
+    height: 22px;
+    filter: brightness(0) invert(1);
+}
+
+.back-icon { font-size: 18px; cursor: pointer; }
+.help-text { font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+
+/* Content */
+.ovo-content {
+    padding: 30px 20px;
+    flex-grow: 1;
+}
+
+.payment-summary {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.summary-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ovo-purple);
+    margin: 0;
+}
+
+/* OVO Card Styling */
+.ovo-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.payment-option, .points-row {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.payment-option {
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.option-icon {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+.option-info {
+    flex-grow: 1;
+}
+
+.method-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.method-balance, .method-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.ovo-radio.checked {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--ovo-purple);
+    border-radius: 50%;
+    background: radial-gradient(var(--ovo-purple) 50%, transparent 60%);
+}
+
+.toggle-switch {
+    width: 40px;
+    height: 22px;
+    background: #e0e0e0;
+    border-radius: 12px;
+}
+
+/* Security Banner */
+.security-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 30px;
+    padding: 15px;
+    background: #fcfaff;
+    border-radius: 10px;
+}
+
+.security-banner p {
+    font-size: 11px;
+    color: var(--ovo-purple);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Footer Action */
+.ovo-footer {
+    padding: 20px;
+    background: white;
+    border-top: 1px solid #eee;
+}
+
+.btn-pay-ovo {
+    width: 100%;
+    background-color: var(--ovo-purple);
+    color: white;
+    border: none;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+    letter-spacing: 1px;
+}
+
+.btn-pay-ovo:hover {
+    background-color: var(--ovo-dark-purple);
+    transform: translateY(-1px);
+}

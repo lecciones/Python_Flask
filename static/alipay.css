@@ -1,0 +1,168 @@
+:root {
+    --ali-blue: #00a3ee;
+    --ali-dark-blue: #008cd6;
+    --ali-bg: #eff2f5;
+    --border-color: #d9dee4;
+}
+
+body {
+    background-color: var(--ali-bg);
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.alipay-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Nav Bar */
+.alipay-nav {
+    background: #fff;
+    padding: 15px 10%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--ali-blue);
+}
+
+.ali-logo {
+    height: 35px;
+}
+
+.nav-lang {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Container */
+.ali-container {
+    max-width: 950px;
+    margin: 40px auto;
+    width: 90%;
+}
+
+/* Order Summary Bar */
+.order-summary {
+    background: #fff;
+    padding: 20px 30px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.m-name {
+    font-weight: 700;
+    margin-left: 10px;
+}
+
+.total-val {
+    font-size: 24px;
+    color: #f60;
+    font-weight: 700;
+    margin-left: 10px;
+}
+
+/* Payment Box */
+.payment-box {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.tab-header {
+    display: flex;
+    background: #f9fafb;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #666;
+}
+
+.tab.active {
+    background: #fff;
+    color: var(--ali-blue);
+    border-top: 3px solid var(--ali-blue);
+    margin-top: -3px;
+    font-weight: 700;
+}
+
+.form-content {
+    padding: 40px 100px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.security-tip {
+    font-size: 12px;
+    color: #28a745;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.btn-ali {
+    width: 100%;
+    background-color: var(--ali-blue);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-ali:hover {
+    background-color: var(--ali-dark-blue);
+}
+
+.ali-footer-links {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.ali-footer-links a {
+    color: var(--ali-blue);
+    text-decoration: none;
+}
+
+/* Legal Footer */
+.ali-legal {
+    margin-top: auto;
+    padding: 30px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+}

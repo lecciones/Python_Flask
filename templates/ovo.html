@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OVO - Secure Payment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='ovo.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="ovo-app-container">
+        <div class="ovo-header">
+            <div class="header-content">
+                <span class="back-icon">✕</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Logo_ovo_purple.svg" alt="OVO" class="ovo-logo">
+                <span class="help-text">HELP</span>
+            </div>
+        </div>
+
+        <div class="ovo-content">
+            <div class="payment-summary">
+                <p class="summary-label">Payment to AeroTicket</p>
+                <h1 class="summary-amount">Rp {{ amount }}</h1>
+            </div>
+
+            <div class="ovo-card">
+                <div class="card-header">
+                    <span class="section-title">CHOOSE PAYMENT METHOD</span>
+                </div>
+                
+                <div class="payment-option selected">
+                    <div class="option-icon">💜</div>
+                    <div class="option-info">
+                        <span class="method-name">OVO Cash</span>
+                        <span class="method-balance">Balance: Rp 5.000.000</span>
+                    </div>
+                    <div class="ovo-radio checked"></div>
+                </div>
+
+                <div class="points-row">
+                    <div class="option-icon">✨</div>
+                    <div class="option-info">
+                        <span class="method-name">OVO Points</span>
+                        <span class="method-sub">Points: 12.450</span>
+                    </div>
+                    <div class="ovo-toggle">
+                        <div class="toggle-switch"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-banner">
+                <span class="shield-icon">🛡️</span>
+                <p>OVO ensures your transaction is encrypted and secure.</p>
+            </div>
+        </div>
+
+        <div class="ovo-footer">
+            <button onclick="processOVO()" class="btn-pay-ovo">
+                PAY Rp {{ amount }}
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function processOVO() {
+            const btn = document.querySelector('.btn-pay-ovo');
+            btn.innerHTML = "PROSES...";
+            btn.style.opacity = "0.8";
+            
+            // Simulation of OVO payment processing
+            setTimeout(() => {
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 2200);
+        }
+    </script>
+</body>
+</html>

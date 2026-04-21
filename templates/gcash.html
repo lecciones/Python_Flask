@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCash Payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gcash-blue { background-color: #0056e3; }
+        .pin-dot { height: 14px; width: 14px; border-radius: 50%; border: 2px solid #0056e3; transition: all 0.2s; }
+        .pin-dot.filled { background-color: #0056e3; }
+        body { background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center">
+
+    <div class="bg-white w-full max-w-md shadow-2xl flex flex-col">
+        
+        <div class="gcash-blue p-6 text-white text-center relative">
+            <a href="javascript:history.back()" class="absolute left-4 top-6 text-xl">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/59/GCash_logo.svg" 
+                 alt="GCash" class="h-7 mx-auto brightness-0 invert">
+        </div>
+
+        <div class="p-8 text-center border-b">
+            <p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Amount Due</p>
+            <h1 class="text-3xl font-extrabold text-gray-800 mt-2">PHP {{ amount }}</h1>
+        </div>
+
+        <div class="p-8 flex-grow">
+            <h2 class="text-xl font-bold text-gray-800">Login to pay with GCash</h2>
+            <p class="text-gray-500 text-sm mt-1">Enter your 4-digit MPIN to proceed.</p>
+
+            <div class="flex justify-center space-x-6 my-10">
+                <div class="pin-dot" id="dot-1"></div>
+                <div class="pin-dot" id="dot-2"></div>
+                <div class="pin-dot" id="dot-3"></div>
+                <div class="pin-dot" id="dot-4"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-y-4 gap-x-8 text-center">
+                <button onclick="pressKey('1')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">1</button>
+                <button onclick="pressKey('2')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">2</button>
+                <button onclick="pressKey('3')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">3</button>
+                <button onclick="pressKey('4')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">4</button>
+                <button onclick="pressKey('5')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">5</button>
+                <button onclick="pressKey('6')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">6</button>
+                <button onclick="pressKey('7')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">7</button>
+                <button onclick="pressKey('8')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">8</button>
+                <button onclick="pressKey('9')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">9</button>
+                <div class="py-4"></div>
+                <button onclick="pressKey('0')" class="py-4 text-2xl font-bold text-gray-700 active:scale-90 transition">0</button>
+                <button onclick="deleteKey()" class="py-4 text-xl text-gray-400 active:scale-90 transition">
+                    <i class="fas fa-backspace"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t">
+            <button id="payBtn" disabled onclick="processPayment()" 
+                    class="w-full py-4 rounded-full font-bold text-white transition gcash-blue opacity-40 cursor-not-allowed shadow-lg">
+                PAY PHP {{ amount }}
+            </button>
+            <div class="flex justify-center items-center mt-4 gap-2">
+                <i class="fas fa-shield-alt text-blue-600 text-xs"></i>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Secure Payment with GCash</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingModal" class="fixed inset-0 bg-white z-[100] hidden flex flex-col items-center justify-center p-10">
+        <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+        <h2 class="text-xl font-bold text-gray-800">Processing Payment...</h2>
+        <p class="text-gray-500 text-sm mt-2">Please do not close this window</p>
+    </div>
+
+    <script>
+        let pin = "";
+        const payBtn = document.getElementById('payBtn');
+        const loadingModal = document.getElementById('loadingModal');
+
+        function pressKey(num) {
+            if (pin.length < 4) {
+                pin += num;
+                updateUI();
+            }
+        }
+
+        function deleteKey() {
+            pin = pin.slice(0, -1);
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update PIN Dots
+            for (let i = 1; i <= 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i <= pin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+
+            // Toggle Button State
+            if (pin.length === 4) {
+                payBtn.disabled = false;
+                payBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            } else {
+                payBtn.disabled = true;
+                payBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            }
+        }
+
+        function processPayment() {
+            loadingModal.classList.remove('hidden');
+            
+            // Simulate payment delay
+            setTimeout(() => {
+                // You can add logic here to send the payment status to your server via fetch if needed
+                alert("Payment Successful! Your ticket is being generated.");
+                window.location.href = "{{ url_for('ticket') }}";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

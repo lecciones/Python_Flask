@@ -6,6 +6,33 @@
     <title>AeroTicket - Seat Selection</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='seat.css') }}" />
+    <style>
+        .flight-info-bar {
+            background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+            color: white;
+            padding: 15px 20px;
+            margin: 20px auto;
+            border-radius: 12px;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .flight-info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .flight-info-item i {
+            font-size: 18px;
+        }
+        .flight-info-item strong {
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
@@ -38,6 +65,34 @@
     </header>
 
     <main class="content">
+        <!-- Flight Information Bar -->
+        <div class="flight-info-bar">
+            <div class="flight-info-item">
+                <i class="fas fa-plane-departure"></i>
+                <span><strong>{{ origin }}</strong> → <strong>{{ destination }}</strong></span>
+            </div>
+            <div class="flight-info-item">
+                <i class="far fa-calendar-alt"></i>
+                <span>{{ flight_date }}</span>
+            </div>
+            <div class="flight-info-item">
+                <i class="far fa-clock"></i>
+                <span>{{ flight_time }}</span>
+            </div>
+            <div class="flight-info-item">
+                <i class="fas fa-tag"></i>
+                <span>Flight: {{ flight_no }}</span>
+            </div>
+            <div class="flight-info-item">
+                <i class="fas fa-chair"></i>
+                <span>{{ passengers.cabin }}</span>
+            </div>
+            <div class="flight-info-item">
+                <i class="fas fa-ticket-alt"></i>
+                <span>₱{{ price }}/passenger</span>
+            </div>
+        </div>
+
         <section class="search-section">
             <div class="search-bar-wrapper">
                 <input type="text" id="seatSearch" placeholder="search seat (e.g. 5A)" class="slim-search">
@@ -54,7 +109,7 @@
             </div>
 
             <div class="selection-sidebar">
-                <p id="selectionText">Please select a seat</p>
+                <p id="selectionText">Please select seats for <span id="passengerLimitDisplay">1</span> passenger(s)</p>
                 <div class="seat-card" id="seatNumber" onclick="confirmBooking()" style="cursor: pointer;">--</div>
             </div>
         </div>
@@ -65,6 +120,25 @@
     const seatNumberDisplay = document.getElementById('seatNumber');
     const selectionText = document.getElementById('selectionText');
     const seatSearch = document.getElementById('seatSearch');
+
+    // Parse passenger count from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const adultCount = parseInt(urlParams.get('adults')) || 1;
+    const childCount = parseInt(urlParams.get('children')) || 0;
+    const totalPassengers = adultCount + childCount;
+    
+    // Capture flight data from Flask backend
+    const flightOrigin = "{{ origin }}";
+    const flightDestination = "{{ destination }}";
+    const flightDate = "{{ flight_date }}";
+    const flightTime = "{{ flight_time }}";
+    const flightNo = "{{ flight_no }}";
+    const flightPrice = "{{ price }}";
+    const flightCabin = "{{ passengers.cabin }}";
+
+    document.getElementById('passengerLimitDisplay').innerText = totalPassengers;
+
+    let selectedSeats = [];
 
     const seatSvgContent = `
     <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
@@ -95,15 +169,30 @@
     }
 
     function updateSelection(id, element) {
-        seatNumberDisplay.innerText = id;
-        selectionText.innerText = `You selected ${id} seat`;
-        
-        document.querySelectorAll('.seat').forEach(s => {
-            s.classList.remove('selected');
-            s.style.opacity = "1"; 
-        });
-        
-        element.classList.add('selected');
+        const index = selectedSeats.indexOf(id);
+
+        if (index > -1) {
+            // Already selected, so remove it
+            selectedSeats.splice(index, 1);
+            element.classList.remove('selected');
+        } else {
+            // New selection - check if we hit the limit
+            if (selectedSeats.length < totalPassengers) {
+                selectedSeats.push(id);
+                element.classList.add('selected');
+            } else {
+                alert(`You can only select ${totalPassengers} seat(s).`);
+            }
+        }
+
+        // Update display text
+        if (selectedSeats.length > 0) {
+            seatNumberDisplay.innerText = selectedSeats.join(', ');
+            selectionText.innerText = `You selected: ${selectedSeats.join(', ')}`;
+        } else {
+            seatNumberDisplay.innerText = "--";
+            selectionText.innerText = `Please select seats for ${totalPassengers} passenger(s)`;
+        }
     }
 
     seatSearch.addEventListener('input', (e) => {
@@ -114,6 +203,7 @@
             const seatId = seat.getAttribute('data-id');
             if (query === "") {
                 seat.style.opacity = "1";
+                seat.style.transform = "scale(1)";
             } else if (seatId.includes(query)) {
                 seat.style.opacity = "1";
                 seat.style.transform = "scale(1.1)";
@@ -125,19 +215,42 @@
     });
 
     function confirmBooking() {
-        const selectedSeat = seatNumberDisplay.innerText;
-        if (selectedSeat === "--") {
-            alert("Please select a seat first.");
+        if (selectedSeats.length === 0) {
+            alert("Please select at least one seat.");
             return;
         }
 
+        if (selectedSeats.length < totalPassengers) {
+            if (!confirm(`You have only selected ${selectedSeats.length} out of ${totalPassengers} seats. Proceed anyway?`)) {
+                return;
+            }
+        }
+
+        // Capture all existing parameters from URL
         const currentParams = new URLSearchParams(window.location.search);
         
+        // Add the selected seats
+        currentParams.set('seat', selectedSeats.join(','));
+        
+        // Make sure all flight data is included in the URL
+        currentParams.set('origin', flightOrigin);
+        currentParams.set('destination', flightDestination);
+        currentParams.set('date', flightDate);
+        currentParams.set('time', flightTime);
+        currentParams.set('flight_no', flightNo);
+        currentParams.set('price', flightPrice);
+        currentParams.set('cabin', flightCabin);
+        currentParams.set('adults', adultCount);
+        currentParams.set('children', childCount);
+        
+        // Also pass infant count if exists
+        const infantCount = parseInt(urlParams.get('infants')) || 0;
+        if (infantCount > 0) {
+            currentParams.set('infants', infantCount);
+        }
 
-        currentParams.set('seat', selectedSeat);
-
-
-        window.location.href = "/booking?" + currentParams.toString();
+        // Pass the baton to the booking page with all parameters
+        window.location.href = "{{ url_for('booking') }}?" + currentParams.toString();
     }
 </script>
 </body>

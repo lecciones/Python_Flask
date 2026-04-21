@@ -1,0 +1,143 @@
+/* --- ROOT VARIABLES --- */
+:root {
+    --brand-blue: #70c6f5;
+    --text-main: #4a4a4a;
+    --text-muted: #888;
+    --bg-card: #f9fdff; 
+}
+
+/* --- BASE STYLES --- */
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: #87CEFA; /* The sky blue page background */
+    margin: 0;
+    color: var(--text-main);
+}
+
+/* --- HEADER DESIGN --- */
+.main-header {
+    background-color: #ffffff;
+    height: 90px;   
+    display: flex;
+    align-items: center; 
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    /* Allows the oversized logo to hang over the white bar without clipping */
+    overflow: visible !important; 
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    /* Distributes the three sections: Logo (Left), Links (Center), Login (Right) */
+    justify-content: space-between; 
+    padding: 0 20px;
+}
+
+/* Container for logo to control its space in the flex bar */
+.logo {
+    display: flex;
+    align-items: center;
+    flex: 1; /* Occupies the left side */
+}
+
+/* Fixed scaling for the AeroTicket logo */
+.logo img {
+    height: 140px !important; 
+    width: auto;
+    /* Negative margins allow the large image to stay centered in a 90px header */
+    margin-top: -25px;   
+    margin-bottom: -25px; 
+    display: block;
+    position: relative;
+    z-index: 5;  
+}
+
+/* Navigation Section - Centered */
+.nav-links {
+    display: flex;
+    gap: 35px; 
+    align-items: center;
+    justify-content: center;
+    flex: 2; /* Gives the middle section more priority to remain centered */
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    white-space: nowrap; 
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: #2563eb;
+}
+
+/* Right Side - Account and Search */
+.header-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 25px;
+    flex: 1; /* Occupies the right side */
+}
+
+.login-link {
+    text-decoration: none;
+    color: #4dbbee;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-icon {
+    color: #4dbbee;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* --- INTEGRATIONS GRID STYLES --- */
+.grid div {
+    will-change: transform;
+    backface-visibility: hidden;
+    position: relative; 
+    transition: all 0.3s ease;
+}
+
+/* Ensures the card being hovered stays on top of neighbors during expansion */
+.grid div:hover {
+    z-index: 50;
+    /* Note: Scale is handled by Tailwind hover:scale-105 class in your HTML */
+}
+
+/* Ensures payment method logos remain sharp when scaled */
+.grid img {
+    image-rendering: -webkit-optimize-contrast;
+    pointer-events: none; 
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* Hide nav links on mobile like the original flight search */
+    }
+    .main-header {
+        height: 70px;
+    }
+    .logo img {
+        height: 100px !important;
+        margin-top: -15px;
+    }
+    .header-container {
+        padding: 0 15px;
+    }
+}

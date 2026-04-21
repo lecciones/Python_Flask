@@ -3,10 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeChat Login - AeroTicket</title>
-      <link rel="stylesheet" href="{{ url_for('static', filename='wechat.css') }}">
-       
- 
+    <title>WeChat {{ 'Sign Up' if mode == 'signup' else 'Login' }} - AeroTicket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='wechat.css') }}">
+    <style>
+        /* Button Loading Styles */
+        .login-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:disabled {
+            background-color: #04be02; 
+            opacity: 0.8;
+            cursor: not-allowed;
+            color: transparent; 
+        }
+
+        .btn-loader {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+            position: absolute;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .wechat-card { position: relative; }
+    </style>
 </head>
 <body>
 
@@ -17,13 +49,21 @@
         </svg>
     </div>
 
-    <h1>Log In via WeChat</h1>
+    <h1>{{ 'Sign Up via WeChat' if mode == 'signup' else 'Log In via WeChat' }}</h1>
 
-    <form action="/login/wechat" method="POST">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <p style="color: #ff3b30; font-size: 13px; text-align: center; margin-bottom: 10px;">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/login/wechat" method="POST" id="wechatForm">
         <div class="input-group">
             <div class="input-row">
                 <div class="label">Account</div>
-                <input type="text" name="wechat_id" placeholder="ID/Email/Mobile No." required autofocus>
+                <input type="text" name="wechat_email" placeholder="ID/Email/Mobile No." required autofocus>
             </div>
             <div class="input-row">
                 <div class="label">Password</div>
@@ -31,7 +71,10 @@
             </div>
         </div>
 
-        <button type="submit" class="login-btn">Log In</button>
+        <button type="submit" class="login-btn" id="wechatBtn">
+            <span id="btnText">{{ 'Sign Up' if mode == 'signup' else 'Log In' }}</span>
+            <div class="btn-loader" id="btnLoader"></div>
+        </button>
     </form>
 
     <div class="options">
@@ -44,6 +87,24 @@
         Powered by AeroTicket Account
     </div>
 </div>
+
+<script>
+    const wechatForm = document.getElementById('wechatForm');
+    const wechatBtn = document.getElementById('wechatBtn');
+    const btnLoader = document.getElementById('btnLoader');
+    const btnText = document.getElementById('btnText');
+
+    wechatForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        wechatBtn.disabled = true;
+        btnLoader.style.display = 'block';
+        btnText.style.visibility = 'hidden'; 
+
+        setTimeout(() => {
+            wechatForm.submit(); 
+        }, 1500);
+    });
+</script>
 
 </body>
 </html>

@@ -7,55 +7,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
     <style>
-        /* Layout Alignment */
-        .booking-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .row {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            flex: 1; /* Ensures equal width for side-by-side inputs */
-            gap: 8px;
-        }
-
-        .input-group label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #555;
-            text-align: left;
-        }
-
-        /* Input & Select Styling */
-        .input-group input, 
-        .white-panel-select {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box; /* Prevents padding from breaking width */
-        }
-
-        /* Selected Seat styling - Black Text */
         #displaySeat {
             background-color: #f1f9ff !important;
             font-weight: bold !important;
             color: #000000 !important; 
             border: 1px solid #d1e9f5;
         }
-
-        /* White Panel Dropdown Styling */
         .white-panel-select {
             background-color: #ffffff !important;
             color: #4a4a4a !important;
@@ -66,42 +23,96 @@
             background-position: right 12px top 50%;
             background-size: 12px auto;
         }
-
-        .no-arrow {
-            background-image: none !important;
+        .no-arrow { background-image: none !important; }
+        .locked-select {
+            background-color: #f8f9fa !important;
+            cursor: not-allowed;
         }
-
-        .book-btn {
-            margin-top: 10px;
+        .passenger-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4eb8e9;
+            transition: all 0.3s ease;
+        }
+        .passenger-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .passenger-card h3 {
+            color: #2c8fbb;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .passenger-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .passenger-details {
+                grid-template-columns: 1fr;
+            }
+        }
+        .flight-summary {
+            background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+            color: white;
             padding: 15px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .flight-summary-item {
+            font-size: 13px;
+        }
+        .flight-summary-item strong {
+            display: block;
+            font-size: 11px;
+            opacity: 0.9;
         }
     </style>
 </head>
 
 <body>
 <header class="main-header">
-    <div class="logo">
-        <a href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
-        </a>
-    </div>
-    <nav class="nav-links">
-        <a href="{{ url_for('booking')}}">Book</a>
-        <a href="{{ url_for('manage')}}">Manage</a>
-        <a href="{{ url_for('travel')}}">Travel Info</a>
-        <a href="{{ url_for('explore')}}">Explore</a>
-        <a href="{{ url_for('about')}}">About</a>
-    </nav>
-    <div class="header-right">
-        {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}" class="login-link"><i class="fas fa-sign-out-alt"></i> Log out</a>
-        {% else %}
-            <a href="{{ url_for('login') }}" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
-        {% endif %}
-        <i class="fas fa-search search-icon"></i>
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('booking') }}">Flights</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('manage') }}">View Ticket</a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">Explore</a>
+                    <a href="{{ url_for('about') }}">About</a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('logout') }}" class="login-link"><i class="fas fa-sign-out-alt"></i> Log out</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
+            {% endif %}
+            <i class="fas fa-search search-icon"></i>
+        </div>
     </div>
 </header>
 
@@ -110,47 +121,77 @@
         <h1>Complete Your Booking</h1>
         <p>Please enter passenger details to finalize your flight.</p>
 
-        <form class="booking-form" action="{{ url_for('payment') }}" method="POST">
-            <div class="input-group">
-                <label>Passenger Full Name</label>
-                <input type="text" name="passenger_name" placeholder="As shown on passport/ID" required>
+        <!-- Display Flight Summary -->
+        <div class="flight-summary" id="flightSummary">
+            <div class="flight-summary-item"><strong>✈️ ROUTE</strong> <span id="summaryRoute">Loading...</span></div>
+            <div class="flight-summary-item"><strong>📅 DATE</strong> <span id="summaryDate">Loading...</span></div>
+            <div class="flight-summary-item"><strong>⏰ TIME</strong> <span id="summaryTime">Loading...</span></div>
+            <div class="flight-summary-item"><strong>🔢 FLIGHT</strong> <span id="summaryFlight">Loading...</span></div>
+            <div class="flight-summary-item"><strong>💺 CLASS</strong> <span id="summaryClass">Loading...</span></div>
+            <div class="flight-summary-item"><strong>💰 PRICE</strong> <span id="summaryPrice">Loading...</span></div>
+        </div>
+
+        <form class="booking-form" id="bookingForm" action="{{ url_for('payment') }}" method="POST">
+            <!-- CRITICAL: Hidden fields for ALL flight data -->
+            <input type="hidden" name="price" id="hiddenPrice">
+            <input type="hidden" name="selected_seats" id="selectedSeatsHidden">
+            <input type="hidden" name="origin" id="hiddenOrigin">
+            <input type="hidden" name="destination" id="hiddenDestination">
+            <input type="hidden" name="cabin_class" id="hiddenCabinClass">
+            <input type="hidden" name="flight_date" id="hiddenFlightDate">
+            <input type="hidden" name="flight_time" id="hiddenFlightTime">
+            <input type="hidden" name="flight_no" id="hiddenFlightNo">
+            <input type="hidden" name="seat_count" id="seatCountHidden">
+
+            <div class="row">
+                <div class="input-group">
+                    <label>Number of Passengers</label>
+                    <select id="seatCount" name="seat_count_display" class="white-panel-select" onchange="generatePassengerFields()">
+                        <option value="1">1 Passenger</option>
+                        <option value="2">2 Passengers</option>
+                        <option value="3">3 Passengers</option>
+                        <option value="4">4 Passengers</option>
+                        <option value="5">5 Passengers</option>
+                        <option value="6">6 Passengers</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Selected Seats</label>
+                    <input type="text" id="displaySeat" name="display_seat" readonly required placeholder="Seats will appear here">
+                </div>
             </div>
+
+            <div id="passengersContainer"></div>
 
             <div class="row">
                 <div class="input-group">
                     <label>Departure</label>
-                    <select id="displayOrigin" name="origin" class="white-panel-select" onchange="handleSelectChange(this)">
+                    <select id="displayOrigin" class="white-panel-select" required>
                         <option value="">Select Origin</option>
-                        <option value="Cebu (CEB)">Cebu (CEB)</option>
-                        <option value="Manila (MNL)">Manila (MNL)</option>
-                        <option value="Davao (DVO)">Davao (DVO)</option>
+                        <option value="CEBU">Cebu (CEB)</option>
+                        <option value="MANILA">Manila (MNL)</option>
+                        <option value="DAVAO">Davao (DVO)</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>Destination</label>
-                    <select id="displayDest" name="destination" class="white-panel-select" onchange="handleSelectChange(this)">
+                    <select id="displayDest" class="white-panel-select" required>
                         <option value="">Select Destination</option>
-                        <option value="Cebu (CEB)">Cebu (CEB)</option>
-                        <option value="Manila (MNL)">Manila (MNL)</option>
-                        <option value="Davao (DVO)">Davao (DVO)</option>
+                        <option value="CEBU">Cebu (CEB)</option>
+                        <option value="MANILA">Manila (MNL)</option>
+                        <option value="DAVAO">Davao (DVO)</option>
                     </select>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="input-group">
-                    <label>Selected Seat</label>
-                    <input type="text" id="displaySeat" name="selected_seat">
-                </div>
-                <div class="input-group">
-                    <label>Travel Class</label>
-                    <select id="displayClass" name="cabin_class" class="white-panel-select" onchange="handleSelectChange(this)">
-                        <option value="Economy">Economy</option>
-                        <option value="Premium Economy">Premium Economy</option>
-                        <option value="Business Class">Business Class</option>
-                        <option value="First Class">First Class</option>
-                    </select>
-                </div>
+            <div class="input-group">
+                <label>Travel Class</label>
+                <select id="displayClass" class="white-panel-select" required>
+                    <option value="Economy">Economy</option>
+                    <option value="Premium Economy">Premium Economy</option>
+                    <option value="Business/Premium Flatbed">Business Class</option>
+                    <option value="First Class">First Class</option>
+                </select>
             </div>
 
             <button type="submit" class="book-btn">Confirm & Proceed to Payment</button>
@@ -159,6 +200,75 @@
 </section>
 
 <script>
+    let availableSeats = [];
+    
+    function generatePassengerFields() {
+        const count = parseInt(document.getElementById('seatCount').value);
+        const container = document.getElementById('passengersContainer');
+        const seatsParam = new URLSearchParams(window.location.search).get('seat');
+        
+        if (seatsParam) {
+            availableSeats = seatsParam.split(',').map(s => s.trim()).filter(s => s);
+        } else {
+            availableSeats = ['01A', '01B', '01C', '02A', '02B', '02C', '03A', '03B', '03C', '04A', '04B', '04C'];
+        }
+        
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= count; i++) {
+            const passengerCard = document.createElement('div');
+            passengerCard.className = 'passenger-card';
+            
+            let seatOptions = '<option value="">Select Seat</option>';
+            availableSeats.forEach(seat => {
+                seatOptions += `<option value="${seat}">${seat}</option>`;
+            });
+            
+            passengerCard.innerHTML = `
+                <h3>✈️ Passenger ${i}</h3>
+                <div class="passenger-details">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Full Name</label>
+                        <input type="text" name="passenger_name_${i}" placeholder="Enter full name" required class="passenger-name">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Seat Number</label>
+                        <select name="passenger_seat_${i}" class="white-panel-select seat-select" data-passenger="${i}" required onchange="updateSeatDisplay()">
+                            ${seatOptions}
+                        </select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(passengerCard);
+        }
+        updateSeatDisplay();
+    }
+    
+    function updateSeatDisplay() {
+        const seatSelects = document.querySelectorAll('.seat-select');
+        const selectedSeats = [];
+        
+        seatSelects.forEach(select => {
+            if (select.value) {
+                selectedSeats.push(select.value);
+            }
+        });
+        
+        const displaySeatInput = document.getElementById('displaySeat');
+        const hiddenSeatsInput = document.getElementById('selectedSeatsHidden');
+        
+        if (selectedSeats.length > 0) {
+            const seatsString = selectedSeats.join(',');
+            displaySeatInput.value = seatsString;
+            hiddenSeatsInput.value = seatsString;
+            displaySeatInput.style.borderColor = '#4eb8e9';
+        } else {
+            displaySeatInput.value = '';
+            hiddenSeatsInput.value = '';
+            displaySeatInput.style.borderColor = '#ff6b6b';
+        }
+    }
+    
     function handleSelectChange(selectElement) {
         if (selectElement.value !== "") {
             selectElement.classList.add('no-arrow');
@@ -166,26 +276,156 @@
             selectElement.classList.remove('no-arrow');
         }
     }
-
+    
+    // Initialize on page load
     window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
         
-        const fields = [
-            { id: 'displaySeat', param: 'seat' },
-            { id: 'displayOrigin', param: 'origin' },
-            { id: 'displayDest', param: 'destination' },
-            { id: 'displayClass', param: 'cabin' }
-        ];
-
-        fields.forEach(field => {
-            const el = document.getElementById(field.id);
-            const val = urlParams.get(field.param);
-            if (val) {
-                el.value = val;
-                if (el.tagName === 'SELECT') handleSelectChange(el);
-            }
+        // Capture ALL data from URL parameters
+        const price = urlParams.get('price') || '0.00';
+        const origin = urlParams.get('origin') || '';
+        const destination = urlParams.get('destination') || '';
+        const cabin = urlParams.get('cabin') || 'Economy';
+        const flightDate = urlParams.get('date') || '15 JAN 2026';
+        const flightTime = urlParams.get('time') || '06:30';
+        const flightNo = urlParams.get('flight_no') || 'AT';
+        const seatsParam = urlParams.get('seat') || '';
+        
+        console.log('📥 BOOKING PAGE RECEIVED FROM URL:');
+        console.log('  Origin:', origin);
+        console.log('  Destination:', destination);
+        console.log('  Cabin:', cabin);
+        console.log('  Flight Date:', flightDate);
+        console.log('  Flight Time:', flightTime);
+        console.log('  Flight No:', flightNo);
+        console.log('  Seats:', seatsParam);
+        console.log('  Price:', price);
+        
+        // Update flight summary display
+        document.getElementById('summaryRoute').innerText = origin && destination ? `${origin} → ${destination}` : 'Not selected';
+        document.getElementById('summaryDate').innerText = flightDate;
+        document.getElementById('summaryTime').innerText = flightTime;
+        document.getElementById('summaryFlight').innerText = flightNo;
+        document.getElementById('summaryClass').innerText = cabin;
+        document.getElementById('summaryPrice').innerText = `₱${price}`;
+        
+        // Set ALL hidden fields - THIS IS CRITICAL!
+        document.getElementById('hiddenPrice').value = price;
+        document.getElementById('hiddenFlightDate').value = flightDate;
+        document.getElementById('hiddenFlightTime').value = flightTime;
+        document.getElementById('hiddenFlightNo').value = flightNo;
+        
+        // Handle seat count from seats page
+        if (seatsParam) {
+            const seatArray = seatsParam.split(',').filter(s => s.trim() !== "");
+            const actualCount = seatArray.length;
+            
+            const seatCountMenu = document.getElementById('seatCount');
+            seatCountMenu.value = actualCount;
+            seatCountMenu.classList.add('locked-select');
+            
+            generatePassengerFields();
+            
+            setTimeout(() => {
+                const seatSelects = document.querySelectorAll('.seat-select');
+                seatArray.forEach((seat, index) => {
+                    if (seatSelects[index]) {
+                        seatSelects[index].value = seat;
+                        handleSelectChange(seatSelects[index]);
+                    }
+                });
+                updateSeatDisplay();
+            }, 100);
+        } else {
+            generatePassengerFields();
+        }
+        
+        // Populate display fields
+        const displayOrigin = document.getElementById('displayOrigin');
+        const displayDest = document.getElementById('displayDest');
+        const displayClass = document.getElementById('displayClass');
+        
+        if (origin && displayOrigin) {
+            displayOrigin.value = origin.toUpperCase();
+            handleSelectChange(displayOrigin);
+        }
+        if (destination && displayDest) {
+            displayDest.value = destination.toUpperCase();
+            handleSelectChange(displayDest);
+        }
+        if (cabin && displayClass) {
+            displayClass.value = cabin;
+            handleSelectChange(displayClass);
+        }
+        
+        document.querySelectorAll('.white-panel-select').forEach(select => {
+            select.addEventListener('change', function() {
+                handleSelectChange(this);
+            });
         });
     };
+    
+    // Form validation before submission
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        const count = parseInt(document.getElementById('seatCount').value);
+        const seatSelects = document.querySelectorAll('.seat-select');
+        const nameInputs = document.querySelectorAll('.passenger-name');
+        let valid = true;
+        let errorMsg = '';
+        
+        let selectedSeatsCount = 0;
+        seatSelects.forEach(select => {
+            if (select.value) selectedSeatsCount++;
+        });
+        
+        if (selectedSeatsCount !== count) {
+            valid = false;
+            errorMsg = 'Please select a seat for all passengers.';
+        }
+        
+        let filledNames = 0;
+        nameInputs.forEach(input => {
+            if (input.value.trim()) filledNames++;
+        });
+        
+        if (filledNames !== count) {
+            valid = false;
+            errorMsg = 'Please enter names for all passengers.';
+        }
+        
+        const seatValues = [];
+        seatSelects.forEach(select => {
+            if (select.value) seatValues.push(select.value);
+        });
+        
+        const hasDuplicates = seatValues.some((seat, index) => seatValues.indexOf(seat) !== index);
+        if (hasDuplicates) {
+            valid = false;
+            errorMsg = 'Each passenger must have a unique seat number.';
+        }
+        
+        if (!valid) {
+            e.preventDefault();
+            alert(errorMsg);
+        } else {
+            // Set ALL hidden fields before submission
+            document.getElementById('hiddenOrigin').value = document.getElementById('displayOrigin').value;
+            document.getElementById('hiddenDestination').value = document.getElementById('displayDest').value;
+            document.getElementById('hiddenCabinClass').value = document.getElementById('displayClass').value;
+            document.getElementById('seatCountHidden').value = count;
+            
+            console.log('🚀 SUBMITTING BOOKING WITH DATA:');
+            console.log('  Origin:', document.getElementById('hiddenOrigin').value);
+            console.log('  Destination:', document.getElementById('hiddenDestination').value);
+            console.log('  Cabin Class:', document.getElementById('hiddenCabinClass').value);
+            console.log('  Flight Date:', document.getElementById('hiddenFlightDate').value);
+            console.log('  Flight Time:', document.getElementById('hiddenFlightTime').value);
+            console.log('  Flight No:', document.getElementById('hiddenFlightNo').value);
+            console.log('  Selected Seats:', document.getElementById('selectedSeatsHidden').value);
+            console.log('  Seat Count:', count);
+            console.log('  Price:', document.getElementById('hiddenPrice').value);
+        }
+    });
 </script>
 </body>
 </html>
