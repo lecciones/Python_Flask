@@ -6,55 +6,352 @@
     <title>AeroTicket - Flight Search</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='flight.css') }}">
+    <style>
+        /* ===== HEADER & DROPDOWN STYLES ===== */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            overflow: visible;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo { display: flex; justify-content: flex-start; flex: 1; }
+        .logo img {
+            height: 140px !important;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+            position: relative;
+            z-index: 5;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            margin-bottom: 0;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            min-width: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+            margin-top: 10px;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            color: #4a4a4a;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 15px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            gap: 10px;
+            min-width: 100px;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(46, 143, 187, 0.3);
+        }
+        .dropdown-content a .menu-icon i { color: white; font-size: 24px; }
+        .dropdown-content a:hover { background: #f0f9ff; transform: translateY(-5px); }
+        .dropdown-content a:hover .menu-icon { transform: scale(1.1); box-shadow: 0 6px 16px rgba(46, 143, 187, 0.4); }
+
+        .manage-dropdown {
+            flex-direction: column !important; min-width: 200px !important;
+            padding: 8px 0 !important; left: 50% !important;
+            right: auto !important; transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: row !important; justify-content: flex-start !important;
+            gap: 12px !important; padding: 10px 20px !important;
+            min-width: auto !important; border-radius: 0 !important;
+        }
+        .settings-dropdown {
+            flex-direction: column !important; min-width: 210px !important;
+            padding: 8px 0 !important; left: auto !important;
+            right: 0 !important; transform: none !important; margin-top: 10px !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important; justify-content: flex-start !important;
+            gap: 12px !important; padding: 10px 20px !important;
+            min-width: auto !important; border-radius: 0 !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 28px !important; height: 28px !important;
+            background: none !important; box-shadow: none !important; margin-bottom: 0 !important;
+        }
+        .settings-dropdown a .menu-icon i { color: #4eb8e9 !important; font-size: 18px !important; }
+        .settings-dropdown a:hover { background: #f0f9ff !important; transform: none !important; }
+
+        .account-dropdown {
+            flex-direction: column !important; min-width: 160px !important;
+            padding: 8px 0 !important; left: auto !important;
+            right: 0 !important; transform: none !important; margin-top: 10px !important;
+        }
+        .account-dropdown a {
+            flex-direction: row !important; justify-content: flex-start !important;
+            gap: 12px !important; padding: 10px 20px !important;
+            min-width: auto !important; border-radius: 0 !important;
+            color: #4a4a4a; text-decoration: none; font-weight: 500;
+        }
+        .account-dropdown a i { width: 20px; color: #4eb8e9; }
+        .account-dropdown a:hover { background: #f0f9ff !important; }
+
+        .header-right {
+            display: flex; justify-content: flex-end;
+            gap: 25px; flex: 1; align-items: center;
+        }
+        .search-icon { color: #4dbbee; font-size: 1.1rem; cursor: pointer; }
+
+        /* Flash messages */
+        .flash-message {
+            background: #d4edda; color: #155724;
+            padding: 15px; text-align: center;
+            border-bottom: 1px solid #c3e6cb; margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da; color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            text-align: center;
+            color: #888;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #c8e8f8;
+            margin-bottom: 20px;
+        }
+        .empty-state h2 {
+            font-size: 1.4rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .empty-state p {
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            max-width: 420px;
+            line-height: 1.6;
+        }
+        .empty-state a {
+            background: #4CB9F0;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .empty-state a:hover { background: #3da0d0; }
+    </style>
 </head>
 <body>
-<header class="main-header">
-    <div class="logo">
-        <a href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
-        </a>
-    </div>
-    
-    <nav class="nav-links">
-        <a href="{{ url_for('booking')}}">Book</a>
-        <a href="{{ url_for('manage')}}">Manage</a>
-        <a href="{{ url_for('travel')}}">Travel Info</a>
-        <a href="{{ url_for('explore')}}">Explore</a>
-        <a href="{{ url_for('about')}}">About</a>
-    </nav>
 
-    <div class="header-right">
-        {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}" class="login-link">
-                <i class="fas fa-sign-out-alt"></i> Log out
+<!-- ===== HEADER ===== -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
             </a>
-        {% else %}
-            <a href="{{ url_for('login') }}" class="login-link">
-                <i class="fas fa-user-circle"></i> Log in
-            </a>
-        {% endif %}
-        <i class="fas fa-search search-icon"></i>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('flight') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
+                <div class="dropdown-content account-dropdown">
+                    <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Log in</a>
+                    <a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Sign up</a>
+                </div>
+            </div>
+            <i class="fas fa-search search-icon"></i>
+            {% endif %}
+        </div>
     </div>
 </header>
 
+<script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+</script>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- ===== FILTER BAR ===== -->
 <div class="footer-design">
     <div class="footer-item" style="position: relative;">
         <a href="javascript:void(0)" id="trip-type-toggle">
-            One-way <i class="fas fa-caret-down"></i>
+            {{ passengers.trip_type if passengers else 'One-way' }} <i class="fas fa-caret-down"></i>
         </a>
         <div class="selection-panel" id="trip-panel">
             <div class="panel-option" onclick="selectTrip('Round-trip')">Round-trip</div>
             <div class="panel-option" onclick="selectTrip('One-way')">One-way</div>
         </div>
     </div>
-    
+
     <div class="vertical-divider"></div>
 
     <div class="footer-item" style="position: relative;">
         <a href="javascript:void(0)" id="guest-economy-toggle">
-            <i class="fas fa-user"></i> <span id="guest-summary">1 Guest Economy</span> <i class="fas fa-caret-down"></i>
+            <i class="fas fa-user"></i>
+            <span id="guest-summary">
+                {{ (passengers.adults|int + passengers.children|int + passengers.infants|int) }} Guest{{ 's' if (passengers.adults|int + passengers.children|int + passengers.infants|int) > 1 else '' }} {{ passengers.cabin if passengers else 'Economy' }}
+            </span>
+            <i class="fas fa-caret-down"></i>
         </a>
-        
         <div class="selection-panel guest-panel" id="guest-panel">
             <div class="passenger-row">
                 <div class="label-col">
@@ -67,7 +364,6 @@
                     <button class="count-btn" onclick="updateCount('adult', 1)">+</button>
                 </div>
             </div>
-
             <div class="passenger-row">
                 <div class="label-col">
                     <span class="p-title">Child</span>
@@ -79,7 +375,6 @@
                     <button class="count-btn" onclick="updateCount('child', 1)">+</button>
                 </div>
             </div>
-
             <div class="passenger-row">
                 <div class="label-col">
                     <span class="p-title">Infant</span>
@@ -91,9 +386,7 @@
                     <button class="count-btn" onclick="updateCount('infant', 1)">+</button>
                 </div>
             </div>
-
             <hr class="panel-divider">
-
             <p class="cabin-label">Cabin class</p>
             <div class="cabin-grid">
                 <div class="cabin-option" data-class="Economy" onclick="selectCabin(this, 'Economy')">Economy</div>
@@ -113,56 +406,49 @@
     </div>
 </div>
 
+<!-- ===== MAIN CONTENT ===== -->
 <main class="container">
-    <div id="no-flights-container" style="display: none;">
-        <h2 class="section-title">No flights found for your search.</h2>
-    </div>
-
-    <div id="flight-results-container">
-    </div>
+    <div id="flight-results-container"></div>
 </main>
 
 <script>
-    let counts = { 
-        adult: parseInt("{{ passengers.adults if passengers else 1 }}"), 
-        child: parseInt("{{ passengers.children if passengers else 0 }}"), 
-        infant: parseInt("{{ passengers.infants if passengers else 0 }}") 
+    let counts = {
+        adult:  parseInt("{{ passengers.adults  if passengers else 1 }}"),
+        child:  parseInt("{{ passengers.children if passengers else 0 }}"),
+        infant: parseInt("{{ passengers.infants  if passengers else 0 }}")
     };
-    
+
     let currentCabin = "{{ passengers.cabin if passengers else 'Economy' }}";
-    
-    // Capture date and time from Flask backend
     const flightDate = "{{ flight_date }}";
-    const flightTime = "{{ flight_time }}";
 
     const allFlights = [
         {% for flight in flights %}
         {
-            class: "{{ flight.class }}",
-            departure: "{{ flight.departure }}",
-            arrival: "{{ flight.arrival }}",
-            origin: "{{ flight.origin | upper }}",
+            class:       "{{ flight.class }}",
+            departure:   "{{ flight.departure }}",
+            arrival:     "{{ flight.arrival }}",
+            origin:      "{{ flight.origin | upper }}",
             destination: "{{ flight.destination | upper }}",
-            price: "{{ flight.price }}",
-            duration: "{{ flight.duration }}",
-            distance: "{{ flight.distance }}"
+            price:       "{{ flight.price }}",
+            duration:    "{{ flight.duration }}",
+            distance:    "{{ flight.distance }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
+        // Highlight the active cabin option
         document.querySelectorAll('.cabin-option').forEach(opt => {
-            if (opt.getAttribute('data-class') === currentCabin) {
-                opt.classList.add('active');
-            }
+            if (opt.getAttribute('data-class') === currentCabin) opt.classList.add('active');
         });
         updateDisplay();
         filterFlights(currentCabin);
     });
 
+    // ---- Toggle panels ----
     function setupToggle(toggleId, panelId) {
         const toggle = document.getElementById(toggleId);
-        const panel = document.getElementById(panelId);
+        const panel  = document.getElementById(panelId);
         if (toggle && panel) {
             toggle.addEventListener('click', function(e) {
                 const isShowing = panel.classList.contains('show');
@@ -172,7 +458,6 @@
             });
         }
     }
-
     setupToggle('trip-type-toggle', 'trip-panel');
     setupToggle('guest-economy-toggle', 'guest-panel');
 
@@ -183,7 +468,7 @@
 
     function updateCount(type, change) {
         counts[type] = Math.max(0, counts[type] + change);
-        if (type === 'adult') counts.adult = Math.max(1, counts.adult); 
+        if (type === 'adult') counts.adult = Math.max(1, counts.adult);
         document.getElementById(`${type}-count`).innerText = counts[type];
         updateDisplay();
     }
@@ -200,27 +485,29 @@
         const total = counts.adult + counts.child + counts.infant;
         const guestText = total === 1 ? 'Guest' : 'Guests';
         const summary = document.getElementById('guest-summary');
-        if (summary) {
-            summary.innerText = `${total} ${guestText} ${currentCabin}`;
-        }
+        if (summary) summary.innerText = `${total} ${guestText} ${currentCabin}`;
     }
 
+    // ---- Render flights ----
     function filterFlights(cabinName) {
         const container = document.getElementById('flight-results-container');
-        const noFlightsMsg = document.getElementById('no-flights-container');
-        
-        const matched = allFlights.filter(f => f.class.toLowerCase() === cabinName.toLowerCase());
+        const matched   = allFlights.filter(f => f.class.toLowerCase() === cabinName.toLowerCase());
 
         if (matched.length === 0) {
-            container.innerHTML = "";
-            noFlightsMsg.style.display = "block";
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-plane-slash"></i>
+                    <h2>No flights found</h2>
+                    <p>
+                        We couldn't find any <strong>${cabinName}</strong> flights for your selected route.
+                        Try a different cabin class or search again from the home page.
+                    </p>
+                    <a href="{{ url_for('home') }}">← Back to Search</a>
+                </div>`;
             return;
         }
 
-        noFlightsMsg.style.display = "none";
-        let html = "";
-
-        html += renderCard(matched[0], 0);
+        let html = renderCard(matched[0], 0);
 
         if (matched.length > 1) {
             html += `<h2 class="section-title">Other Departing Flights</h2>`;
@@ -245,12 +532,10 @@
                         <span class="time">${flight.departure}</span>
                         <span class="city">${flight.origin}</span>
                     </div>
-                    
                     <div class="duration-line">
                         <span class="line"></span>
-                        <span style="display:block; font-size: 11px; color:#666; margin-top:4px;">${flight.distance}</span>
+                        <span style="display:block; font-size:11px; color:#666; margin-top:4px;">${flight.distance}</span>
                     </div>
-
                     <div class="time-block">
                         <span class="time">${flight.arrival}</span>
                         <div class="city-details-row">
@@ -272,7 +557,7 @@
                     <a href="#" class="view-details">View Details ↓</a>
                 </div>
             </div>
-            <div class="card-footer" style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid #eee; margin-top: 10px; font-size: 0.8rem; color: #777;">
+            <div class="card-footer" style="display:flex; justify-content:space-between; padding-top:10px; border-top:1px solid #eee; margin-top:10px; font-size:0.8rem; color:#777;">
                 <span>7 kg per guest</span>
                 <span>Add Ons</span>
                 <span>58kg CO₂</span>
@@ -283,18 +568,17 @@
     function goToSeats(flight) {
         const baseUrl = "{{ url_for('seats') }}";
         const params = new URLSearchParams({
-            origin: flight.origin,
+            origin:      flight.origin,
             destination: flight.destination,
-            cabin: flight.class,
-            price: flight.price,
-            adults: counts.adult,
-            children: counts.child,
-            infants: counts.infant,
-            date: flightDate,
-            time: flight.departure,
-            flight_no: 'AT' + Math.floor(Math.random() * 9000 + 1000)
+            cabin:       flight.class,
+            price:       flight.price,
+            adults:      counts.adult,
+            children:    counts.child,
+            infants:     counts.infant,
+            date:        flightDate,
+            time:        flight.departure,
+            flight_no:   'AT' + Math.floor(Math.random() * 9000 + 1000)
         });
-        
         window.location.href = `${baseUrl}?${params.toString()}`;
     }
 
@@ -302,7 +586,7 @@
         if (!event.target.closest('.footer-item')) {
             document.querySelectorAll('.selection-panel').forEach(p => p.classList.remove('show'));
         }
-    }
+    };
 </script>
 </body>
 </html>

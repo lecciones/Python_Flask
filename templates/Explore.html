@@ -1,107 +1,395 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AeroTicket | Explore Destinations</title>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{{ url_for('static', filename ='explore.css')}}">
+    <meta charset="UTF-8">
+    <title>AeroTicket | Explore Destinations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='explore.css') }}">
+    <style>
+        /* ===== HEADER & DROPDOWN STYLES (matching final Booking page) ===== */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo {
+            flex: 1;
+        }
+        .logo img {
+            height: 140px;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            flex: 1;
+            justify-content: center;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: relative;
+        }
+        /* Main navigation dropdown (circular icons) */
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        .dropdown-content a:hover {
+            background: #f0f9ff;
+            transform: translateY(-3px);
+        }
+        /* Manage dropdown styling */
+        .manage-dropdown {
+            flex-direction: column !important;
+            min-width: 200px !important;
+            padding: 8px 0 !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        /* Settings dropdown (logged in) – horizontal, right-aligned */
+        .settings-dropdown {
+            flex-direction: column !important;
+            min-width: 210px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 28px !important;
+            height: 28px !important;
+            background: none !important;
+            box-shadow: none !important;
+            margin-bottom: 0 !important;
+        }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+        /* Account dropdown (not logged in) – horizontal, right-aligned */
+        .account-dropdown {
+            flex-direction: column !important;
+            min-width: 160px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .account-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            color: #4a4a4a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .account-dropdown a i {
+            width: 20px;
+            color: #4eb8e9;
+        }
+        .account-dropdown a:hover {
+            background: #f0f9ff !important;
+        }
+        .header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            align-items: center;
+        }
+        .search-icon {
+            color: #4dbbee;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        
+        /* Flash message styles */
+        .flash-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #c3e6cb;
+            margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
-
 <body>
 
-  <header class="main-header">
-    <div class="logo">
-        <a href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
-        </a>
-    </div>
-    
-    <nav class="nav-links">
-        <a href="{{ url_for('booking')}}">Book</a>
-        <a href="{{ url_for('manage')}}">Manage</a>
-        <a href="{{ url_for('travel')}}">Travel Info</a>
-        <a href="{{ url_for('explore')}}">Explore</a>
-        <a href="{{ url_for('about')}}">About</a> </nav>
-
-    <div class="header-right">
-        {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}" class="login-link">
-                <i class="fas fa-sign-out-alt"></i> Log out
+<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
             </a>
-        {% else %}
-            <a href="{{ url_for('login') }}" class="login-link">
-                <i class="fas fa-user-circle"></i> Log in
-            </a>
-        {% endif %}
-        <i class="fas fa-search search-icon"></i>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('flight') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
+            </div>
+            <!-- Manage dropdown - with View Ticket link -->
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+            <!-- LOGGED IN: Settings dropdown -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- NOT LOGGED IN: Account dropdown + search icon -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
+                <div class="dropdown-content account-dropdown">
+                    <a href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Log in
+                    </a>
+                    <a href="{{ url_for('signup') }}">
+                        <i class="fas fa-user-plus"></i> Sign up
+                    </a>
+                </div>
+            </div>
+            <i class="fas fa-search search-icon"></i>
+            {% endif %}
+        </div>
     </div>
 </header>
 
+<script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+</script>
 
-{% with messages = get_flashed_messages() %}
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        {% for message in messages %}
-            <div style="background: #d4edda; color: #155724; padding: 15px; text-align: center; border-bottom: 1px solid #c3e6cb;">
+        {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 {% endwith %}
 
-
+<!-- ========== ORIGINAL EXPLORE CONTENT (preserved) ========== -->
 <section class="explore-header">
-
     <h1>Explore the World</h1>
     <p>Discover amazing destinations and plan your next journey</p>
-
 </section>
 
-
 <section class="destinations">
-
     <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e">
+        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e" alt="Boracay">
         <div class="card-info">
             <h3>Boracay</h3>
             <p>Famous for its white sand beaches and crystal clear water.</p>
-            <button>View Flights</button>
+            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
         </div>
     </div>
 
     <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad">
+        <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad" alt="Tokyo">
         <div class="card-info">
             <h3>Tokyo</h3>
             <p>Experience modern technology mixed with rich culture.</p>
-            <button>View Flights</button>
+            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
         </div>
     </div>
 
     <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a">
+        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a" alt="Paris">
         <div class="card-info">
             <h3>Paris</h3>
             <p>The city of love with iconic landmarks and cuisine.</p>
-            <button>View Flights</button>
+            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
         </div>
     </div>
 
     <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470">
+        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470" alt="Switzerland">
         <div class="card-info">
             <h3>Switzerland</h3>
             <p>Explore breathtaking mountains and scenic landscapes.</p>
-            <button>View Flights</button>
+            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
         </div>
     </div>
-
 </section>
 
-
 <footer>
-
-<p>© 2026 AeroTicket Airlines | Explore New Horizons</p>
-
+    <p>© 2026 AeroTicket Airlines | Explore New Horizons</p>
 </footer>
 
 </body>

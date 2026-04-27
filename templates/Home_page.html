@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1440">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AeroTicket - Explore the World</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
@@ -12,8 +12,18 @@
             --brand-white: #FFFFFF;
             --text-black: #333;
             --sky-gradient: linear-gradient(to bottom left, var(--brand-blue) 50%, var(--brand-white));
-            /* This fills the blue area. Default is the gradient. */
             --slider-bg: var(--sky-gradient);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            width: 100%;
         }
 
         .search-box input {
@@ -32,7 +42,6 @@
             color: #4CB9F0 !important;
         }
 
-        /* This is the BLUE AREA. It now holds the expanding background images. */
         .hero-section::after {
             content: "";
             position: absolute;
@@ -40,20 +49,451 @@
             right: 0;
             width: 100%;
             height: 100%;
-            
             background-image: var(--slider-bg);
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            
             clip-path: polygon(100% 0, 100% 100%, 25% 100%, 53% 50%, 25% 0);
             z-index: 1; 
             transition: background-image 0.5s ease-in-out;
         }
 
-        /* Keeps the floating airplane above the background images */
         .plane-img {
             z-index: 5;
+        }
+
+        @keyframes flyForward {
+            0% {
+                transform: translate(-50%, -50%) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translateX(300px);
+                opacity: 0;
+            }
+        }
+
+        .plane-img.plane-fly-out {
+            animation: flyForward 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+        }
+
+        /* DESCRIPTION PANEL - MOVED UP JUST A TINY BIT (top: 56%) */
+        .slideshow-panel {
+            position: absolute;
+            right: 8%;
+            top: 56%;
+            transform: translateY(-50%);
+            width: 400px;
+            background: white;
+            border-radius: 25px;
+            padding: 0;
+            color: #333;
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-50%) translateX(30px);
+            transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .slideshow-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #4CB9F0 0%, #2d8fbf 100%);
+            padding: 20px 25px;
+            color: white;
+        }
+
+        .panel-header .destination-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .panel-header h3 {
+            font-size: 26px;
+            margin: 0;
+            font-weight: 700;
+            color: white;
+        }
+
+        .panel-body {
+            padding: 20px 25px;
+        }
+
+        .panel-body p {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+            color: #555;
+        }
+
+        .panel-body .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .panel-body .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #555;
+            background: #F0F7FF;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .panel-body .feature i {
+            color: #4CB9F0;
+            font-size: 11px;
+        }
+
+        .panel-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .btn-book {
+            background: #4CB9F0;
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            flex: 1;
+            text-align: center;
+            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-book:hover {
+            background: #3da0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn-register {
+            background: transparent;
+            color: #4CB9F0;
+            border: 2px solid #4CB9F0;
+            padding: 9px 18px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-register:hover {
+            background: rgba(76, 185, 240, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .panel-offer {
+            background: #E8F4FD;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #4CB9F0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .panel-offer i {
+            font-size: 13px;
+        }
+
+        /* Slider dots - ensure they're visible */
+        .slider-dots {
+            position: absolute;
+            bottom: 40px;
+            left: 54%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 25;
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: white;
+            transform: scale(1.3);
+        }
+
+        /* extra styling for city grouping in search panel */
+        .search-panel .region-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #4CB9F0;
+            letter-spacing: 1px;
+            padding: 12px 15px 4px 15px;
+            border-bottom: 1px solid #eee;
+            margin-top: 5px;
+        }
+        .search-panel .option {
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .search-panel .option:hover {
+            background: #F0F7FF;
+        }
+
+        /* LOADING ANIMATION STYLES */
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+            position: relative;
+        }
+        .btn-loading .btn-text {
+            visibility: hidden;
+        }
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            top: 50%;
+            left: 50%;
+            margin-left: -9px;
+            margin-top: -9px;
+            border: 2px solid rgba(255,255,255,0.8);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* For outline register buttons (white background) */
+        .btn-register.btn-loading::after {
+            border: 2px solid #4CB9F0;
+            border-top-color: transparent;
+        }
+        .register-btn.btn-loading {
+            background: #3da0d0;
+        }
+
+        /* ===== RESPONSIVE STYLES FOR TABLET AND PHONE ===== */
+        @media (max-width: 1600px) {
+            .slideshow-panel {
+                right: 6%;
+                width: 380px;
+                top: 56%;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .slideshow-panel {
+                right: 4%;
+                width: 360px;
+                top: 56%;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .hero-section::after {
+                clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 0);
+            }
+            
+            .hero-section::before {
+                display: none;
+            }
+            
+            .content {
+                width: 80%;
+                padding: 120px 5% 60px;
+                z-index: 10;
+            }
+            
+            h1 {
+                font-size: 48px;
+            }
+            
+            h1 span {
+                font-size: 36px;
+            }
+            
+            .search-box {
+                max-width: 400px;
+            }
+            
+            .plane-img {
+                width: 350px;
+                left: 70%;
+                top: 60%;
+            }
+            
+            .slideshow-panel {
+                display: none;
+            }
+            
+            .social-sidebar {
+                padding: 25px 8px;
+            }
+            
+            .social-sidebar img {
+                width: 24px;
+            }
+            
+            .nav-links a {
+                font-size: 16px;
+                padding: 5px 12px;
+            }
+            
+            .logo img {
+                height: 80px;
+            }
+            
+            .slider-dots {
+                left: 50%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .main-header nav {
+                flex-direction: column;
+                padding: 10px;
+                background: rgba(76, 185, 240, 0.95);
+                position: relative;
+            }
+            
+            .logo img {
+                height: 50px;
+                margin-bottom: 5px;
+            }
+            
+            .nav-links {
+                gap: 10px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .nav-links a {
+                font-size: 12px;
+                padding: 4px 10px;
+                color: white;
+            }
+            
+            .hero-section::after {
+                clip-path: none;
+            }
+            
+            .hero-section::before {
+                display: none;
+            }
+            
+            .content {
+                width: 100%;
+                padding: 100px 20px 50px;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            h1 span {
+                font-size: 24px;
+            }
+            
+            .search-box {
+                max-width: 100%;
+                align-items: center;
+            }
+            
+            .search-box input {
+                font-size: 14px;
+                padding: 12px 15px;
+                width: 100%;
+            }
+            
+            .register-btn {
+                font-size: 16px;
+                padding: 10px 20px;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .plane-img {
+                display: none;
+            }
+            
+            .social-sidebar {
+                display: none;
+            }
+            
+            .slider-dots {
+                bottom: 15px;
+                left: 50%;
+            }
+            
+            .dot {
+                height: 8px;
+                width: 8px;
+            }
+            
+            .input-group i {
+                right: 15px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content {
+                padding: 80px 15px 40px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            h1 span {
+                font-size: 20px;
+            }
+            
+            .search-box input {
+                font-size: 12px;
+                padding: 10px 12px;
+            }
+            
+            .register-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
@@ -84,10 +524,10 @@
         <div class="content">
             <h1 id="hero-title"><span>EXPLORE</span> THE WORLD</h1>
             
-            <form action="{{ url_for('flight') }}" method="GET" style="display: contents;">
+            <form id="flightSearchForm" action="{{ url_for('flight') }}" method="GET" style="display: contents;">
                 <div class="search-box">
                     <div class="input-group">
-                        <input type="text" id="from-input" name="departure" placeholder="AIRPORT" autocomplete="off" required>
+                        <input type="text" id="from-input" name="departure" placeholder="FROM ✈️" autocomplete="off" required>
                         <div class="search-panel" id="search-panel">
                             <div id="panel-content"></div>
                         </div>
@@ -111,25 +551,25 @@
                                 <div class="option-row">
                                     <span>Adult</span>
                                     <div class="counter-controls">
-                                        <button type="button" class="counter-btn" onclick="changeCount('adult', -1)">-</button>
+                                        <button type="button" class="counter-btn" data-type="adult" data-delta="-1">-</button>
                                         <span class="count-value" id="count-adult">1</span>
-                                        <button type="button" class="counter-btn" onclick="changeCount('adult', 1)">+</button>
+                                        <button type="button" class="counter-btn" data-type="adult" data-delta="1">+</button>
                                     </div>
                                 </div>
                                 <div class="option-row">
                                     <span>Child</span>
                                     <div class="counter-controls">
-                                        <button type="button" class="counter-btn" onclick="changeCount('child', -1)">-</button>
+                                        <button type="button" class="counter-btn" data-type="child" data-delta="-1">-</button>
                                         <span class="count-value" id="count-child">0</span>
-                                        <button type="button" class="counter-btn" onclick="changeCount('child', 1)">+</button>
+                                        <button type="button" class="counter-btn" data-type="child" data-delta="1">+</button>
                                     </div>
                                 </div>
                                 <div class="option-row">
                                     <span>Infant</span>
                                     <div class="counter-controls">
-                                        <button type="button" class="counter-btn" onclick="changeCount('infant', -1)">-</button>
+                                        <button type="button" class="counter-btn" data-type="infant" data-delta="-1">-</button>
                                         <span class="count-value" id="count-infant">0</span>
-                                        <button type="button" class="counter-btn" onclick="changeCount('infant', 1)">+</button>
+                                        <button type="button" class="counter-btn" data-type="infant" data-delta="1">+</button>
                                     </div>
                                 </div>
                             </div>
@@ -137,11 +577,13 @@
                     </div>
 
                     {% if session.get('user_id') %}
-                        <button type="submit" class="register-btn">Search Flights</button>
+                        <button type="submit" id="searchFlightsBtn" class="register-btn">Search Flights</button>
                     {% else %}
-                        <a href="{{ url_for('login') }}" class="register-btn">Register</a>
+                        <a href="{{ url_for('signup') }}" id="mainRegisterBtn" class="register-btn">Register</a>
                     {% endif %}
                 </div>
+                <!-- Hidden fields to store actual origin/destination codes -->
+                <input type="hidden" id="origin-hidden" name="departure_code">
                 <input type="hidden" id="to-input" name="arrival">
                 <input type="hidden" name="adults" id="hidden-adults" value="1">
                 <input type="hidden" name="children" id="hidden-children" value="0">
@@ -149,8 +591,29 @@
             </form>
         </div>
 
-        <div class="plane-img">
-            <img id="hero-img" src="{{ url_for('static', filename='images/Airplane.png') }}">
+        <div class="plane-img" id="planeImg">
+            <img id="hero-img" src="{{ url_for('static', filename='images/Airplane.png') }}" alt="Airplane">
+        </div>
+
+        <div class="slideshow-panel" id="slideshowPanel">
+            <div class="panel-header">
+                <div class="destination-badge" id="panelBadge">✨ FEATURED</div>
+                <h3 id="panelTitle">Siargao Island</h3>
+            </div>
+            <div class="panel-body">
+                <p id="panelDesc">Experience crystal clear waters and pristine white sand beaches in the Surfing Capital of the Philippines.</p>
+                <div class="features" id="panelFeatures">
+                    <div class="feature"><i class="fas fa-umbrella-beach"></i> White Sand Beaches</div>
+                    <div class="feature"><i class="fas fa-water"></i> Crystal Clear Waters</div>
+                </div>
+                <div class="panel-buttons">
+                    <a href="{{ url_for('booking') }}" id="panelBookBtn" class="btn-book">Book Now →</a>
+                    <a href="{{ url_for('signup') }}" id="panelRegisterBtn" class="btn-register">Register</a>
+                </div>
+                <div class="panel-offer" id="panelOffer">
+                    <i class="fas fa-fire"></i> Limited seats available!
+                </div>
+            </div>
         </div>
 
         <div class="slider-dots">
@@ -162,25 +625,172 @@
     </section>
 
     <script>
+        // Store Flask-generated URLs for use in JS slides
+        const bookingUrl = "{{ url_for('booking') }}";
+        const signupUrl = "{{ url_for('signup') }}";
+
+        // ----- LOADING ANIMATION UTILITIES -----
+        function addLoadingEffect(button, originalText) {
+            if (!button) return;
+            if (button.classList.contains('btn-loading')) return;
+            // Store original text if not already stored
+            if (!button.hasAttribute('data-original-text')) {
+                button.setAttribute('data-original-text', button.innerText);
+            }
+            button.classList.add('btn-loading');
+            // Wrap text in a span to hide it
+            const span = document.createElement('span');
+            span.className = 'btn-text';
+            span.innerText = button.getAttribute('data-original-text');
+            // Clear existing content and add span
+            button.innerHTML = '';
+            button.appendChild(span);
+            button.disabled = true;
+        }
+
+        function removeLoadingEffect(button) {
+            if (!button) return;
+            button.classList.remove('btn-loading');
+            if (button.hasAttribute('data-original-text')) {
+                button.innerText = button.getAttribute('data-original-text');
+            }
+            button.disabled = false;
+        }
+
+        // Function to handle register link clicks (with 1 sec loading)
+        function handleRegisterClick(e, targetButton) {
+            e.preventDefault();
+            if (targetButton.classList.contains('btn-loading')) return;
+            const href = targetButton.getAttribute('href');
+            if (!href) return;
+            addLoadingEffect(targetButton, 'Register');
+            setTimeout(() => {
+                window.location.href = href;
+            }, 1000);
+        }
+
+        // Function to handle search form submission (with 1 sec loading)
+        function handleSearchSubmit(e, form, submitBtn) {
+            e.preventDefault();
+            if (submitBtn.classList.contains('btn-loading')) return;
+            
+            // Ensure hidden fields are set before submit
+            if (originHidden) originHidden.value = selectedOriginCity ? selectedOriginCity.name : "Cebu";
+            if (toHidden) toHidden.value = selectedDestCity ? selectedDestCity.name : "Dubai";
+            // Also set a visible departure name if needed
+            let depInput = document.querySelector('input[name="departure"]');
+            if (!depInput) {
+                depInput = document.createElement('input');
+                depInput.type = 'hidden';
+                depInput.name = 'departure';
+                form.appendChild(depInput);
+            }
+            depInput.value = selectedOriginCity ? selectedOriginCity.name : "Cebu";
+            
+            addLoadingEffect(submitBtn, submitBtn.innerText);
+            setTimeout(() => {
+                form.submit();
+            }, 1000);
+        }
+
+        // ----- BOTH ORIGIN AND DESTINATION SUPPORT INTERNATIONAL & PHILIPPINES -----
+        const allCities = [
+            { name: "Cebu", region: "PH", displayName: "Cebu (Philippines)" },
+            { name: "Manila", region: "PH", displayName: "Manila (Philippines)" },
+            { name: "Davao", region: "PH", displayName: "Davao (Philippines)" },
+            { name: "Dubai", region: "INT", displayName: "Dubai (UAE) 🌍" },
+            { name: "Hongkong", region: "INT", displayName: "Hong Kong 🌏" },
+            { name: "Singapore", region: "INT", displayName: "Singapore 🌏" }
+        ];
+        
+        let selectedOriginCity = allCities.find(c => c.name === "Cebu");
+        let selectedDestCity = allCities.find(c => c.name === "Dubai");
+        let selectionStep = 'origin';
+        
         const fromInput = document.getElementById('from-input');
-        const toInput = document.getElementById('to-input');
+        const toHidden = document.getElementById('to-input');
+        const originHidden = document.getElementById('origin-hidden');
         const searchPanel = document.getElementById('search-panel');
         const panelContent = document.getElementById('panel-content');
         const dateInput = document.getElementById('date-input');
         const datePanel = document.getElementById('date-panel');
         const passengerInput = document.getElementById('passenger-input');
         const passengerPanel = document.getElementById('passenger-panel');
-
-        let counts = { adult: 1, child: 0, infant: 0 };
-
-        function changeCount(type, delta) {
-            if (type === 'adult' && counts.adult + delta < 1) return;
-            if (counts[type] + delta < 0) return;
-            counts[type] += delta;
-            document.getElementById(`count-${type}`).innerText = counts[type];
-            updatePassengerInput();
+        
+        function updateFromDisplay() {
+            if (selectedOriginCity && selectedDestCity) {
+                fromInput.value = `${selectedOriginCity.name.toUpperCase()} → ${selectedDestCity.name.toUpperCase()}`;
+                if (toHidden) toHidden.value = selectedDestCity.name;
+                if (originHidden) originHidden.value = selectedOriginCity.name;
+            } else if (selectedOriginCity) {
+                fromInput.value = `${selectedOriginCity.name.toUpperCase()} → ?`;
+            } else {
+                fromInput.value = "SELECT ORIGIN";
+            }
         }
-
+        
+        function renderCityPanel(titleText, citiesList, onSelectCallback) {
+            const phCities = citiesList.filter(c => c.region === "PH");
+            const intCities = citiesList.filter(c => c.region === "INT");
+            let html = `<label class="panel-label">${titleText}</label>`;
+            if (phCities.length) {
+                html += `<div class="region-header">🇵🇭 PHILIPPINES</div>`;
+                phCities.forEach(city => {
+                    html += `<div class="option" data-city='${JSON.stringify(city)}'>${city.displayName}</div>`;
+                });
+            }
+            if (intCities.length) {
+                html += `<div class="region-header">🌍 INTERNATIONAL</div>`;
+                intCities.forEach(city => {
+                    html += `<div class="option" data-city='${JSON.stringify(city)}'>${city.displayName}</div>`;
+                });
+            }
+            panelContent.innerHTML = html;
+            document.querySelectorAll('#panel-content .option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const cityData = JSON.parse(opt.getAttribute('data-city'));
+                    onSelectCallback(cityData);
+                });
+            });
+            searchPanel.classList.add('active');
+        }
+        
+        function startOriginSelection() {
+            selectionStep = 'origin';
+            renderCityPanel("✈️ SELECT ORIGIN (FROM)", allCities, (selectedCity) => {
+                selectedOriginCity = selectedCity;
+                updateFromDisplay();
+                startDestinationSelection();
+            });
+        }
+        
+        function startDestinationSelection() {
+            selectionStep = 'destination';
+            renderCityPanel("🌍 SELECT DESTINATION (TO)", allCities, (selectedCity) => {
+                selectedDestCity = selectedCity;
+                updateFromDisplay();
+                searchPanel.classList.remove('active');
+            });
+        }
+        
+        fromInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeAllPanels();
+            startOriginSelection();
+        });
+        
+        dateInput.addEventListener('click', (e) => { e.stopPropagation(); closeAllPanels(); datePanel.classList.add('active'); });
+        document.getElementById('calendar-picker').addEventListener('change', (e) => { 
+            const date = new Date(e.target.value); 
+            dateInput.value = date.toLocaleDateString('en-GB'); 
+            datePanel.classList.remove('active'); 
+        });
+        
+        passengerInput.addEventListener('click', (e) => { e.stopPropagation(); closeAllPanels(); passengerPanel.classList.add('active'); });
+        
+        let counts = { adult: 1, child: 0, infant: 0 };
+        
         function updatePassengerInput() {
             const total = counts.adult + counts.child + counts.infant;
             passengerInput.value = `${total} ${total === 1 ? 'PASSENGER' : 'PASSENGERS'}`;
@@ -188,74 +798,244 @@
             document.getElementById('hidden-children').value = counts.child;
             document.getElementById('hidden-infants').value = counts.infant;
         }
-
-        const airports = ["Cebu", "Manila", "Davao"];
-        let selectedFrom = "";
-
-        fromInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); showFromOptions(); searchPanel.classList.add('active'); });
-        function showFromOptions() {
-            panelContent.innerHTML = `<label class="panel-label">FROM</label>`;
-            airports.forEach(a => { panelContent.innerHTML += `<div class="option" onclick="selectFrom('${a}', event)">${a.toUpperCase()}</div>`; });
+        
+        function changeCount(type, delta) {
+            if (type === 'adult' && counts.adult + delta < 1) return;
+            if (counts[type] + delta < 0) return;
+            counts[type] += delta;
+            document.getElementById(`count-${type}`).innerText = counts[type];
+            updatePassengerInput();
         }
-        function selectFrom(val, e) { e.stopPropagation(); selectedFrom = val; fromInput.value = val.toUpperCase() + " TO "; showToOptions(); }
-        function showToOptions() {
-            panelContent.innerHTML = `<label class="panel-label">TO</label>`;
-            airports.forEach(a => { if (a !== selectedFrom) { panelContent.innerHTML += `<div class="option" onclick="selectTo('${a}', event)">${a.toUpperCase()}</div>`; } });
+        
+        function initPassengerControls() {
+            document.querySelectorAll('.counter-btn').forEach(btn => {
+                btn.removeEventListener('click', passengerHandler);
+                btn.addEventListener('click', passengerHandler);
+            });
         }
-        function selectTo(val, e) { e.stopPropagation(); fromInput.value = `${selectedFrom} TO ${val}`.toUpperCase(); toInput.value = val; searchPanel.classList.remove('active'); }
-
-        dateInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); datePanel.classList.add('active'); });
-        document.getElementById('calendar-picker').addEventListener('change', (e) => { const date = new Date(e.target.value); dateInput.value = date.toLocaleDateString('en-GB'); datePanel.classList.remove('active'); });
-        passengerInput.addEventListener('click', (e) => { e.stopPropagation(); closeAll(); passengerPanel.classList.add('active'); });
-        function closeAll() { searchPanel.classList.remove('active'); datePanel.classList.remove('active'); passengerPanel.classList.remove('active'); }
-        document.addEventListener('click', closeAll);
-
-        // Slider Logic
-        const slides = [
-            { title: '<span>EXPLORE</span> THE WORLD', image: null }, // Index 0 is the default gradient
-            { title: '<span>DISCOVER</span> NEW PLACES', image: "{{ url_for('static', filename='images/siargao.png') }}" },
-            { title: '<span>TRAVEL</span> WITH EASE', image: "{{ url_for('static', filename='images/view_plane.png') }}" },
-            { title: '<span>BOOK</span> YOUR DREAM', image: "{{ url_for('static', filename='images/sea.png') }}" }
-        ];
-
-       const dots = document.querySelectorAll('.dot');
-const heroTitle = document.getElementById('hero-title');
-const heroSection = document.querySelector('.hero-section');
-const planeContainer = document.querySelector('.plane-img'); // Select the airplane wrapper
-
-dots.forEach(dot => {
-    dot.addEventListener('click', function() {
-        const index = parseInt(this.getAttribute('data-index'));
         
- 
-        document.querySelector('.dot.active').classList.remove('active');
-        this.classList.add('active');
-        
-      
-        heroTitle.style.opacity = '0';
-        
-        setTimeout(() => {
-            heroTitle.innerHTML = slides[index].title;
-            
-          
-            if (index === 0) {
-              
-                heroSection.style.setProperty('--slider-bg', 'var(--sky-gradient)');
-                planeContainer.style.opacity = '1';
-                planeContainer.style.visibility = 'visible';
-            } else {
-              
-                heroSection.style.setProperty('--slider-bg', `url('${slides[index].image}')`);
-                planeContainer.style.opacity = '0';
-                planeContainer.style.visibility = 'hidden';
+        function passengerHandler(e) {
+            e.stopPropagation();
+            const type = this.getAttribute('data-type');
+            const delta = parseInt(this.getAttribute('data-delta'));
+            if (type && !isNaN(delta)) {
+                changeCount(type, delta);
             }
-            
-            heroTitle.style.opacity = '1';
-        }, 300); 
-    });
-});
-
+        }
+        
+        if (passengerPanel) {
+            passengerPanel.addEventListener('click', (e) => e.stopPropagation());
+        }
+        
+        function closeAllPanels() {
+            searchPanel.classList.remove('active');
+            datePanel.classList.remove('active');
+            passengerPanel.classList.remove('active');
+        }
+        document.addEventListener('click', (e) => {
+            if (passengerPanel && passengerPanel.contains(e.target)) return;
+            if (searchPanel && searchPanel.contains(e.target)) return;
+            if (datePanel && datePanel.contains(e.target)) return;
+            closeAllPanels();
+        });
+        
+        updateFromDisplay();
         updatePassengerInput();
+        initPassengerControls();
+
+        // ----- ATTACH LOADING TO REGISTER BUTTONS AND SEARCH BUTTON -----
+        // Main register button (if not logged in)
+        const mainRegisterBtn = document.getElementById('mainRegisterBtn');
+        if (mainRegisterBtn && mainRegisterBtn.tagName === 'A') {
+            mainRegisterBtn.addEventListener('click', (e) => handleRegisterClick(e, mainRegisterBtn));
+        }
+        
+        // Panel register button (inside slideshow)
+        const panelRegisterBtn = document.getElementById('panelRegisterBtn');
+        if (panelRegisterBtn) {
+            panelRegisterBtn.addEventListener('click', (e) => handleRegisterClick(e, panelRegisterBtn));
+        }
+        
+        // Search flights button (if logged in, it's a button)
+        const searchFlightsBtn = document.getElementById('searchFlightsBtn');
+        const flightForm = document.getElementById('flightSearchForm');
+        if (searchFlightsBtn && searchFlightsBtn.tagName === 'BUTTON') {
+            flightForm.addEventListener('submit', (e) => handleSearchSubmit(e, flightForm, searchFlightsBtn));
+        } else if (flightForm && !searchFlightsBtn) {
+            // Fallback if somehow the button is not found but form exists (just in case)
+            const anySubmitBtn = flightForm.querySelector('button[type="submit"]');
+            if (anySubmitBtn) {
+                flightForm.addEventListener('submit', (e) => handleSearchSubmit(e, flightForm, anySubmitBtn));
+            }
+        }
+
+        // ----- SLIDESHOW (unchanged aside from register/book links already using Flask URLs) -----
+        const slides = [
+            { 
+                title: '<span>EXPLORE</span> THE WORLD', 
+                image: null,
+                hasPanel: false
+            },
+            { 
+                title: '<span>DISCOVER</span> SIARGAO', 
+                image: "{{ url_for('static', filename='images/siargao.png') }}",
+                hasPanel: true,
+                panelBadge: "🏝️ PARADISE FOUND",
+                panelTitle: "Siargao Island",
+                panelDesc: "Experience the Surfing Capital of the Philippines! Crystal clear waters, pristine white sand beaches, and breathtaking lagoons await you.",
+                panelFeatures: ['🏖️ White Sand Beaches', '🏄 World-Class Surfing', '🌿 Hidden Lagoons', '🌅 Stunning Sunsets'],
+                panelBookLink: bookingUrl,
+                panelRegisterLink: signupUrl,
+                panelOffer: "🔥 Limited seats available - Book your tropical escape today!"
+            },
+            { 
+                title: '<span>FLY</span> IN STYLE', 
+                image: "{{ url_for('static', filename='images/view_plane.png') }}",
+                hasPanel: true,
+                panelBadge: "✈️ PREMIUM EXPERIENCE",
+                panelTitle: "Travel in Comfort",
+                panelDesc: "Upgrade your journey with our premium cabin experience. Enjoy gourmet meals, extra legroom, and priority boarding.",
+                panelFeatures: ['💺 Extra Legroom', '🍽️ Gourmet Meals', '🎧 Noise-Canceling Headphones', '⚡ Priority Boarding'],
+                panelBookLink: bookingUrl,
+                panelRegisterLink: signupUrl,
+                panelOffer: "✨ Upgrade now and earn double loyalty points!"
+            },
+            { 
+                title: '<span>BOOK</span> YOUR DREAM', 
+                image: "{{ url_for('static', filename='images/sea.png') }}",
+                hasPanel: true,
+                panelBadge: "🌊 BEACH ESCAPE",
+                panelTitle: "Dream Vacation",
+                panelDesc: "All-inclusive beach packages at the world's most beautiful destinations. Resorts, flights, and activities - everything included!",
+                panelFeatures: ['🏨 Luxury Resorts', '🍹 All-Inclusive', '🚗 Airport Transfers', '🎯 Local Tours'],
+                panelBookLink: bookingUrl,
+                panelRegisterLink: signupUrl,
+                panelOffer: "⭐ Early bird discount - Reserve your spot with just 10% down!"
+            }
+        ];
+        
+        let currentIndex = 0;
+        let isAnimating = false;
+        let autoSlideInterval;
+        let panelTimeout = null;
+        
+        const dots = document.querySelectorAll('.dot');
+        const heroTitle = document.getElementById('hero-title');
+        const heroSectionElem = document.querySelector('.hero-section');
+        const planeContainer = document.querySelector('.plane-img');
+        const slideshowPanelElem = document.getElementById('slideshowPanel');
+        
+        function updatePanelContent(index) {
+            const slide = slides[index];
+            if (slide.hasPanel) {
+                document.getElementById('panelBadge').innerHTML = slide.panelBadge;
+                document.getElementById('panelTitle').innerHTML = slide.panelTitle;
+                document.getElementById('panelDesc').innerHTML = slide.panelDesc;
+                document.getElementById('panelBookBtn').href = slide.panelBookLink;
+                document.getElementById('panelRegisterBtn').href = slide.panelRegisterLink;
+                document.getElementById('panelOffer').innerHTML = `<i class="fas ${slide.panelOffer.includes('🔥') ? 'fa-fire' : (slide.panelOffer.includes('✨') ? 'fa-star' : 'fa-gem')}"></i> ${slide.panelOffer.replace(/[✨🔥⭐]/g, '')}`;
+                const featuresContainer = document.getElementById('panelFeatures');
+                featuresContainer.innerHTML = slide.panelFeatures.map(feature => 
+                    `<div class="feature"><i class="fas fa-check-circle"></i> ${feature}</div>`
+                ).join('');
+            }
+        }
+        
+        function showSlideshowPanel(index, delay = 1500) {
+            if (panelTimeout) clearTimeout(panelTimeout);
+            const slide = slides[index];
+            if (slide.hasPanel) {
+                updatePanelContent(index);
+                panelTimeout = setTimeout(() => {
+                    slideshowPanelElem.classList.add('show');
+                }, delay);
+            } else {
+                slideshowPanelElem.classList.remove('show');
+            }
+        }
+        
+        function hideSlideshowPanel() {
+            if (panelTimeout) clearTimeout(panelTimeout);
+            slideshowPanelElem.classList.remove('show');
+        }
+        
+        function performSlideChange(index) {
+            heroTitle.style.opacity = '0';
+            setTimeout(() => {
+                heroTitle.innerHTML = slides[index].title;
+                if (index === 0) {
+                    heroSectionElem.style.setProperty('--slider-bg', 'var(--sky-gradient)');
+                    planeContainer.style.opacity = '1';
+                    planeContainer.style.visibility = 'visible';
+                    hideSlideshowPanel();
+                } else {
+                    heroSectionElem.style.setProperty('--slider-bg', `url('${slides[index].image}')`);
+                    planeContainer.style.opacity = '0';
+                    planeContainer.style.visibility = 'hidden';
+                    showSlideshowPanel(index, 1500);
+                }
+                heroTitle.style.opacity = '1';
+            }, 300);
+        }
+        
+        function goToSlide(index, triggerAnimation = true) {
+            if (index === currentIndex || isAnimating) return;
+            const leavingFirstSlide = (currentIndex === 0 && index !== 0);
+            if (leavingFirstSlide && triggerAnimation) {
+                isAnimating = true;
+                planeContainer.classList.add('plane-fly-out');
+                setTimeout(() => {
+                    performSlideChange(index);
+                    planeContainer.classList.remove('plane-fly-out');
+                    planeContainer.style.opacity = '0';
+                    planeContainer.style.visibility = 'hidden';
+                    isAnimating = false;
+                }, 400);
+            } else {
+                performSlideChange(index);
+                if (index === 0) {
+                    planeContainer.style.opacity = '1';
+                    planeContainer.style.visibility = 'visible';
+                    hideSlideshowPanel();
+                }
+            }
+            currentIndex = index;
+            document.querySelector('.dot.active').classList.remove('active');
+            dots[index].classList.add('active');
+            resetAutoSlide();
+        }
+        
+        function nextSlide() { let nextIndex = (currentIndex + 1) % slides.length; goToSlide(nextIndex, true); }
+        function prevSlide() { let prevIndex = (currentIndex - 1 + slides.length) % slides.length; goToSlide(prevIndex, true); }
+        function resetAutoSlide() {
+            if (autoSlideInterval) clearInterval(autoSlideInterval);
+            autoSlideInterval = setInterval(() => {
+                let nextIndex = (currentIndex + 1) % slides.length;
+                goToSlide(nextIndex, true);
+            }, 6000);
+        }
+        
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                const index = parseInt(this.getAttribute('data-index'));
+                if (index !== currentIndex && !isAnimating) goToSlide(index, true);
+            });
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.classList?.contains('counter-btn');
+            if (!isInputFocused) {
+                if (e.key === 'ArrowRight') { e.preventDefault(); nextSlide(); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+            }
+        });
+        
+        heroSectionElem.addEventListener('mouseenter', () => { if (autoSlideInterval) clearInterval(autoSlideInterval); });
+        heroSectionElem.addEventListener('mouseleave', resetAutoSlide);
+        
+        hideSlideshowPanel();
+        resetAutoSlide();
     </script>
 </body>
 </html>

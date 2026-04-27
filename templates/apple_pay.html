@@ -2,76 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple Pay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Apple Pay - AeroTicket</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='applepay.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <div class="apple-pay-sheet">
         <div class="sheet-header">
-            <div class="apple-logo-wrap">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" alt="Apple Pay" class="apple-logo">
-            </div>
-            <button class="cancel-btn">Cancel</button>
+            <div class="apple-logo-wrap"><i class="fab fa-apple"></i> Apple Pay</div>
+            <a href="{{ url_for('payment') }}" class="cancel-btn">Cancel</a>
         </div>
 
         <div class="sheet-content">
-            <div class="info-row">
-                <span class="label">CARD</span>
-                <div class="card-info">
-                    <img src="https://img.icons8.com/color/48/000000/mastercard.png" class="mastercard-icon">
-                    <span class="card-text">Mastercard •••• 9901</span>
-                </div>
+            <div class="payment-summary">
+                <div class="merchant-name">AeroTicket Airlines</div>
+                <div class="flight-details">{{ session.get('flight_no', 'AT0000') }} | {{ session.get('origin', '---') }} → {{ session.get('destination', '---') }}</div>
             </div>
-
-            <div class="info-row">
-                <span class="label">SHIPPING</span>
-                <span class="value-text">user@aeroticket.com</span>
-            </div>
-
-            <div class="info-row">
-                <span class="label">METHOD</span>
-                <span class="value-text">Standard Shipping</span>
-            </div>
-
+            <div class="info-row"><span class="label">CARD</span><div class="card-info"><i class="fab fa-cc-mastercard"></i><span class="card-text">Mastercard •••• 9901</span></div></div>
+            <div class="info-row"><span class="label">CONTACT</span><span class="value-text">{{ session.get('user_email', 'user@aeroticket.com') if session.get('user_id') else 'guest@aeroticket.com' }}</span></div>
             <div class="separator"></div>
-
-            <div class="total-row">
-                <span class="total-label">PAY AeroTicket</span>
-                <span class="total-amount">₹{{ amount }}</span>
-            </div>
+            <div class="total-row"><span class="total-label">PAY AeroTicket</span><span class="total-amount">₱{{ amount }}</span></div>
         </div>
 
         <div class="auth-section">
-            <div class="face-id-wrap">
-                <div class="face-id-icon">
-                    <div class="face-line"></div>
-                </div>
-                <p id="status-text">Pay with Touch ID</p>
-            </div>
-            
-            <button onclick="authenticateApplePay()" class="apple-pay-button">
-                <span class="logo-white"></span> Pay
-            </button>
+            <div class="face-id-wrap"><div class="face-id-icon" id="faceIcon"><i class="fas fa-face-smile"></i></div><p id="status-text">Pay with Face ID</p></div>
+            <button onclick="authenticateApplePay()" class="apple-pay-button"><i class="fab fa-apple"></i> Pay with Apple Pay</button>
         </div>
     </div>
 
-    <script>
-        function authenticateApplePay() {
-            const status = document.getElementById('status-text');
-            const icon = document.querySelector('.face-id-icon');
-            
-            status.innerHTML = "Processing...";
-            icon.classList.add('processing');
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden"><div class="modal-content"><div class="spinner"></div><h3>Authenticating</h3><p>Please wait...</p></div></div>
+    <div id="successModal" class="modal-overlay hidden"><div class="modal-content success-modal"><div class="success-icon"><i class="fas fa-check"></i></div><h3>Payment Successful!</h3><div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Loading...</p></div><button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button></div></div>
+    <div id="errorModal" class="modal-overlay hidden"><div class="modal-content error-modal"><div class="error-icon"><i class="fas fa-times"></i></div><h3>Authentication Failed</h3><button onclick="closeErrorModal()" class="try-again-btn">Try Again</button></div></div>
 
-            setTimeout(() => {
-                status.innerHTML = "Done";
-                status.style.color = "#34c759";
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2000);
+    <script>
+        async function authenticateApplePay() {
+            const status=document.getElementById('status-text');
+            status.innerHTML="Authenticating...";
+            document.getElementById('loadingModal').classList.remove('hidden');
+            setTimeout(async()=>{
+                try {
+                    const response=await fetch("{{ url_for('apple_payment') }}", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status:'success', amount:'{{ amount }}' }) });
+                    const data=await response.json();
+                    document.getElementById('loadingModal').classList.add('hidden');
+                    if(data.success) { document.getElementById('bookingRef').innerText=`Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                    else document.getElementById('errorModal').classList.remove('hidden');
+                } catch(e) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+                status.innerHTML="Pay with Face ID";
+            },2000);
         }
+        function redirectToTicket() { window.location.href="{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

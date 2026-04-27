@@ -2,78 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>OVO - Secure Payment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='ovo.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <div class="ovo-app-container">
-        <div class="ovo-header">
-            <div class="header-content">
-                <span class="back-icon">✕</span>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Logo_ovo_purple.svg" alt="OVO" class="ovo-logo">
-                <span class="help-text">HELP</span>
-            </div>
-        </div>
-
+        <div class="ovo-header"><div class="header-content"><a href="{{ url_for('payment') }}" class="back-icon">✕</a><img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Logo_ovo_purple.svg" alt="OVO" class="ovo-logo"><span class="help-text">HELP</span></div></div>
         <div class="ovo-content">
-            <div class="payment-summary">
-                <p class="summary-label">Payment to AeroTicket</p>
-                <h1 class="summary-amount">Rp {{ amount }}</h1>
-            </div>
-
+            <div class="payment-summary"><p class="summary-label">Payment to AeroTicket</p><p class="flight-info">{{ session.get('flight_no', 'AT0000') }} | {{ session.get('origin', '---') }} → {{ session.get('destination', '---') }}</p><h1 class="summary-amount">₱{{ amount }}</h1></div>
             <div class="ovo-card">
-                <div class="card-header">
-                    <span class="section-title">CHOOSE PAYMENT METHOD</span>
-                </div>
-                
-                <div class="payment-option selected">
-                    <div class="option-icon">💜</div>
-                    <div class="option-info">
-                        <span class="method-name">OVO Cash</span>
-                        <span class="method-balance">Balance: Rp 5.000.000</span>
-                    </div>
-                    <div class="ovo-radio checked"></div>
-                </div>
-
-                <div class="points-row">
-                    <div class="option-icon">✨</div>
-                    <div class="option-info">
-                        <span class="method-name">OVO Points</span>
-                        <span class="method-sub">Points: 12.450</span>
-                    </div>
-                    <div class="ovo-toggle">
-                        <div class="toggle-switch"></div>
-                    </div>
-                </div>
+                <div class="card-header"><span class="section-title">CHOOSE PAYMENT METHOD</span></div>
+                <div class="payment-option selected" onclick="selectMethod('cash')"><div class="option-icon"><i class="fas fa-wallet"></i></div><div class="option-info"><span class="method-name">OVO Cash</span><span class="method-balance">Balance: ₱5,000,000</span></div><div class="ovo-radio checked"></div></div>
+                <div class="payment-option" onclick="selectMethod('points')"><div class="option-icon"><i class="fas fa-star"></i></div><div class="option-info"><span class="method-name">OVO Points</span><span class="method-sub">Points: 12,450</span></div><div class="ovo-radio"></div></div>
+                <div class="payment-option" onclick="selectMethod('bank')"><div class="option-icon"><i class="fas fa-university"></i></div><div class="option-info"><span class="method-name">Linked Bank Account</span><span class="method-sub">BCA •••• 8899</span></div><div class="ovo-radio"></div></div>
+                <div class="points-row" onclick="togglePoints()"><div class="option-icon">✨</div><div class="option-info"><span class="method-name">Use OVO Points</span><span class="method-sub">Available: 12,450 points</span></div><div class="ovo-toggle"><div class="toggle-switch"></div></div></div>
             </div>
-
-            <div class="security-banner">
-                <span class="shield-icon">🛡️</span>
-                <p>OVO ensures your transaction is encrypted and secure.</p>
-            </div>
+            <div class="pin-section hidden" id="pinSection"><p class="pin-title">Enter 6-digit OVO PIN</p><div class="pin-dots"><input type="password" maxlength="1" class="pin-digit" id="pin1" onkeyup="moveToNext(this,'pin2')"><input type="password" maxlength="1" class="pin-digit" id="pin2" onkeyup="moveToNext(this,'pin3')"><input type="password" maxlength="1" class="pin-digit" id="pin3" onkeyup="moveToNext(this,'pin4')"><input type="password" maxlength="1" class="pin-digit" id="pin4" onkeyup="moveToNext(this,'pin5')"><input type="password" maxlength="1" class="pin-digit" id="pin5" onkeyup="moveToNext(this,'pin6')"><input type="password" maxlength="1" class="pin-digit" id="pin6" onkeyup="confirmPin()"></div></div>
+            <div class="security-banner"><span class="shield-icon"><i class="fas fa-shield-alt"></i></span><p>OVO ensures your transaction is encrypted and secure.</p></div>
         </div>
-
-        <div class="ovo-footer">
-            <button onclick="processOVO()" class="btn-pay-ovo">
-                PAY Rp {{ amount }}
-            </button>
-        </div>
+        <div class="ovo-footer"><button onclick="processOVO()" id="payBtn" class="btn-pay-ovo">PAY ₱{{ amount }}</button></div>
     </div>
 
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden"><div class="modal-content"><div class="spinner"></div><h3>Processing</h3><p>Please wait...</p></div></div>
+    <div id="successModal" class="modal-overlay hidden"><div class="modal-content success-modal"><div class="success-icon"><i class="fas fa-check"></i></div><h3>Payment Successful!</h3><div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Loading...</p></div><button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button></div></div>
+    <div id="errorModal" class="modal-overlay hidden"><div class="modal-content error-modal"><div class="error-icon"><i class="fas fa-times"></i></div><h3>Invalid PIN</h3><button onclick="closeErrorModal()" class="try-again-btn">Try Again</button></div></div>
+
     <script>
-        function processOVO() {
-            const btn = document.querySelector('.btn-pay-ovo');
-            btn.innerHTML = "PROSES...";
-            btn.style.opacity = "0.8";
-            
-            // Simulation of OVO payment processing
-            setTimeout(() => {
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2200);
+        let selectedMethod='cash', pin='';
+        function selectMethod(method) { selectedMethod=method; document.querySelectorAll('.payment-option').forEach(opt=>opt.classList.remove('selected')); event.currentTarget.classList.add('selected'); document.getElementById('pinSection').classList[method==='cash'?'remove':'add']('hidden'); }
+        function togglePoints(){ document.querySelector('.toggle-switch').classList.toggle('active'); }
+        function moveToNext(current,nextId){ if(current.value.length===1) document.getElementById(nextId)?.focus(); }
+        function confirmPin(){ let p=''; for(let i=1;i<=6;i++) p+=document.getElementById(`pin${i}`).value; pin=p; if(p.length===6) processOVO(); }
+        async function processOVO() {
+            if(selectedMethod==='cash' && pin.length!==6){ alert('Enter PIN'); return; }
+            const btn=document.getElementById('payBtn');
+            btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> PROSES...';
+            document.getElementById('loadingModal').classList.remove('hidden');
+            try {
+                const response=await fetch("{{ url_for('ovo_payment') }}", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status:'success', amount:'{{ amount }}', method:selectedMethod, pin:pin }) });
+                const data=await response.json();
+                document.getElementById('loadingModal').classList.add('hidden');
+                if(data.success) { document.getElementById('bookingRef').innerText=`Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                else document.getElementById('errorModal').classList.remove('hidden');
+            } catch(e) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+            btn.innerHTML=`PAY ₱{{ amount }}`;
         }
+        function redirectToTicket() { window.location.href="{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

@@ -32,6 +32,7 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+    justify-content: center;
 }
 
 .tickets-carousel {
@@ -44,6 +45,7 @@ body {
     scrollbar-width: thin;
     scrollbar-color: #63c5f1 #d9e2ec;
     flex: 1;
+    justify-content: center;
 }
 
 .tickets-carousel::-webkit-scrollbar {
@@ -75,6 +77,7 @@ body {
     font-size: 28px;
     font-weight: bold;
     flex-shrink: 0;
+    font-family: monospace;
 }
 
 .nav-btn:hover {
@@ -91,7 +94,7 @@ body {
     background-color: transparent;
     width: 1000px;
     min-width: 1000px;
-    height: 330px; 
+    height: 290px; 
     perspective: 1500px;
     scroll-snap-align: center;
 }
@@ -133,18 +136,22 @@ body {
     border-radius: 0 0 24px 24px; 
     box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
     position: relative;
-    overflow: hidden;
+    overflow: visible;  /* CHANGED: visible instead of hidden to prevent hole clipping */
     transform-style: preserve-3d;
 }
 
+/* CLEAN PUNCH HOLES - Front - NO BUBBLE */
 .cutout-top, .cutout-bottom {
     position: absolute;
     width: 28px;
     height: 28px;
-    background-color: #eef2f5;
+    background: #eef2f5;
     border-radius: 50%;
     left: 236px;
-    z-index: 12;
+    z-index: 25;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
 }
 .cutout-top { top: -14px; }
 .cutout-bottom { bottom: -14px; }
@@ -158,19 +165,21 @@ body {
     flex-shrink: 0;
 }
 
+/* LEFT HEADER */
 .top-blue {
     background-color: #4eb8e9;
-    height: 63.5px;
+    height: 63.4px;
     padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     color: white;
     width: 100%;
+    flex-shrink: 0;
 }
 
 .logo-white {
-    height: 50px;
+    height: 45px;
     object-fit: contain;
 }
 
@@ -225,19 +234,19 @@ body {
     font-size: 18px;
 }
 
-.date { margin-top: -10px; }
+/* Date and Time - Time BELOW Date on left side */
+.date-time-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0;
+}
 
 .val-blue-sm {
     color: #63c5f1;
     font-weight: 550;
     font-size: 18px;
     line-height: 1;
-}
-
-.date-time-wrapper {
-    display: flex;
-    justify-content: space-between;
-    margin: 4px 0;
 }
 
 .barcode-sm {
@@ -283,6 +292,7 @@ body {
     flex-direction: column;
 }
 
+/* RIGHT HEADER */
 .top-blue-wide {
     background-color: #4eb8e9;
     height: 63.4px;
@@ -295,7 +305,7 @@ body {
 }
 
 .boarding-title {
-    font-size: 36px;
+    font-size: 34px;
     font-weight: 500;
     letter-spacing: 2px;
     color: white;
@@ -395,6 +405,7 @@ body {
     border-radius: 8px;
 }
 
+/* Date-Time Row on main content */
 .date-time-row {
     display: flex;
     justify-content: space-between; 
@@ -405,40 +416,36 @@ body {
     padding-right: 418px;
 }
 
-
 .barcode-wrap {
     position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* ADJUST THESE to move the entire barcode section */
-    right: 19px;      /* Change this to move left/right */
-    bottom: 34px;     /* Change this to move up/down */
+    right: 19px;
+    bottom: 34px;
     width: fit-content;
 }
 
 .barcode-lg {
     font-family: 'Libre Barcode 39', cursive;
-    /* ADJUST THESE for the main barcode */
-    font-size: 130px;        /* Change for barcode size */
-    line-height: 0.9;       /* Change for line spacing */
-    color: #1e1e2a;         /* Change for barcode color */
-    transform: scaleX(0.75); /* Change for barcode width stretch */
+    font-size: 130px;
+    line-height: 0.9;
+    color: #1e1e2a;
+    transform: scaleX(0.75);
     transform-origin: center;
     text-align: center;
     display: inline-block;
 }
 
 .barcode-sub {
-    font-size: 7px;         /* Change for text size */
-    font-weight: 600;       /* Change for text boldness */
-    color: #0c0b0b;         /* Change for text color */
+    font-size: 7px;
+    font-weight: 600;
+    color: #0c0b0b;
     text-align: center; 
-    margin-top: -45px;       /* Change to move text up/down relative to barcode */
+    margin-top: -45px;
     display: block;
-    letter-spacing: 0.5px;   /* Change for letter spacing */
+    letter-spacing: 0.5px;
 }
-/* ============================================ */
 
 .seat-wrapper { order: 5; margin-top: 10px; }
 
@@ -483,16 +490,34 @@ body {
 .ticket-back {
     display: flex;
     width: 1000px;
-    height: 330px;
+    height: 290px;
     background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
     border-radius: 0 0 24px 24px; 
     box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
     position: relative;
-    overflow: hidden;
+    overflow: visible;  /* CHANGED: visible instead of hidden */
     font-family: 'Montserrat', sans-serif;
     margin-top: 0; 
     transform-style: preserve-3d;
 }
+
+/* CLEAN PUNCH HOLES - Back - NO BUBBLE */
+.ticket-back::before,
+.ticket-back::after {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: #eef2f5;
+    border-radius: 50%;
+    left: 236px;
+    z-index: 25;
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+}
+.ticket-back::before { top: -14px; }
+.ticket-back::after { bottom: -14px; }
 
 .back-stub {
     width: 250px;
@@ -615,7 +640,7 @@ body {
     .flip-card { width: 90vw; min-width: 85vw; height: auto; }
     .ticket, .ticket-back { width: 100%; height: auto; flex-wrap: wrap; }
     .stub, .back-stub { width: 100%; border-right: none; border-bottom: 2px dashed #63c5f1; }
-    .cutout-top, .cutout-bottom { display: none; }
+    .cutout-top, .cutout-bottom, .ticket-back::before, .ticket-back::after { display: none; }
     .nav-btn { width: 40px; height: 40px; font-size: 24px; }
     .barcode-wrap { position: relative; right: auto; bottom: auto; margin-top: 10px; }
     .date-time-row { padding-right: 0; }

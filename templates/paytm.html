@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paytm Secure Payment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Paytm Secure Payment - AeroTicket</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='paytm.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
@@ -13,66 +14,110 @@
         <div class="paytm-header">
             <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Paytm_Logo_%28standalone%29.svg" alt="Paytm Logo" class="paytm-logo">
             <div class="secure-badge">
-                <span class="lock-icon">🔒</span> 100% Secure
+                <i class="fas fa-lock"></i> 100% Secure
             </div>
         </div>
 
         <div class="order-box">
-            <div class="order-info">
-                <span class="merchant-name">AeroTicket Booking</span>
-                <span class="order-id">Order ID: AT-{{ range(1000, 9999) | random }}</span>
+            <div>
+                <span class="merchant-name">AeroTicket Airlines</span>
+                <span class="order-id">Order: AT{{ range(1000, 9999) | random }}</span>
             </div>
             <div class="amount-box">
-                <span class="currency">₹</span>
+                <span class="currency">₱</span>
                 <span class="amount">{{ amount }}</span>
             </div>
         </div>
 
         <div class="payment-methods">
-            <p class="section-title">SELECT AN OPTION TO PAY</p>
+            <p class="section-title">SECURE PAYMENT OPTIONS</p>
             
-            <div class="method-card active">
+            <div class="method-card active" onclick="selectMethod('wallet')">
                 <div class="radio-circle checked"></div>
-                <div class="method-details">
-                    <span class="method-name">Paytm Balance</span>
-                    <span class="method-sub">Low Balance: Add money to pay</span>
+                <div>
+                    <span class="method-name">Paytm Wallet</span>
+                    <span class="method-sub">Instant Payment</span>
                 </div>
-                <span class="insufficient">₹0.00</span>
+                <span class="insufficient">Balance: ₱2,500</span>
             </div>
 
-            <div class="method-card">
+            <div class="method-card" onclick="selectMethod('bank')">
                 <div class="radio-circle"></div>
-                <div class="method-details">
+                <div>
                     <span class="method-name">Net Banking</span>
-                    <span class="method-sub">Choose from all major banks</span>
+                    <span class="method-sub">All major banks</span>
+                </div>
+            </div>
+
+            <div class="method-card" onclick="selectMethod('card')">
+                <div class="radio-circle"></div>
+                <div>
+                    <span class="method-name">Credit/Debit Card</span>
+                    <span class="method-sub">Visa, Mastercard, RuPay</span>
+                </div>
+            </div>
+
+            <div class="method-card" onclick="selectMethod('upi')">
+                <div class="radio-circle"></div>
+                <div>
+                    <span class="method-name">UPI / QR Code</span>
+                    <span class="method-sub">Google Pay, PhonePe</span>
                 </div>
             </div>
         </div>
 
         <div class="action-area">
-            <p class="redirect-notice">You will be redirected to the Boarding Pass after payment.</p>
-            <button onclick="processPaytm()" class="btn-pay">
-                Pay Securely ₹{{ amount }}
+            <p class="redirect-notice">
+                <i class="fas fa-shield-alt"></i> PCI DSS Compliant
+            </p>
+            <button onclick="processPaytm()" id="payBtn" class="btn-pay">
+                Pay Securely ₱{{ amount }}
             </button>
         </div>
+    </div>
 
-        <div class="paytm-footer">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" style="height:12px; opacity:0.3; filter: grayscale(1);">
-            <p>PCI DSS Compliant</p>
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden">
+        <div class="modal-content"><div class="spinner"></div><h3>Processing Payment</h3><p>Please wait...</p></div>
+    </div>
+    <div id="successModal" class="modal-overlay hidden">
+        <div class="modal-content success-modal">
+            <div class="success-icon"><i class="fas fa-check"></i></div>
+            <h3>Payment Successful!</h3>
+            <p>Your payment has been processed.</p>
+            <div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Booking Reference: Loading...</p></div>
+            <button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button>
+        </div>
+    </div>
+    <div id="errorModal" class="modal-overlay hidden">
+        <div class="modal-content error-modal">
+            <div class="error-icon"><i class="fas fa-times"></i></div>
+            <h3>Payment Failed</h3>
+            <p id="errorMessage">Transaction failed. Please try again.</p>
+            <button onclick="closeErrorModal()" class="try-again-btn">Try Again</button>
         </div>
     </div>
 
     <script>
-        function processPaytm() {
-            const btn = document.querySelector('.btn-pay');
-            btn.innerHTML = "Processing...";
-            btn.style.opacity = "0.7";
-            
-            // Simulate bank processing delay
-            setTimeout(() => {
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2000);
+        let selectedMethod = 'wallet';
+        function selectMethod(method) { selectedMethod = method; }
+        async function processPaytm() {
+            const btn = document.getElementById('payBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+            document.getElementById('loadingModal').classList.remove('hidden');
+            try {
+                const response = await fetch("{{ url_for('paytm_payment') }}", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'success', amount: '{{ amount }}', method: selectedMethod }) });
+                const data = await response.json();
+                document.getElementById('loadingModal').classList.add('hidden');
+                if (data.success) { document.getElementById('bookingRef').innerText = `Booking Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                else { document.getElementById('errorMessage').innerText = 'Payment failed'; document.getElementById('errorModal').classList.remove('hidden'); }
+            } catch (error) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+            btn.innerHTML = 'Pay Securely ₱{{ amount }}';
+            btn.disabled = false;
         }
+        function redirectToTicket() { window.location.href = "{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

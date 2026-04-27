@@ -2,83 +2,100 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>GrabPay - Secure Payment</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='grabpay.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <div class="grab-container">
         <div class="grab-header">
-            <div class="back-arrow">←</div>
+            <a href="{{ url_for('payment') }}" class="back-arrow">←</a>
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Grab_logo.svg" alt="Grab" class="grab-logo">
-            <div class="placeholder"></div>
+            <div></div>
         </div>
 
         <div class="merchant-summary">
-            <div class="merchant-icon">AT</div>
+            <div class="merchant-icon">✈️</div>
             <div class="merchant-text">
                 <h3>AeroTicket</h3>
-                <p>Flight Booking</p>
+                <p>{{ session.get('flight_no', 'AT0000') }} | {{ session.get('origin', '---') }} → {{ session.get('destination', '---') }}</p>
             </div>
-            <div class="total-price">₹{{ amount }}</div>
+            <div class="total-price">₱{{ amount }}</div>
         </div>
 
         <div class="payment-section">
             <p class="label-text">PAY WITH</p>
-            
-            <div class="grab-card active">
-                <div class="wallet-icon">💳</div>
-                <div class="card-details">
-                    <span class="card-title">GrabPay Wallet</span>
-                    <span class="card-balance">Balance: ₹4,500.00</span>
-                </div>
+            <div class="grab-card active" onclick="selectMethod('wallet')">
+                <div class="wallet-icon"><i class="fas fa-wallet"></i></div>
+                <div class="card-details"><span class="card-title">GrabPay Wallet</span><span class="card-balance">Balance: ₱4,500</span></div>
                 <div class="grab-radio checked"></div>
             </div>
-
-            <div class="grab-card">
-                <div class="wallet-icon">🏦</div>
-                <div class="card-details">
-                    <span class="card-title">Linked Bank Account</span>
-                    <span class="card-sub">State Bank of India</span>
-                </div>
+            <div class="grab-card" onclick="selectMethod('bank')">
+                <div class="wallet-icon"><i class="fas fa-university"></i></div>
+                <div class="card-details"><span class="card-title">Linked Bank Account</span><span class="card-sub">BPI •••• 5566</span></div>
+                <div class="grab-radio"></div>
+            </div>
+            <div class="grab-card" onclick="selectMethod('card')">
+                <div class="wallet-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="card-details"><span class="card-title">Credit/Debit Card</span><span class="card-sub">Visa, Mastercard</span></div>
                 <div class="grab-radio"></div>
             </div>
         </div>
 
         <div class="rewards-box">
-            <div class="points-info">
-                <span class="star">⭐</span>
-                <span>Earn 152 GrabPoints</span>
-            </div>
-            <div class="toggle-container">
-                <div class="toggle-bg">
-                    <div class="toggle-circle"></div>
-                </div>
+            <div class="points-info"><span>⭐</span> Earn 152 GrabPoints</div>
+            <div class="toggle-bg" onclick="togglePoints()"><div class="toggle-circle"></div></div>
+        </div>
+
+        <!-- PIN Section -->
+        <div class="pin-section hidden" id="pinSection">
+            <p class="pin-title">Enter 6-digit GrabPay PIN</p>
+            <div class="pin-dots">
+                <input type="password" maxlength="1" class="pin-digit" id="pin1" onkeyup="moveToNext(this,'pin2')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin2" onkeyup="moveToNext(this,'pin3')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin3" onkeyup="moveToNext(this,'pin4')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin4" onkeyup="moveToNext(this,'pin5')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin5" onkeyup="moveToNext(this,'pin6')">
+                <input type="password" maxlength="1" class="pin-digit" id="pin6" onkeyup="confirmPin()">
             </div>
         </div>
 
         <div class="footer-action">
-            <div class="security-text">
-                🛡️ Secured by GrabPay protection
-            </div>
-            <button onclick="payNow()" class="btn-grab">
-                Pay ₹{{ amount }}
-            </button>
+            <div class="security-text"><i class="fas fa-shield-alt"></i> Secured by GrabPay</div>
+            <button onclick="processGrabPay()" id="payBtn" class="btn-grab">Pay ₱{{ amount }}</button>
         </div>
     </div>
 
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden"><div class="modal-content"><div class="spinner"></div><h3>Processing</h3><p>Please wait...</p></div></div>
+    <div id="successModal" class="modal-overlay hidden"><div class="modal-content success-modal"><div class="success-icon"><i class="fas fa-check"></i></div><h3>Payment Successful!</h3><div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Loading...</p></div><button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button></div></div>
+    <div id="errorModal" class="modal-overlay hidden"><div class="modal-content error-modal"><div class="error-icon"><i class="fas fa-times"></i></div><h3>Invalid PIN</h3><button onclick="closeErrorModal()" class="try-again-btn">Try Again</button></div></div>
+
     <script>
-        function payNow() {
-            const btn = document.querySelector('.btn-grab');
-            btn.innerHTML = "Processing Payment...";
-            btn.style.background = "#008a3c";
-            
-            setTimeout(() => {
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2200);
+        let selectedMethod = 'wallet', pin = '';
+        function selectMethod(method) { selectedMethod = method; }
+        function togglePoints() { document.querySelector('.toggle-bg').classList.toggle('active'); }
+        function moveToNext(current, nextId) { if (current.value.length===1) document.getElementById(nextId)?.focus(); }
+        function confirmPin() { let p=''; for(let i=1;i<=6;i++) p+=document.getElementById(`pin${i}`).value; pin=p; if(p.length===6) processGrabPay(); }
+        async function processGrabPay() {
+            if(selectedMethod==='wallet' && pin.length!==6) { alert('Enter PIN'); return; }
+            const btn=document.getElementById('payBtn');
+            btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing...';
+            document.getElementById('loadingModal').classList.remove('hidden');
+            try {
+                const response=await fetch("{{ url_for('grabpay_payment') }}", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status:'success', amount:'{{ amount }}', method:selectedMethod, pin:pin }) });
+                const data=await response.json();
+                document.getElementById('loadingModal').classList.add('hidden');
+                if(data.success) { document.getElementById('bookingRef').innerText=`Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                else document.getElementById('errorModal').classList.remove('hidden');
+            } catch(e) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+            btn.innerHTML=`Pay ₱{{ amount }}`;
         }
+        function redirectToTicket() { window.location.href="{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

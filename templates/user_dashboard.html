@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard | AeroTicket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+    <style>
+        /* ===== ENHANCED DASHBOARD STYLES (ONLY FOR NEW CONTENT – NO HEADER STYLES) ===== */
+        :root {
+            --primary: #2c8fbb;
+            --primary-dark: #1e6f94;
+            --primary-light: #e3f2fd;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #6b7280;
+            --gray-800: #1f2937;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+        }
+
+        /* Dashboard two-column layout */
+        .dashboard-container {
+            max-width: 1440px;
+            margin: 2rem auto 3rem;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+        }
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 640px) {
+            .dashboard-container {
+                padding: 0 1.25rem;
+                margin: 1.5rem auto;
+            }
+        }
+
+        .dashboard-main-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+        }
+        .dashboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Profile card */
+        .profile-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+        }
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-light);
+        }
+        .default-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-light), #cbdff0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .default-avatar i {
+            font-size: 2.6rem;
+            color: var(--primary);
+        }
+        .member-badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 40px;
+        }
+        .admin-badge {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        /* Quick actions */
+        .quick-action-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            color: var(--gray-800);
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+        .quick-btn i {
+            width: 24px;
+            color: var(--primary);
+        }
+        .quick-btn:hover {
+            background: white;
+            border-color: var(--gray-200);
+            transform: translateX(4px);
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-modern {
+            background: var(--gray-50);
+            padding: 1.25rem 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s;
+        }
+        .stat-modern:hover {
+            border-color: var(--primary-light);
+            background: white;
+            transform: translateY(-2px);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            color: var(--gray-600);
+            margin-top: 6px;
+        }
+
+        /* Bookings list */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1.5rem;
+        }
+        .section-header h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+        .booking-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            transition: all 0.2s;
+        }
+        .booking-row:hover {
+            background: var(--gray-50);
+            margin: 0 -0.5rem;
+            padding: 1rem 0.5rem;
+            border-radius: var(--radius-md);
+        }
+        .flight-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-light);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        .flight-icon i {
+            color: var(--primary);
+        }
+        .booking-info-main {
+            flex: 1;
+        }
+        .booking-title {
+            font-weight: 700;
+        }
+        .route-detail {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 4px;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            background: var(--gray-200);
+        }
+        .status-upcoming {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .status-completed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .btn-outline-sm {
+            background: transparent;
+            border: 1px solid var(--gray-200);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .btn-outline-sm:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .btn-danger-sm {
+            border-color: #fecaca;
+            color: #b91c1c;
+        }
+        .btn-danger-sm:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+        .empty-state-modern {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            border: 1px dashed var(--gray-200);
+        }
+        .miles-progress {
+            margin-top: 1rem;
+        }
+        .progress-bar-bg {
+            background: var(--gray-200);
+            border-radius: 40px;
+            height: 6px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 40px;
+        }
+        .help-card {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem;
+            border: 1px solid var(--gray-200);
+        }
+        footer {
+            background: white;
+            border-top: 1px solid var(--gray-200);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            margin-top: 2rem;
+        }
+        @media (max-width: 640px) {
+            .stats-grid {
+                gap: 0.75rem;
+            }
+            .booking-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+
+        /* ===== SETTINGS DROPDOWN STYLING (MATCH YOUR IMAGE) ===== */
+        .settings-dropdown {
+            min-width: 200px !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            padding: 0.5rem 0 !important;
+            border: 1px solid #e5e7eb !important;
+            right: 0 !important;
+            left: auto !important;
+        }
+
+        .settings-dropdown a {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 10px 16px !important;
+            color: #1f2937 !important;
+            font-size: 0.875rem !important;
+            font-weight: 500 !important;
+            text-decoration: none !important;
+            transition: background 0.2s ease !important;
+        }
+
+        .settings-dropdown a:hover {
+            background: #f3f4f6 !important;
+            color: #2c8fbb !important;
+        }
+
+        .settings-dropdown a .menu-icon {
+            width: 24px !important;
+            text-align: center !important;
+        }
+
+        .settings-dropdown a .menu-icon i {
+            color: #2c8fbb !important;
+            font-size: 1rem !important;
+            width: auto !important;
+        }
+
+        /* Manage dropdown styling */
+        .manage-dropdown {
+            flex-direction: column !important;
+            min-width: 200px !important;
+            padding: 8px 0 !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        
+        /* Flash message styles */
+        .flash-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #c3e6cb;
+            margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+
+        /* ----- NEW MODAL & TOAST STYLES (added) ----- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .modal-container h3 {
+            margin-bottom: 1rem;
+        }
+        .modal-container input, .modal-container select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1100;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ========== ORIGINAL HEADER – EXACTLY AS PROVIDED, UNTOUCHED ========== -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('booking') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
+            </div>
+            <!-- Manage dropdown - with View Ticket link -->
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="#" id="editProfileModalBtn">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- ========== ENHANCED DASHBOARD AREA (NEW – NO HEADER CSS) ========== -->
+<div class="dashboard-container">
+    <!-- LEFT COLUMN -->
+    <div class="dashboard-main-card">
+        <div style="margin-bottom: 0.5rem;">
+            <h1 style="font-size: 1.8rem; font-weight: 700;" id="welcomeName">Welcome back, {{ user.fullname or user.email }}</h1>
+            <p style="color: var(--gray-600);">Your flight insights at a glance</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-modern">
+                <div class="stat-number" id="bookingCount">{{ bookings|length }}</div>
+                <div class="stat-label">Recent bookings</div>
+            </div>
+            <div class="stat-modern">
+                <div class="stat-number" id="totalSpent">₱{{ "{:,.0f}".format(total_spent|float) if total_spent else "0" }}</div>
+                <div class="stat-label">Total spent</div>
+            </div>
+            <div class="stat-modern">
+                <div class="stat-number" id="upcomingCountPlaceholder">—</div>
+                <div class="stat-label">Upcoming flights</div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings Header -->
+        <div class="section-header">
+            <h2><i class="fas fa-history" style="margin-right: 8px; color: var(--primary);"></i> Recent activity</h2>
+            <div>
+                <button id="refreshBookingsBtn" class="btn-outline-sm" style="margin-right: 8px;"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <a href="{{ url_for('user_settings') }}" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">View all →</a>
+            </div>
+        </div>
+
+        <div id="bookingsListContainer">
+            {% if bookings %}
+                {% for booking in bookings %}
+                <div class="booking-row" data-booking-id="{{ booking.id }}" data-booking-date="{{ booking.date }}">
+                    <div style="display: flex; align-items: center; flex:1;">
+                        <div class="flight-icon">
+                            <i class="fas fa-plane-departure"></i>
+                        </div>
+                        <div class="booking-info-main">
+                            <div class="booking-title">{{ booking.flight_no }} • {{ booking.origin }} ✈ {{ booking.destination }}</div>
+                            <div class="route-detail">
+                                <span><i class="far fa-calendar-alt"></i> {{ booking.date }}</span>
+                                <span><i class="fas fa-users"></i> {{ booking.seats }} pax</span>
+                                <span><i class="fas fa-tag"></i> ₱{{ "{:,.0f}".format(booking.total|float) }}</span>
+                                <span class="status-badge">Loading</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: var(--gray-600); margin-top: 4px;">
+                                <i class="fas fa-barcode"></i> Ref: {{ booking.booking_reference }}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('view_ticket') }}?id={{ booking.id }}" class="btn-outline-sm view-ticket-btn">
+                            <i class="fas fa-eye"></i> View Ticket
+                        </a>
+                        <button class="btn-outline-sm btn-danger-sm cancel-booking-btn" data-id="{{ booking.id }}">
+                            <i class="fas fa-trash-alt"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state-modern" id="emptyBookingsMsg">
+                    <i class="fas fa-plane-slash" style="font-size: 2.5rem; color: var(--gray-600); margin-bottom: 1rem;"></i>
+                    <p>No flights booked yet</p>
+                    <a href="{{ url_for('booking') }}" style="color: var(--primary); font-weight: 500;">Explore destinations →</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Travel inspiration -->
+        <div style="margin-top: 2rem; background: var(--primary-light); border-radius: var(--radius-md); padding: 1rem; border-left: 3px solid var(--primary);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-map-marked-alt" style="color: var(--primary);"></i>
+                <span style="font-weight: 500;">Exclusive deals just for you</span>
+            </div>
+            <p style="font-size: 0.8rem; margin-top: 6px; color: var(--gray-600);">Check Tokyo, Singapore and Dubai — limited seats remaining.</p>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Profile + Quick Actions -->
+    <div class="dashboard-sidebar">
+        <!-- Profile card -->
+        <div class="profile-card" id="profileCard">
+            <div class="avatar-container">
+                <div id="avatarPreview">
+                    {% if user.profile_pic %}
+                        <img src="{% if user.profile_pic.startswith('http') %}{{ user.profile_pic }}{% else %}{{ url_for('static', filename='uploads/' + user.profile_pic) }}{% endif %}" alt="Profile" class="profile-img" id="userProfileImg">
+                    {% else %}
+                        <div class="default-avatar" id="defaultAvatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700;" id="profileName">{{ user.fullname or 'Traveler' }}</h3>
+                    <p style="color: var(--gray-600); font-size: 0.8rem; margin: 4px 0;" id="profileEmail">{{ user.email }}</p>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 6px;">
+                        <span class="member-badge"><i class="fas fa-gem"></i> Elite Silver</span>
+                        {% if session.get('is_admin') or user.is_admin %}
+                        <span class="member-badge admin-badge"><i class="fas fa-user-shield"></i> Administrator</span>
+                        {% endif %}
+                        <span class="member-badge"><i class="fas fa-globe"></i> Member since 2024</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mileage progress -->
+            <div class="miles-progress">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem;">
+                    <span><i class="fas fa-chart-line"></i> Tier miles</span>
+                    <span id="milesText">0 / 3,500</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-fill" id="mileProgressFill" style="width: 0%;"></div>
+                </div>
+                <button id="redeemMilesBtn" class="btn-outline-sm" style="width:100%; margin-top:8px;">Redeem miles</button>
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="profile-card">
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;"><i class="fas fa-bolt"></i> Quick actions</h4>
+            <div class="quick-action-grid">
+                <a href="{{ url_for('booking') }}" class="quick-btn"><i class="fas fa-plane-departure"></i> Book new flight</a>
+                <a href="{{ url_for('manage') }}" class="quick-btn"><i class="fas fa-ticket-alt"></i> Manage bookings</a>
+                <button id="editProfileQuickBtn" class="quick-btn"><i class="fas fa-user-edit"></i> Edit profile</button>
+                <button id="changePasswordQuickBtn" class="quick-btn"><i class="fas fa-key"></i> Change password</button>
+                <button id="supportBtn" class="quick-btn"><i class="fas fa-headset"></i> Support center</button>
+            </div>
+        </div>
+
+        <!-- Admin extra panel (only if admin) -->
+        {% if session.get('is_admin') %}
+        <div class="profile-card" id="adminExtraPanel">
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.8rem;"><i class="fas fa-chalkboard-user"></i> Admin controls</h4>
+            <div class="quick-action-grid">
+                <a href="{{ url_for('admin_dashboard') }}" class="quick-btn"><i class="fas fa-chart-simple"></i> Admin dashboard</a>
+                <button id="manageUsersBtn" class="quick-btn"><i class="fas fa-users-gear"></i> User management</button>
+                <button id="flightAnalyticsBtn" class="quick-btn"><i class="fas fa-chart-line"></i> Flight analytics</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Help card -->
+        <div class="help-card">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;">
+                <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
+                <span style="font-weight: 600;">Travel safe & smart</span>
+            </div>
+            <p style="font-size: 0.75rem; line-height: 1.4;">Free rebooking up to 24h before departure for Elite members. Check visa requirements before travel.</p>
+            <hr style="margin: 0.8rem 0; border-color: var(--gray-200);">
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 0.7rem;"><i class="fas fa-phone-alt"></i> 24/7 hotline</span>
+                <span style="font-weight: 600; font-size: 0.8rem;">+1 (888) 876-AERO</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 AeroTicket — Elevated journeys. All trademarks belong to their respective owners.</p>
+</footer>
+
+<!-- ======================= MODALS (added) ======================= -->
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal-overlay">
+    <div class="modal-container">
+        <h3>Edit Profile</h3>
+        <input type="text" id="editFullname" placeholder="Full name">
+        <input type="email" id="editEmail" placeholder="Email">
+        <input type="file" id="avatarUpload" accept="image/*">
+        <div class="modal-buttons">
+            <button class="btn-outline-sm" id="closeProfileModal">Cancel</button>
+            <button class="btn-outline-sm" id="saveProfileBtn">Save changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal-overlay">
+    <div class="modal-container">
+        <h3>Change Password</h3>
+        <input type="password" id="oldPassword" placeholder="Current password">
+        <input type="password" id="newPassword" placeholder="New password">
+        <input type="password" id="confirmPassword" placeholder="Confirm password">
+        <div class="modal-buttons">
+            <button class="btn-outline-sm" id="closePwdModal">Cancel</button>
+            <button class="btn-outline-sm" id="savePasswordBtn">Update password</button>
+        </div>
+    </div>
+</div>
+
+<!-- Redeem Miles Modal -->
+<div id="redeemMilesModal" class="modal-overlay">
+    <div class="modal-container">
+        <h3>Redeem Miles</h3>
+        <p>Your miles: <span id="currentMilesSpan">0</span></p>
+        <select id="rewardSelect">
+            <option value="500">500 miles - ₱500 off</option>
+            <option value="1000">1000 miles - Lounge access</option>
+            <option value="2500">2500 miles - Free upgrade</option>
+        </select>
+        <div class="modal-buttons">
+            <button class="btn-outline-sm" id="closeRedeemModal">Cancel</button>
+            <button class="btn-outline-sm" id="confirmRedeemBtn">Redeem</button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Modals (simple alert-style but we'll use modal for users list) -->
+<div id="adminUsersModal" class="modal-overlay">
+    <div class="modal-container">
+        <h3>User Management</h3>
+        <div id="userListContainer" style="max-height:300px; overflow-y:auto;"></div>
+        <div class="modal-buttons">
+            <button class="btn-outline-sm" id="closeUsersModal">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------------- Helper Functions -------------------------
+    function showToast(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = isError ? '#b91c1c' : '#2c8fbb';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function fetchJSON(url, options = {}) {
+        try {
+            const res = await fetch(url, {
+                ...options,
+                headers: { 'Content-Type': 'application/json', ...options.headers }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Request failed');
+            return data;
+        } catch (err) {
+            showToast(err.message, true);
+            throw err;
+        }
+    }
+
+    // ------------------------- Load Dashboard Data (API) -------------------------
+    async function loadDashboardData() {
+        try {
+            const data = await fetchJSON('/api/dashboard');
+            // Update stats
+            document.getElementById('bookingCount').innerText = data.bookingCount;
+            document.getElementById('totalSpent').innerHTML = '₱' + data.totalSpent.toLocaleString();
+            document.getElementById('upcomingCountPlaceholder').innerText = data.upcomingCount;
+            // Update miles
+            const miles = Math.min(Math.floor(data.totalSpent * 1.2), 3500);
+            document.getElementById('milesText').innerHTML = `${Math.floor(miles)} / 3,500`;
+            document.getElementById('mileProgressFill').style.width = (miles / 3500 * 100) + '%';
+            // Update profile info
+            if (data.user.fullname) document.getElementById('profileName').innerText = data.user.fullname;
+            document.getElementById('profileEmail').innerText = data.user.email;
+            document.getElementById('welcomeName').innerText = `Welcome back, ${data.user.fullname || data.user.email}`;
+            // Update avatar if changed
+            if (data.user.profile_pic) {
+                const avatarDiv = document.getElementById('avatarPreview');
+                avatarDiv.innerHTML = `<img src="${data.user.profile_pic}" alt="Profile" class="profile-img" id="userProfileImg">`;
+            }
+            // Render bookings
+            renderBookings(data.bookings);
+        } catch (err) {
+            console.error('Failed to load dashboard', err);
+        }
+    }
+
+    function renderBookings(bookings) {
+        const container = document.getElementById('bookingsListContainer');
+        if (!bookings.length) {
+            container.innerHTML = `<div class="empty-state-modern" id="emptyBookingsMsg">
+                <i class="fas fa-plane-slash" style="font-size: 2.5rem; color: var(--gray-600); margin-bottom: 1rem;"></i>
+                <p>No flights booked yet</p>
+                <a href="{{ url_for('booking') }}" style="color: var(--primary); font-weight: 500;">Explore destinations →</a>
+            </div>`;
+            return;
+        }
+        let html = '';
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        bookings.forEach(b => {
+            let flightDate = new Date(b.date);
+            if (isNaN(flightDate)) {
+                const parts = b.date.split('-');
+                if (parts.length === 3) flightDate = new Date(parts[0], parts[1]-1, parts[2]);
+            }
+            flightDate.setHours(0,0,0,0);
+            const isUpcoming = flightDate >= today;
+            const statusClass = isUpcoming ? 'status-upcoming' : 'status-completed';
+            const statusText = isUpcoming ? '✈️ Upcoming' : '✅ Completed';
+            html += `
+            <div class="booking-row" data-booking-id="${b.id}" data-booking-date="${b.date}">
+                <div style="display: flex; align-items: center; flex:1;">
+                    <div class="flight-icon"><i class="fas fa-plane-departure"></i></div>
+                    <div class="booking-info-main">
+                        <div class="booking-title">${b.flight_no} • ${b.origin} ✈ ${b.destination}</div>
+                        <div class="route-detail">
+                            <span><i class="far fa-calendar-alt"></i> ${b.date}</span>
+                            <span><i class="fas fa-users"></i> ${b.seats} pax</span>
+                            <span><i class="fas fa-tag"></i> ₱${b.total.toLocaleString()}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--gray-600); margin-top: 4px;">
+                            <i class="fas fa-barcode"></i> Ref: ${b.booking_reference}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ url_for('view_ticket') }}?id=${b.id}" class="btn-outline-sm view-ticket-btn"><i class="fas fa-eye"></i> View Ticket</a>
+                    <button class="btn-outline-sm btn-danger-sm cancel-booking-btn" data-id="${b.id}"><i class="fas fa-trash-alt"></i> Cancel</button>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+        // Attach cancel event listeners
+        document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const bookingId = btn.dataset.id;
+                if (confirm('Cancel this booking? This action is irreversible.')) {
+                    try {
+                        await fetchJSON(`/api/cancel_booking/${bookingId}`, { method: 'DELETE' });
+                        showToast('Booking cancelled successfully');
+                        loadDashboardData(); // refresh
+                    } catch (err) { showToast(err.message, true); }
+                }
+            });
+        });
+    }
+
+    // ------------------------- Profile Edit -------------------------
+    const profileModal = document.getElementById('editProfileModal');
+    const editProfileQuickBtn = document.getElementById('editProfileQuickBtn');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+    function openProfileModal() {
+        document.getElementById('editFullname').value = document.getElementById('profileName').innerText;
+        document.getElementById('editEmail').value = document.getElementById('profileEmail').innerText;
+        profileModal.classList.add('active');
+    }
+    editProfileQuickBtn.onclick = openProfileModal;
+    document.getElementById('editProfileModalBtn').onclick = (e) => { e.preventDefault(); openProfileModal(); };
+    closeProfileModal.onclick = () => profileModal.classList.remove('active');
+    saveProfileBtn.onclick = async () => {
+        const fullname = document.getElementById('editFullname').value;
+        const email = document.getElementById('editEmail').value;
+        const avatarFile = document.getElementById('avatarUpload').files[0];
+        const formData = new FormData();
+        formData.append('fullname', fullname);
+        formData.append('email', email);
+        if (avatarFile) formData.append('avatar', avatarFile);
+        try {
+            const res = await fetch('/api/update_profile', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            showToast('Profile updated');
+            profileModal.classList.remove('active');
+            loadDashboardData();
+        } catch (err) { showToast(err.message, true); }
+    };
+
+    // ------------------------- Change Password -------------------------
+    const pwdModal = document.getElementById('changePasswordModal');
+    document.getElementById('changePasswordQuickBtn').onclick = () => pwdModal.classList.add('active');
+    document.getElementById('closePwdModal').onclick = () => pwdModal.classList.remove('active');
+    document.getElementById('savePasswordBtn').onclick = async () => {
+        const oldPwd = document.getElementById('oldPassword').value;
+        const newPwd = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        if (newPwd !== confirm) return showToast('New passwords do not match', true);
+        try {
+            await fetchJSON('/api/change_password', { method: 'POST', body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) });
+            showToast('Password changed successfully');
+            pwdModal.classList.remove('active');
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } catch (err) { showToast(err.message, true); }
+    };
+
+    // ------------------------- Redeem Miles -------------------------
+    const redeemModal = document.getElementById('redeemMilesModal');
+    document.getElementById('redeemMilesBtn').onclick = async () => {
+        try {
+            const data = await fetchJSON('/api/dashboard');
+            const miles = Math.min(Math.floor(data.totalSpent * 1.2), 3500);
+            document.getElementById('currentMilesSpan').innerText = miles;
+            redeemModal.classList.add('active');
+        } catch (err) { showToast('Could not load miles', true); }
+    };
+    document.getElementById('closeRedeemModal').onclick = () => redeemModal.classList.remove('active');
+    document.getElementById('confirmRedeemBtn').onclick = async () => {
+        const reward = document.getElementById('rewardSelect').value;
+        try {
+            await fetchJSON('/api/redeem_miles', { method: 'POST', body: JSON.stringify({ reward_value: reward }) });
+            showToast('Reward redeemed!');
+            redeemModal.classList.remove('active');
+            loadDashboardData();
+        } catch (err) { showToast(err.message, true); }
+    };
+
+    // ------------------------- Admin Functions -------------------------
+    {% if session.get('is_admin') %}
+    const usersModal = document.getElementById('adminUsersModal');
+    document.getElementById('manageUsersBtn').onclick = async () => {
+        try {
+            const users = await fetchJSON('/api/admin/users');
+            const container = document.getElementById('userListContainer');
+            let html = '<ul style="list-style:none; padding:0;">';
+            users.forEach(u => {
+                html += `<li style="padding:8px 0; border-bottom:1px solid #eee;">${u.email} (${u.is_admin ? 'Admin' : 'User'})</li>`;
+            });
+            html += '</ul>';
+            container.innerHTML = html;
+            usersModal.classList.add('active');
+        } catch (err) { showToast(err.message, true); }
+    };
+    document.getElementById('closeUsersModal').onclick = () => usersModal.classList.remove('active');
+    document.getElementById('flightAnalyticsBtn').onclick = async () => {
+        try {
+            const analytics = await fetchJSON('/api/admin/analytics');
+            showToast(`Total bookings: ${analytics.totalBookings} | Most popular route: ${analytics.popularRoute}`);
+        } catch (err) { showToast(err.message, true); }
+    };
+    {% endif %}
+
+    // ------------------------- Other UI -------------------------
+    document.getElementById('supportBtn').onclick = () => {
+        showToast("📞 Call +1 (888) 876-AERO or email support@aeroticket.com");
+    };
+    document.getElementById('refreshBookingsBtn').onclick = () => loadDashboardData();
+
+    // Initialize: compute initial upcoming count and miles from server data, then attach
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update booking statuses from existing server-rendered rows (initial)
+        const bookingRows = document.querySelectorAll('.booking-row[data-booking-date]');
+        const today = new Date(); today.setHours(0,0,0,0);
+        let upcomingCount = 0;
+        bookingRows.forEach(row => {
+            const dateStr = row.getAttribute('data-booking-date');
+            if (!dateStr) return;
+            let flightDate = new Date(dateStr);
+            if (isNaN(flightDate)) {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) flightDate = new Date(parts[0], parts[1]-1, parts[2]);
+            }
+            if (isNaN(flightDate)) return;
+            flightDate.setHours(0,0,0,0);
+            const statusSpan = row.querySelector('.status-badge');
+            if (flightDate >= today) {
+                statusSpan.textContent = '✈️ Upcoming';
+                statusSpan.classList.add('status-upcoming');
+                statusSpan.classList.remove('status-completed');
+                upcomingCount++;
+            } else {
+                statusSpan.textContent = '✅ Completed';
+                statusSpan.classList.add('status-completed');
+                statusSpan.classList.remove('status-upcoming');
+            }
+        });
+        document.getElementById('upcomingCountPlaceholder').innerText = upcomingCount;
+
+        let totalSpentVal = 0;
+        {% if total_spent %}
+            totalSpentVal = parseFloat("{{ total_spent }}");
+        {% endif %}
+        const milesTarget = 3500;
+        let earnedMiles = Math.min(Math.floor(totalSpentVal * 1.2), milesTarget);
+        document.getElementById('mileProgressFill').style.width = (earnedMiles / milesTarget * 100) + '%';
+        document.getElementById('milesText').innerText = Math.floor(earnedMiles) + ' / ' + milesTarget;
+
+        // Attach cancel buttons for server-rendered rows (if any)
+        document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const bookingId = btn.dataset.id;
+                if (confirm('Cancel this booking?')) {
+                    try {
+                        await fetchJSON(`/api/cancel_booking/${bookingId}`, { method: 'DELETE' });
+                        showToast('Booking cancelled');
+                        loadDashboardData();
+                    } catch (err) { showToast(err.message, true); }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

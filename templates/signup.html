@@ -6,90 +6,410 @@
     <title>AeroTicket - Create Account</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
+    <style>
+        /* ===== HEADER & DROPDOWN STYLES ONLY (no background override) ===== */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo {
+            flex: 1;
+        }
+        .logo img {
+            height: 140px;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            flex: 1;
+            justify-content: center;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: relative;
+        }
+        /* Main navigation dropdown (circular icons) */
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        .dropdown-content a:hover {
+            background: #f0f9ff;
+            transform: translateY(-3px);
+        }
+        /* Manage dropdown styling */
+        .manage-dropdown {
+            flex-direction: column !important;
+            min-width: 200px !important;
+            padding: 8px 0 !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        /* Account dropdown (not logged in) – horizontal, right-aligned */
+        .account-dropdown {
+            flex-direction: column !important;
+            min-width: 160px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .account-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            color: #4a4a4a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .account-dropdown a i {
+            width: 20px;
+            color: #4eb8e9;
+        }
+        .account-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+        /* Settings dropdown (logged in) – horizontal, right-aligned */
+        .settings-dropdown {
+            flex-direction: column !important;
+            min-width: 210px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 28px !important;
+            height: 28px !important;
+            background: none !important;
+            box-shadow: none !important;
+        }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+        .header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            align-items: center;
+        }
+        .search-icon {
+            color: #4dbbee;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        /* Flash message styles */
+        .flash-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #c3e6cb;
+            margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+    </style>
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="header-container">
-            <div class="logo">
-                 <a href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
-    </a>
-            </div>
-             <nav class="nav-links">
-            <a href="{{ url_for('booking') }}">Book</a>
-            <a href="{{ url_for('manage') }}">Manage</a>
-            <a href="{{ url_for('travel') }}">Travel Info</a>
-            <a href="{{ url_for('explore') }}">Explore</a>
-            <a href="{{ url_for('about') }}">About</a>
-        </nav>
-            <div class="header-right">
-                <a href="{{ url_for('login') }}" class="login-link"><i class="fas fa-user-circle"></i> Log in</a>
-            </div>
+<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
         </div>
-    </header>
-
-    <div class="modal-overlay">
-        <div class="login-card">
-            <span class="close-btn">&times;</span>
-            <div class="card-logo-container">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Card Logo">
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('flight') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
             </div>
-            <h1>Create Account</h1>
-            <p class="signup-text">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
-            
-            <form action="/register" method="POST">
-                <div class="input-group">
-                    <input type="text" name="fullname" placeholder="Full Name" required>
+            <!-- Manage dropdown - with View Ticket link -->
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
                 </div>
-                <div class="input-group">
-                    <input type="email" name="email" placeholder="Email Address" required>
-                </div>
-                <div class="input-group">
-                    <input type="password" name="password" id="password" placeholder="Password" required>
-                    <i class="far fa-eye eye-icon" id="togglePassword" style="cursor: pointer;"></i>
-                </div>
-                <button type="submit" class="login-btn">Sign Up</button>
-            </form>
-            
-            <div class="divider">or sign up with</div>
-            
-                      <div class="social-container">
-    <a href="{{ url_for('google_login') }}" class="social-item">
-        <i class="fab fa-google"></i>
-        <span>Google</span>
-    </a>
-
-    <a href="{{ url_for('apple_login') }}" class="social-item">
-        <i class="fab fa-apple"></i>
-        <span>Apple</span>
-    </a>
-
-    <a href="{{ url_for('wechat_login') }}" class="social-item">
-        <i class="fab fa-weixin"></i>
-        <span>WeChat</span>
-    </a>
-</div>
             </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+            <!-- LOGGED IN: Settings dropdown -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- NOT LOGGED IN: Account dropdown + search icon -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
+                <div class="dropdown-content account-dropdown">
+                    <a href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Log in
+                    </a>
+                    <a href="{{ url_for('signup') }}">
+                        <i class="fas fa-user-plus"></i> Sign up
+                    </a>
+                </div>
+            </div>
+            <i class="fas fa-search search-icon"></i>
+            {% endif %}
         </div>
     </div>
+</header>
 
-    <script>
-     
-        const togglePassword = document.querySelector('#togglePassword');
-        const passwordInput = document.querySelector('#password');
+<script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+</script>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- ===== ORIGINAL SIGNUP FORM CONTENT (preserved) ===== -->
+<div class="modal-overlay">
+    <div class="login-card">
+        <span class="close-btn">&times;</span>
+        <div class="card-logo-container">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Card Logo">
+        </div>
+        <h1>Create Account</h1>
+        <p class="signup-text">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
         
+        <form action="/register" method="POST">
+            <div class="input-group">
+                <input type="text" name="fullname" placeholder="Full Name" required>
+            </div>
+            <div class="input-group">
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                <i class="far fa-eye eye-icon" id="togglePassword" style="cursor: pointer;"></i>
+            </div>
+            <button type="submit" class="login-btn">Sign Up</button>
+        </form>
+        
+        <div class="divider">or sign up with</div>
+        
+        <div class="social-container">
+            <a href="{{ url_for('google_login') }}" class="social-item">
+                <i class="fab fa-google"></i>
+                <span>Google</span>
+            </a>
+            <a href="{{ url_for('apple_login') }}" class="social-item">
+                <i class="fab fa-apple"></i>
+                <span>Apple</span>
+            </a>
+            <a href="{{ url_for('wechat_login') }}" class="social-item">
+                <i class="fab fa-weixin"></i>
+                <span>WeChat</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password toggle
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+    
+    if (togglePassword && passwordInput) {
         togglePassword.addEventListener('click', function() {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
         });
+    }
 
-
-        document.querySelector('.close-btn').addEventListener('click', function() {
+    // Close button redirects to home
+    const closeBtn = document.querySelector('.close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
             window.location.href = "{{ url_for('home') }}";
         });
-    </script>
+    }
+</script>
+
 </body>
 </html>

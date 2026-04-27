@@ -2,25 +2,220 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>AeroTicket - Boarding Pass</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='ticket.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    <!-- JsBarcode library for real scannable barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        /* ========== BASE STYLES (original kept) ========== */
+        .carousel-wrapper {
+            justify-content: center;
+        }
+        
+        /* Make arrows look like > and < */
+        .nav-btn {
+            font-family: monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* CLEAN PUNCH HOLES - Front */
+        .cutout-top, .cutout-bottom {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: #eef2f5;
+            border-radius: 50%;
+            left: 236px;
+            z-index: 25;
+            border: none;
+            box-shadow: none;
+            pointer-events: none;
+        }
+        .cutout-top { top: -14px; }
+        .cutout-bottom { bottom: -14px; }
+
+        /* CLEAN PUNCH HOLES - Back */
+        .ticket-back {
+            position: relative;
+            overflow: visible;
+        }
+        
+        .ticket-back::before,
+        .ticket-back::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: #eef2f5;
+            border-radius: 50%;
+            left: 236px;
+            z-index: 25;
+            border: none;
+            box-shadow: none;
+            pointer-events: none;
+        }
+        .ticket-back::before { top: -14px; }
+        .ticket-back::after { bottom: -14px; }
+
+        /* Keep the ticket border radius */
+        .ticket {
+            overflow: visible !important;
+            position: relative;
+            border-radius: 0 0 24px 24px;
+            background: white;
+        }
+        
+        .ticket-back {
+            overflow: visible !important;
+            position: relative;
+            border-radius: 0 0 24px 24px;
+        }
+        
+        /* Allow overflow for holes but maintain structure */
+        .flip-card, .flip-card-inner, .flip-card-front, .flip-card-back {
+            overflow: visible !important;
+        }
+        
+        /* Ensure the ticket content stays within bounds */
+        .stub, .main-body {
+            border-radius: 0 0 24px 24px;
+        }
+
+        /* Real barcode canvas styling - SHORTER WIDTH */
+        .barcode-canvas {
+            background: white;
+            border-radius: 4px;
+            width: 180px !important;
+            height: 40px !important;
+        }
+        
+        .barcode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .barcode-wrap {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            right: 19px;
+            bottom: 34px;
+            width: fit-content;
+        }
+        
+        .barcode-lg {
+            display: none;
+        }
+        
+        .barcode-sub {
+            font-size: 7px;
+            font-weight: 600;
+            color: #0c0b0b;
+            text-align: center; 
+            margin-top: 5px;
+            display: block;
+            letter-spacing: 0.5px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 1260px) {
+            .barcode-wrap {
+                position: relative;
+                right: auto;
+                bottom: auto;
+                margin-top: 10px;
+            }
+            .barcode-canvas {
+                width: 200px !important;
+                height: 45px !important;
+            }
+        }
+
+        /* ========== NEW CRITICAL STYLES: SINGLE TICKET CAROUSEL ========== */
+        /* Force carousel to hide overflow and show only one ticket at a time */
+        .tickets-carousel {
+            display: flex !important;
+            overflow: hidden !important;
+            scroll-behavior: smooth !important;
+            justify-content: flex-start !important;
+            flex-wrap: nowrap !important;
+            gap: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100%;
+            /* remove any auto scroll */
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Each flip-card occupies exactly 100% of the carousel width = single ticket visible */
+        .flip-card {
+            flex: 0 0 100% !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            scroll-snap-align: start;
+            transition: none; /* avoid transition flicker on width change */
+        }
+        
+        /* Ensure no extra spacing inside carousel that could cause double visibility */
+        .tickets-carousel::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Keep ticket shadow but doesn't affect width */
+        .flip-card-inner {
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* For responsive: make sure any external CSS doesn't break the 100% width */
+        @media (max-width: 800px) {
+            .flip-card {
+                flex: 0 0 100% !important;
+            }
+        }
+        
+        /* hide arrows if only one ticket (handled by JS but also safe style) */
+        .nav-btn-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        
+        /* small touch for smooth indicators */
+        .counter-info {
+            transition: 0.2s;
+        }
+    </style>
 </head>
 <body>
 
     <div class="main-container">
         <div class="carousel-wrapper">
-            <button class="nav-btn" id="prevBtn">←</button>
+            <button class="nav-btn" id="prevBtn">‹</button>
             <div class="tickets-carousel" id="ticketsCarousel">
                 {% if passengers and passengers|length > 0 %}
                     {% for passenger in passengers %}
-                    <div class="flip-card">
+                    <div class="flip-card" data-passenger-index="{{ loop.index }}">
                         <div class="flip-card-inner">
                             
                             <!-- FRONT SIDE -->
                             <div class="flip-card-front">
                                 <div class="ticket">
+                                    <div class="cutout-top"></div>
+                                    <div class="cutout-bottom"></div>
+                                    
                                     <div class="stub">
                                         <div class="top-blue">
                                             <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
@@ -44,7 +239,7 @@
                                             </div>
 
                                             <div class="barcode-sm">*{{ flight.flight }}*</div>
-                                            <div class="barcode-sub-sm">No : {{ loop.index }}234567890</div> 
+                                            <div class="barcode-sub-sm">PNR: {{ passenger.get('pnr', loop.index ~ 'ABC') }}</div> 
                                             
                                             <div class="destination-label-sm">YOUR DESTINATION</div>
                                             <div class="stub-route">
@@ -90,10 +285,14 @@
                                                 </div>
                                             </div>
                                             
-                                            <!-- BARCODE SECTION - PRESERVED AS REQUESTED -->
+                                            <!-- REAL BARCODE SECTION -->
                                             <div class="barcode-wrap">
-                                                <div class="barcode-lg">*{{ loop.index }}*</div>
-                                                <div class="barcode-sub">No : {{ loop.index }}234567890123456789</div>
+                                                <div class="barcode-container">
+                                                    <canvas id="barcode-{{ loop.index }}" class="barcode-canvas"></canvas>
+                                                </div>
+                                                <div class="barcode-sub">
+                                                    {{ flight.flight.replace(' ', '') }}-{{ passenger.get('pnr', loop.index ~ 'ABC') }} | {{ passenger.seat }}
+                                                </div>
                                             </div>
 
                                             <div class="seat-wrapper">
@@ -107,8 +306,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="cutout-top"></div>
-                                    <div class="cutout-bottom"></div>
                                 </div>
                             </div>
 
@@ -147,12 +344,12 @@
                     </div>
                 {% endif %}
             </div>
-            <button class="nav-btn" id="nextBtn">→</button>
+            <button class="nav-btn" id="nextBtn">›</button>
         </div>
         
         <div class="counter-info" id="counterInfo">
             {% if passengers %}
-                ✈️ {{ passengers|length }} Boarding Pass{{ 'es' if passengers|length > 1 else '' }} • Hover to flip • Use arrows to navigate ✈️
+                ✈️ {{ passengers|length }} Boarding Pass{{ 'es' if passengers|length > 1 else '' }} • Hover to flip • Use arrows to navigate • ✓ Real scannable barcodes ✈️
             {% endif %}
         </div>
 
@@ -168,24 +365,181 @@
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             
-            // Navigation functionality
-            if (prevBtn && nextBtn && carousel) {
-                prevBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: -1030, behavior: 'smooth' });
-                });
-                
-                nextBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: 1030, behavior: 'smooth' });
-                });
+            // ============================================
+            // GENERATE REAL SCANNABLE BARCODES (unchanged, works for all tickets)
+            // ============================================
+            {% if passengers and passengers|length > 0 %}
+                {% for passenger in passengers %}
+                (function() {
+                    const canvasId = 'barcode-{{ loop.index }}';
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        const flightCode = '{{ flight.flight.replace(' ', '') }}';
+                        const pnr = '{{ passenger.get("pnr", loop.index ~ "ABC") }}';
+                        const seat = '{{ passenger.seat }}';
+                        const nameCode = '{{ passenger.name[:4].upper().replace(" ", "") }}';
+                        const barcodeValue = `${flightCode}|${pnr}|${seat}|${nameCode}`;
+                        
+                        JsBarcode(canvas, barcodeValue, {
+                            format: "CODE128",
+                            width: 1.2,
+                            height: 38,
+                            displayValue: false,
+                            margin: 2,
+                            background: "#ffffff",
+                            lineColor: "#1a1a2e",
+                            flat: false
+                        });
+                        
+                        canvas.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            console.log('Barcode value:', barcodeValue);
+                        });
+                    }
+                })();
+                {% endfor %}
+            {% endif %}
+            
+            // ============================================
+            // SINGLE TICKET CAROUSEL LOGIC
+            // ============================================
+            // Get all ticket cards
+            const tickets = document.querySelectorAll('.flip-card');
+            const totalTickets = tickets.length;
+            
+            // No tickets case (error message)
+            if (totalTickets === 0) {
+                if (prevBtn && nextBtn) {
+                    prevBtn.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                }
+                return;
             }
             
-            // 3D tilt effect for all flip cards
+            // Carousel state
+            let currentIndex = 0;
+            let resizeTimeout = null;
+            
+            // Helper: update arrow visibility & smooth scroll to index
+            function scrollToIndex(index, smooth = true) {
+                if (!carousel) return;
+                if (index < 0) index = 0;
+                if (index >= totalTickets) index = totalTickets - 1;
+                
+                // Ensure the carousel width is correct (avoid fractional scrolling)
+                const containerWidth = carousel.clientWidth;
+                if (containerWidth === 0) return;
+                
+                const targetScrollLeft = index * containerWidth;
+                // Use scrollTo for smooth or immediate
+                carousel.scrollTo({
+                    left: targetScrollLeft,
+                    behavior: smooth ? 'smooth' : 'auto'
+                });
+                currentIndex = index;
+                
+                // Update visual state for arrows (wrap-around mode but also disable if only one)
+                if (totalTickets <= 1) {
+                    if (prevBtn) prevBtn.classList.add('nav-btn-hidden');
+                    if (nextBtn) nextBtn.classList.add('nav-btn-hidden');
+                } else {
+                    if (prevBtn) prevBtn.classList.remove('nav-btn-hidden');
+                    if (nextBtn) nextBtn.classList.remove('nav-btn-hidden');
+                }
+            }
+            
+            // Navigation with wrap-around (smooth UX)
+            function nextTicket() {
+                if (totalTickets <= 1) return;
+                let newIndex = (currentIndex + 1) % totalTickets;
+                scrollToIndex(newIndex, true);
+            }
+            
+            function prevTicket() {
+                if (totalTickets <= 1) return;
+                let newIndex = (currentIndex - 1 + totalTickets) % totalTickets;
+                scrollToIndex(newIndex, true);
+            }
+            
+            // Re-center current ticket on window resize (ensures no bleeding)
+            function reCenterOnResize() {
+                if (!carousel) return;
+                const containerWidth = carousel.clientWidth;
+                if (containerWidth === 0) return;
+                const correctScroll = currentIndex * containerWidth;
+                if (Math.abs(carousel.scrollLeft - correctScroll) > 2) {
+                    carousel.scrollTo({ left: correctScroll, behavior: 'auto' });
+                }
+            }
+            
+            // Attach event listeners
+            if (prevBtn) prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                prevTicket();
+            });
+            
+            if (nextBtn) nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                nextTicket();
+            });
+            
+            // Remove any existing manual scroll handlers from original code
+            // Disable original centerCurrentTicket + scroll listener completely.
+            // We'll also ensure the carousel has no interference with overflow auto.
+            
+            // On window resize: debounced to avoid jumping
+            window.addEventListener('resize', () => {
+                if (resizeTimeout) clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    reCenterOnResize();
+                }, 100);
+            });
+            
+            // Optional: watch for font / image load to realign (extra safe)
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    reCenterOnResize();
+                }, 50);
+                // Also ensure barcodes are fully rendered
+            });
+            
+            // Initialize: first ticket perfectly visible, no second ticket peeking
+            // Force initial scroll to 0 with auto behavior
+            if (carousel) {
+                // Remove any pre-existing inline style that might break mode
+                carousel.style.scrollBehavior = 'smooth';
+                // set initial position
+                setTimeout(() => {
+                    scrollToIndex(0, false);
+                }, 30);
+            }
+            
+            // Additional safeguard: block any manual drag scrolling that reveals second ticket,
+            // but overflow hidden already prevents user scroll. However if browser supports touch,
+            // we force reset scroll position after any attempted scroll (to keep exactly one ticket)
+            let scrollEndTimer = null;
+            carousel.addEventListener('scroll', () => {
+                if (scrollEndTimer) clearTimeout(scrollEndTimer);
+                scrollEndTimer = setTimeout(() => {
+                    if (!carousel) return;
+                    const idealScroll = currentIndex * carousel.clientWidth;
+                    if (Math.abs(carousel.scrollLeft - idealScroll) > 5) {
+                        // Force snap back to current ticket index
+                        carousel.scrollTo({ left: idealScroll, behavior: 'smooth' });
+                    }
+                }, 80);
+            });
+            
+            // ============================================
+            // 3D TILT EFFECT (kept fully functional)
+            // ============================================
             const flipCards = document.querySelectorAll('.flip-card');
             
             flipCards.forEach(card => {
                 const cardInner = card.querySelector('.flip-card-inner');
                 
                 if (cardInner) {
+                    // Tilt effect on hover
                     card.addEventListener('mousemove', (e) => {
                         const rect = card.getBoundingClientRect();
                         const x = e.clientX - rect.left;
@@ -207,6 +561,9 @@
                     });
                 }
             });
+            
+            // Expose utility for debugging (optional)
+            console.log(`✈️ Carousel ready • ${totalTickets} ticket(s) • Single ticket mode active • only one visible at a time`);
         });
     </script>
 </body>

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>View Ticket(s) | AeroTicket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&family=Libre+Barcode+39&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ticket.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        /* Fixed header – unchanged */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo img { height: 140px; width: auto; margin-top: -25px; margin-bottom: -25px; }
+        .nav-links { display: flex; gap: 35px; }
+        .nav-links a, .dropbtn { text-decoration: none; color: #4dbbee; font-weight: 700; font-size: 1.1rem; }
+        .dropdown { position: relative; }
+        .dropdown-content {
+            display: flex;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover { opacity: 1; visibility: visible; margin-top: 0; }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i { color: white; font-size: 24px; }
+        .manage-dropdown { flex-direction: column !important; min-width: 200px !important; }
+        .settings-dropdown { flex-direction: column !important; min-width: 200px !important; left: auto !important; right: 0 !important; transform: none !important; }
+        .settings-dropdown a { flex-direction: row !important; justify-content: flex-start !important; gap: 12px !important; }
+        .settings-dropdown a .menu-icon { width: 24px !important; height: 24px !important; background: none !important; }
+        .settings-dropdown a .menu-icon i { color: #4eb8e9 !important; font-size: 18px !important; }
+        .header-right { flex: 1; display: flex; justify-content: flex-end; gap: 25px; align-items: center; }
+
+        /* Carousel – only one ticket visible */
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 110px 20px 40px; }
+        .carousel-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .tickets-carousel {
+            display: flex !important;
+            overflow: hidden !important;
+            scroll-behavior: smooth;
+            justify-content: flex-start !important;
+            flex-wrap: nowrap;
+            gap: 0;
+            width: 100%;
+        }
+        .flip-card {
+            flex: 0 0 100% !important;
+            min-width: 0;
+            width: 100%;
+            scroll-snap-align: start;
+        }
+        .nav-btn {
+            background: #4eb8e9;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .nav-btn:hover { background: #2c8fbb; transform: scale(1.05); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        .counter-info {
+            text-align: center;
+            margin: 20px 0 10px;
+            font-size: 14px;
+            color: #1f6392;
+            font-weight: 500;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-edit { background: #4eb8e9; color: white; }
+        .btn-edit:hover { background: #2c8fbb; transform: translateY(-2px); }
+        .btn-seat { background: #f5a623; color: white; }
+        .btn-seat:hover { background: #e09515; transform: translateY(-2px); }
+        .btn-delete { background: #e74c3c; color: white; }
+        .btn-delete:hover { background: #c0392b; transform: translateY(-2px); }
+        .btn-back { background: #95a5a6; color: white; }
+        .btn-back:hover { background: #7f8c8d; }
+
+        .flash-message {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 40px;
+            background: #4eb8e9;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+        }
+        .flash-message.error { background: #e74c3c; }
+        .flash-message.success { background: #27ae60; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 10px 0 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+        }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .modal-btn { padding: 10px 20px; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; }
+        .modal-btn-save { background: #4eb8e9; color: white; }
+        .modal-btn-cancel { background: #e0e0e0; color: #333; }
+        .loading-state { text-align: center; padding: 80px 20px; background: white; border-radius: 24px; }
+        @media (max-width: 800px) {
+            .main-container { padding-top: 100px; }
+            .nav-btn { width: 40px; height: 40px; font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- FIXED HEADER (unchanged) -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo"><a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket"></a></div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown"><a href="{{ url_for('booking') }}" class="dropbtn">Book</a><div class="dropdown-content"><a href="{{ url_for('flight') }}"><div class="menu-icon"><i class="fas fa-plane"></i></div>Flights</a></div></div>
+            <div class="dropdown">
+                {% if session.get('user_id') %}<a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>{% else %}<a href="{{ url_for('login') }}" class="dropbtn">Manage</a>{% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}<a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}"><div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>View Ticket</a>{% endif %}
+                    <a href="{{ url_for('check_in') }}"><div class="menu-icon"><i class="fas fa-check-circle"></i></div>Check-in</a>
+                </div>
+            </div>
+            <div class="dropdown"><a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a><div class="dropdown-content"><a href="{{ url_for('explore') }}"><div class="menu-icon"><i class="fas fa-globe-asia"></i></div>Explore</a><a href="{{ url_for('about') }}"><div class="menu-icon"><i class="fas fa-info-circle"></i></div>About</a></div></div>
+        </nav>
+        <div class="header-right">
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}"><div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>My Dashboard</a>
+                    <a href="{{ url_for('user_settings') }}"><div class="menu-icon"><i class="fas fa-user-cog"></i></div>Account Settings</a>
+                    {% if session.get('is_admin') %}<a href="{{ url_for('admin_dashboard') }}"><div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>Admin Dashboard</a><a href="{{ url_for('admin_settings') }}"><div class="menu-icon"><i class="fas fa-sliders-h"></i></div>Admin Settings</a>{% endif %}
+                    <a href="#" onclick="confirmLogout(event);"><div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="carousel-wrapper">
+        <button class="nav-btn" id="prevBtn" disabled>‹</button>
+        <div class="tickets-carousel" id="ticketsCarousel">
+            <div class="loading-state"><i class="fas fa-spinner fa-pulse fa-3x"></i><p>Loading tickets...</p></div>
+        </div>
+        <button class="nav-btn" id="nextBtn" disabled>›</button>
+    </div>
+    <div class="counter-info" id="counterInfo"></div>
+    <div class="action-buttons" id="actionButtons" style="display: none;">
+        <button class="action-btn btn-edit" id="editPassengerBtn"><i class="fas fa-user-edit"></i> Edit Passenger</button>
+        <button class="action-btn btn-seat" id="changeSeatBtn"><i class="fas fa-chair"></i> Change Seat</button>
+        <button class="action-btn btn-delete" id="cancelTicketBtn"><i class="fas fa-trash-alt"></i> Cancel Ticket</button>
+        <button class="action-btn btn-back" id="backToDashboardBtn"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="editModal" class="modal"><div class="modal-content"><h3><i class="fas fa-user-edit"></i> Edit Passenger</h3><form id="editForm"><label>Full Name</label><input type="text" id="editName" required><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('editModal')">Cancel</button><button type="submit" class="modal-btn modal-btn-save">Save</button></div></form></div></div>
+<div id="seatModal" class="modal"><div class="modal-content"><h3><i class="fas fa-chair"></i> Change Seat</h3><form id="seatForm"><label>New Seat</label><select id="newSeat" required><option value="12A">12A (Window)</option><option value="12B">12B (Middle)</option><option value="12C">12C (Aisle)</option><option value="12D">12D (Aisle)</option><option value="12E">12E (Middle)</option><option value="12F">12F (Window)</option><option value="14A">14A (Window)</option><option value="14B">14B (Middle)</option><option value="14C">14C (Aisle)</option><option value="14D">14D (Aisle)</option><option value="14E">14E (Middle)</option><option value="14F">14F (Window)</option></select><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('seatModal')">Cancel</button><button type="submit" class="modal-btn modal-btn-save">Update Seat</button></div></form></div></div>
+<div id="cancelModal" class="modal"><div class="modal-content"><h3><i class="fas fa-exclamation-triangle"></i> Cancel Ticket</h3><p>Are you sure you want to cancel <strong id="cancelPassengerName"></strong>'s ticket? This cannot be undone.</p><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep It</button><button type="button" id="confirmCancelBtn" class="modal-btn modal-btn-save" style="background:#e74c3c;">Yes, Cancel Ticket</button></div></div></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('id');
+    
+    let bookingData = null;
+    let passengers = [];
+    let flight = null;
+    let bookingRef = null;
+    let currentIndex = 0;
+    let carousel = null;
+    let prevBtn = null, nextBtn = null;
+    let ticketsCarousel = null;
+    
+    function getValue(obj, keys, defaultValue = '—') {
+        for (let key of keys) {
+            if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+        }
+        return defaultValue;
+    }
+    
+    // Use the date exactly as provided (already in "DD MMM YYYY" format)
+    function formatDate(dateStr) {
+        if (!dateStr) return '15 JAN 2026';
+        // Return as-is – backend already gives "15 JAN 2026"
+        return dateStr;
+    }
+    
+    function renderSingleTicket(passenger, flightInfo, bookingReference, cabinClass) {
+        const passengerName = getValue(passenger, ['full_name', 'name', 'passenger_name'], 'Guest');
+        const seatNumber = getValue(passenger, ['seat_number', 'seat', 'seatNo'], '12A');
+        const flightNumber = getValue(flightInfo, ['flight_number', 'flight_no', 'flightNumber', 'code'], 'AT1000');
+        const gate = getValue(flightInfo, ['gate', 'gate_number', 'gateNo'], 'A1');
+        const origin = getValue(flightInfo, ['origin', 'from', 'departure_airport'], 'MNL');
+        const destination = getValue(flightInfo, ['destination', 'to', 'arrival_airport'], 'CEB');
+        const departureDateRaw = flightInfo?.departure_date || flightInfo?.date || '15 JAN 2026';
+        const formattedDate = formatDate(departureDateRaw);
+        const departureTime = getValue(flightInfo, ['departure_time', 'time', 'depart_time'], '06:00');
+        const finalCabin = cabinClass || getValue(bookingData, ['cabin_class', 'class'], 'Economy');
+        
+        // Barcode data – identical to original ticket.html
+        const barcodeValue = `${flightNumber.replace(/\s/g, '')}|${bookingReference}|${seatNumber}|${passengerName.substring(0,4).toUpperCase().replace(/\s/g, '')}`;
+        
+        // HTML structure exactly matches original ticket.html (barcode-wrap absolute positioning)
+        return `
+            <div class="flip-card" data-passenger-id="${passenger.id || passenger.passenger_id || ''}">
+                <div class="flip-card-inner">
+                    <!-- FRONT SIDE -->
+                    <div class="flip-card-front">
+                        <div class="ticket">
+                            <div class="cutout-top"></div><div class="cutout-bottom"></div>
+                            <div class="stub">
+                                <div class="top-blue">
+                                    <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
+                                    <span class="seat-top">${seatNumber}</span>
+                                </div>
+                                <div class="stub-body">
+                                    <div class="info-row">
+                                        <div class="info-item"><label>FLIGHT:</label><span class="val-blue">${flightNumber}</span></div>
+                                        <div class="info-item"><label>GATE:</label><span class="val-blue">${gate}</span></div>
+                                    </div>
+                                    <div class="date-time-wrapper">
+                                        <div class="val-blue-sm date">${formattedDate}</div>
+                                        <div class="val-blue-sm">${departureTime}</div>
+                                    </div>
+                                    <div class="barcode-sm">*${flightNumber.replace(/\s/g, '')}*</div>
+                                    <div class="barcode-sub-sm">PNR: ${bookingReference}</div>
+                                    <div class="destination-label-sm">YOUR DESTINATION</div>
+                                    <div class="stub-route">${origin} <span class="plane-mini">—</span> ${destination}</div>
+                                </div>
+                            </div>
+                            <div class="main-body">
+                                <div class="top-blue-wide">
+                                    <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
+                                    <span class="boarding-title">BOARDING PASS</span>
+                                </div>
+                                <div class="main-content">
+                                    <div class="data-row">
+                                        <div class="data-col name-row"><label>NAME :</label><div class="val-black">${passengerName}</div></div>
+                                        <div class="data-col move-right"><label>FLIGHT :</label><div class="val-blue-lg">${flightNumber}</div></div>
+                                        <div class="data-col move-right"><label>GATE :</label><div class="val-blue-lg">${gate}</div></div>
+                                    </div>
+                                    <div class="destination-label-lg">YOUR DESTINATION</div>
+                                    <div class="route-banner">
+                                        <span class="city">${origin}</span>
+                                        <span class="plane-mid">→</span>
+                                        <span class="city">${destination}</span>
+                                    </div>
+                                    <div class="date-time-row">
+                                        <div class="info-item"><div class="val-blue-sm">${formattedDate}</div></div>
+                                        <div class="info-item"><div class="val-blue-sm">${departureTime}</div></div>
+                                    </div>
+                                    <!-- BARCODE - ABSOLUTE POSITIONING (same as original) -->
+                                    <div class="barcode-wrap">
+                                        <div class="barcode-container">
+                                            <canvas class="barcode-canvas" data-barcode-value="${barcodeValue}"></canvas>
+                                        </div>
+                                        <div class="barcode-sub">
+                                            ${flightNumber.replace(/\s/g, '')}-${bookingReference} | ${seatNumber}
+                                        </div>
+                                    </div>
+                                    <div class="seat-wrapper">
+                                        <div class="seat-image-style">
+                                            <div class="seat-number-box">${seatNumber}</div>
+                                            <div class="seat-text-info">
+                                                <div class="seat-main-label">SEAT</div>
+                                                <div class="seat-class-label">${finalCabin}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- BACK SIDE -->
+                    <div class="flip-card-back">
+                        <div class="ticket-back">
+                            <div class="back-stub">
+                                <div class="back-stub-top">
+                                    <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-back-sm" alt="logo">
+                                    <span class="label-white-sm">SEAT NUMBER :</span>
+                                </div>
+                                <div class="back-seat-box">
+                                    <div class="seat-huge-blue">${seatNumber}</div>
+                                </div>
+                                <div class="back-stub-bottom">
+                                    <span class="class-label-white">${finalCabin}</span>
+                                </div>
+                            </div>
+                            <div class="back-main">
+                                <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-back-main" alt="aero">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderAllTickets() {
+        if (!ticketsCarousel) return;
+        if (!passengers.length) {
+            ticketsCarousel.innerHTML = '<div class="loading-state"><h3>⚠️ No passengers found</h3></div>';
+            return;
+        }
+        const cabinClass = getValue(bookingData, ['cabin_class', 'class'], 'Economy');
+        const html = passengers.map(p => renderSingleTicket(p, flight, bookingRef, cabinClass)).join('');
+        ticketsCarousel.innerHTML = html;
+        
+        // Force scroll to first ticket (hide second)
+        const forceScrollZero = () => {
+            if (carousel) carousel.scrollLeft = 0;
+        };
+        forceScrollZero();
+        requestAnimationFrame(forceScrollZero);
+        setTimeout(forceScrollZero, 50);
+        setTimeout(forceScrollZero, 150);
+        
+        // Generate barcodes
+        setTimeout(() => {
+            document.querySelectorAll('.barcode-canvas').forEach(canvas => {
+                const value = canvas.getAttribute('data-barcode-value');
+                if (value && typeof JsBarcode !== 'undefined') {
+                    JsBarcode(canvas, value, {
+                        format: "CODE128",
+                        width: 1.2,
+                        height: 38,
+                        displayValue: false,
+                        margin: 2,
+                        background: "#ffffff",
+                        lineColor: "#1a1a2e"
+                    });
+                }
+            });
+        }, 100);
+        
+        updateCarousel();
+    }
+    
+    function updateCarousel() {
+        if (!carousel || !prevBtn || !nextBtn) return;
+        const total = passengers.length;
+        if (total <= 1) {
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+        } else {
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === total - 1);
+        }
+        const counterSpan = document.getElementById('counterInfo');
+        if (counterSpan) {
+            counterSpan.innerHTML = `✈️ Ticket ${currentIndex+1} of ${total} • Hover to flip • Real scannable barcodes ✈️`;
+        }
+        const scrollPosition = currentIndex * carousel.clientWidth;
+        carousel.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+    }
+    
+    function goPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCarousel();
+        }
+    }
+    
+    function goNext() {
+        if (currentIndex < passengers.length - 1) {
+            currentIndex++;
+            updateCarousel();
+        }
+    }
+    
+    function getCurrentPassenger() {
+        return passengers[currentIndex] || null;
+    }
+    
+    async function fetchBooking() {
+        if (!bookingId) {
+            showFlashMessage('No booking ID provided', 'error');
+            ticketsCarousel.innerHTML = '<div class="loading-state"><h3>⚠️ Missing booking ID</h3><a href="{{ url_for("user_dashboard") }}" style="color:#4eb8e9;">Back to Dashboard</a></div>';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/booking/${bookingId}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            bookingData = data.booking || data;
+            passengers = data.passengers || (data.passenger ? [data.passenger] : []);
+            flight = data.flight || data;
+            bookingRef = getValue(bookingData, ['booking_reference', 'reference', 'pnr'], 'ABC123');
+            
+            if (!passengers.length) throw new Error('No passengers found');
+            currentIndex = 0;
+            renderAllTickets();
+            document.getElementById('actionButtons').style.display = 'flex';
+        } catch (error) {
+            console.error(error);
+            showFlashMessage('Unable to load tickets', 'error');
+            ticketsCarousel.innerHTML = '<div class="loading-state"><h3>⚠️ Failed to load tickets</h3><a href="{{ url_for("user_dashboard") }}" style="color:#4eb8e9;">Back to Dashboard</a></div>';
+        }
+    }
+    
+    // CRUD operations
+    async function updatePassenger(newName) {
+        const passenger = getCurrentPassenger();
+        if (!passenger) return false;
+        try {
+            const res = await fetch(`/api/passenger/${passenger.id || passenger.passenger_id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newName, full_name: newName })
+            });
+            if (!res.ok) throw new Error();
+            passenger.full_name = newName;
+            passenger.name = newName;
+            renderAllTickets();
+            showFlashMessage('Passenger updated successfully!');
+            return true;
+        } catch(e) { showFlashMessage('Error updating passenger', 'error'); return false; }
+    }
+    
+    async function updateSeat(newSeat) {
+        const passenger = getCurrentPassenger();
+        if (!passenger) return false;
+        try {
+            const res = await fetch(`/api/passenger/${passenger.id || passenger.passenger_id}/seat`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seat: newSeat, seat_number: newSeat })
+            });
+            if (!res.ok) throw new Error();
+            passenger.seat_number = newSeat;
+            passenger.seat = newSeat;
+            renderAllTickets();
+            showFlashMessage(`Seat changed to ${newSeat}`);
+            return true;
+        } catch(e) { showFlashMessage('Error changing seat', 'error'); return false; }
+    }
+    
+    async function cancelCurrentTicket() {
+        const passenger = getCurrentPassenger();
+        if (!passenger) return;
+        try {
+            const res = await fetch(`/api/passenger/${passenger.id || passenger.passenger_id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error();
+            passengers.splice(currentIndex, 1);
+            if (passengers.length === 0) {
+                showFlashMessage('All tickets cancelled. Redirecting...');
+                setTimeout(() => window.location.href = "{{ url_for('user_dashboard') }}", 2000);
+            } else {
+                if (currentIndex >= passengers.length) currentIndex = passengers.length - 1;
+                renderAllTickets();
+                showFlashMessage('Ticket cancelled successfully');
+            }
+        } catch(e) { showFlashMessage('Error cancelling ticket', 'error'); }
+    }
+    
+    function showFlashMessage(message, type = 'success') {
+        const flash = document.createElement('div');
+        flash.className = `flash-message ${type}`;
+        flash.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 3000);
+    }
+    
+    function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+    function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+    
+    let resizeTimeout;
+    function handleResize() {
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (carousel && passengers.length) {
+                const scrollPosition = currentIndex * carousel.clientWidth;
+                carousel.scrollTo({ left: scrollPosition, behavior: 'auto' });
+            }
+        }, 100);
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        carousel = document.getElementById('ticketsCarousel');
+        prevBtn = document.getElementById('prevBtn');
+        nextBtn = document.getElementById('nextBtn');
+        ticketsCarousel = carousel;
+        
+        if (prevBtn && nextBtn) {
+            prevBtn.addEventListener('click', goPrev);
+            nextBtn.addEventListener('click', goNext);
+        }
+        window.addEventListener('resize', handleResize);
+        fetchBooking();
+        
+        // CRUD listeners
+        document.getElementById('editPassengerBtn').addEventListener('click', () => {
+            const p = getCurrentPassenger();
+            if (p) {
+                document.getElementById('editName').value = p.full_name || p.name || '';
+                openModal('editModal');
+            } else { showFlashMessage('No passenger selected', 'error'); }
+        });
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await updatePassenger(document.getElementById('editName').value);
+            closeModal('editModal');
+        });
+        document.getElementById('changeSeatBtn').addEventListener('click', () => {
+            const p = getCurrentPassenger();
+            if (p) {
+                document.getElementById('newSeat').value = p.seat_number || p.seat || '12A';
+                openModal('seatModal');
+            }
+        });
+        document.getElementById('seatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await updateSeat(document.getElementById('newSeat').value);
+            closeModal('seatModal');
+        });
+        document.getElementById('cancelTicketBtn').addEventListener('click', () => {
+            const p = getCurrentPassenger();
+            if (p) {
+                document.getElementById('cancelPassengerName').innerText = p.full_name || p.name || 'this passenger';
+                openModal('cancelModal');
+            }
+        });
+        document.getElementById('confirmCancelBtn').addEventListener('click', async () => {
+            closeModal('cancelModal');
+            await cancelCurrentTicket();
+        });
+        document.getElementById('backToDashboardBtn').addEventListener('click', () => {
+            window.location.href = "{{ url_for('user_dashboard') }}";
+        });
+        window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) e.target.classList.remove('active'); });
+    });
+    function confirmLogout(e) { e.preventDefault(); if(confirm("Log out?")) window.location.href="{{ url_for('logout') }}"; }
+</script>
+</body>
+</html>

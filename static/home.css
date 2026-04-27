@@ -1,22 +1,18 @@
 :root {
-     --brand-blue: #73D0FF;
-     --brand-white: #FFFFFF;
+    --brand-blue: #73D0FF;
+    --brand-white: #FFFFFF;
     --text-black: #333;
-    
-  
-   --sky-gradient: linear-gradient(to bottom left, var(--brand-blue) 50%, var(--brand-white));
-
+    --sky-gradient: linear-gradient(to bottom left, var(--brand-blue) 50%, var(--brand-white));
 }
 
 body, html {
-   margin: 0;
+    margin: 0;
     padding: 0;
     min-height: 100vh;
     display: flex;
     flex-direction: column; 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow-x: hidden;
-    
 }
 
 .hero-section {
@@ -38,11 +34,9 @@ body, html {
     width: 100%;
     height: 100%;
     background: white;
-    
     clip-path: polygon(0 0, 25% 0, 53% 50%, 25% 100%, 0 100%);
     z-index: 4; 
 }
-
 
 .hero-section::after {
     content: "";
@@ -52,9 +46,9 @@ body, html {
     width: 100%;
     height: 100%;
     background: var(--sky-gradient);
-   
     clip-path: polygon(100% 0, 100% 100%, 25% 100%, 53% 50%, 25% 0);
-    z-index: 1; 
+    z-index: 1;
+    transition: background-image 0.5s ease-in-out;
 }
 
 nav {
@@ -85,14 +79,12 @@ nav.scrolled {
     z-index: 100;
 }
 
-
 .logo img {
-   height: 160px;     
+    height: 160px;     
     width: auto;          
     display: block;
     margin-left: -40px;
 }
-
 
 .nav-links {
     display: flex;
@@ -113,8 +105,7 @@ nav.scrolled {
     text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
 }
 
-
-.nav-links a:hover  {
+.nav-links a:hover {
     background-color: #4CB9F0; 
     backdrop-filter: blur(5px); 
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3);
@@ -140,16 +131,16 @@ h1 {
     text-transform: uppercase;
     margin-left: -48px;
     font-weight: 600;
+    transition: opacity 0.3s ease-in-out;
 }
 
 h1 span {
     display: block;
-    font-weight:500;
+    font-weight: 500;
     font-size: 44px;
-      margin-left: -2px;
-      margin-top: 113px;
+    margin-left: -2px;
+    margin-top: 113px;
 }
-
 
 .search-box {
     display: flex;
@@ -162,10 +153,7 @@ h1 span {
 
 .search-box .input-group:nth-child(1) input {
     width: 350px; 
-   
-     
 }
-
 
 .search-box .input-group:nth-child(2) input,
 .search-box .input-group:nth-child(3) input {
@@ -176,7 +164,7 @@ h1 span {
     display: flex;
     align-items: center;
     gap: 15px;          
-   position: relative;
+    position: relative;
 }
 
 .search-box input {
@@ -192,24 +180,25 @@ h1 span {
     flex-grow: 0;
 }
 
-.search-box input::placeholder{
+.search-box input::placeholder {
     color: #4CB9F0;
     opacity: 1;
 }
 
 .search-box input:focus {
-   border: 2px solid #4CB9F0;
+    border: 2px solid #4CB9F0;
     outline: none;
     transition: border-color 0.2s ease;
 }
 
 .search-box i {
-position: static; 
+    position: static; 
     transform: none; 
     font-size: 24px;    
     color: #333;    
     flex-shrink: 0;
 }
+
 .input-group input:focus + i {
     color: #2b91c7;  
     transform: scale(1.1);
@@ -217,22 +206,22 @@ position: static;
 }
 
 .register-btn {
-    background-color:#4CB9F0;
+    background-color: #4CB9F0;
     color: white;
     border: none;
     padding: 8px 30px;
     border-radius: 15px;
     width: fit-content;
     cursor: pointer;
-    font-weight:400;
+    font-weight: 400;
     margin-top: 5px;
-    box-shadow: 0 4px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.3);
     margin-left: 5px;
     font-size: 28px;
     background-clip: padding-box;
-    transition: all 0.2s ease-in-out ;
+    transition: all 0.2s ease-in-out;
     text-decoration: none;
-    display: inline-block; /* Keeps both a and button sizing identical */
+    display: inline-block;
     text-align: center;
 }
 
@@ -246,7 +235,7 @@ position: static;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    background:#4CB9F0;
+    background: #4CB9F0;
     display: flex;
     flex-direction: column;
     padding: 50px 8px;
@@ -254,7 +243,6 @@ position: static;
     z-index: 10;
     box-shadow: 0 4px 4px rgba(20, 80, 120, 0.4);
 }
-
 
 @keyframes bounceIcon {
     0%, 100% {
@@ -266,7 +254,6 @@ position: static;
 }
 
 .social-sidebar a {
- 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -280,11 +267,11 @@ position: static;
     transition: filter 0.3s ease;
 }
 
-
 .social-sidebar a:hover img {
     animation: bounceIcon 0.5s ease infinite;
-   
 }
+
+/* ===== AIRPLANE ANIMATION ===== */
 .plane-img {
     position: absolute;
     left: 66%; 
@@ -294,14 +281,83 @@ position: static;
     height: auto;
     z-index: 5; 
     pointer-events: none; 
-    transition: opacity 0.5s ease; 
+    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
 .plane-img img {
     width: 100%;
-   filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.2));
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.2));
 }
 
+/* Fast forward horizontal animation when leaving slide 0 */
+@keyframes flyForward {
+    0% {
+        transform: translate(-50%, -50%) translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) translateX(200px);
+        opacity: 0;
+    }
+}
+
+@keyframes flyForwardLarge {
+    0% {
+        transform: translate(-50%, -50%) translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) translateX(500px);
+        opacity: 0;
+    }
+}
+
+.plane-img.plane-fly-out {
+    animation: flyForward 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+/* Responsive animation adjustments */
+@media (max-width: 1200px) {
+    .plane-img.plane-fly-out {
+        animation: flyForwardLarge 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+    }
+}
+
+/* Slider Navigation Buttons */
+.slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(76, 185, 240, 0.7);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.slider-nav:hover {
+    background: #4CB9F0;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.slider-nav.prev {
+    left: 30px;
+}
+
+.slider-nav.next {
+    right: 30px;
+}
+
+/* Slider Dots */
 .slider-dots {
     position: absolute;
     bottom: 40px; 
@@ -327,22 +383,7 @@ position: static;
     transform: scale(1.3);
 }
 
-
-#hero-title, #hero-img {
-    transition: opacity 0.3s ease-in-out;
-}
-
-
-#hero-title span {
-    display: block;
-}
-
-/* --- DYNAMIC PANEL ADDITIONS --- */
-
-.search-form {
-    display: contents;
-}
-
+/* Search Panel Dropdowns */
 .search-panel {
     position: absolute;
     top: 110%;
@@ -410,11 +451,10 @@ position: static;
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- PASSENGER PANEL SPECIFIC STYLES --- */
-
+/* Passenger Panel Specific Styles */
 #passenger-panel {
     top: auto;
-    bottom: 110%; /* Forces the panel to open UPWARDS */
+    bottom: 110%;
 }
 
 .passenger-selector {
@@ -470,4 +510,36 @@ position: static;
     text-align: center;
     font-weight: bold;
     color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .plane-img {
+        width: 400px;
+        left: 60%;
+    }
+    
+    h1 {
+        font-size: 36px;
+    }
+    
+    h1 span {
+        font-size: 28px;
+    }
+    
+    .nav-links a {
+        font-size: 18px;
+        padding: 5px 15px;
+    }
+    
+    .register-btn {
+        font-size: 20px;
+        padding: 6px 20px;
+    }
+    
+    .slider-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
 }

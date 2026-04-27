@@ -38,6 +38,38 @@
         }
 
         .wechat-card { position: relative; }
+        
+        /* ===== ERROR STYLES: RED TEXT, NO BACKGROUND, BELOW PASSWORD FIELD ===== */
+        .error-message {
+            color: #ff3b30 !important;
+            background: transparent !important;
+            font-size: 13px;
+            margin-top: -8px;
+            margin-bottom: 15px;
+            padding: 8px 0 0 0;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+        }
+        
+        /* Hide any flash message containers that might have backgrounds */
+        .flash-message, .alert, .alert-error, .alert-danger, .alert-success {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ensure proper spacing */
+        .input-group {
+            margin-bottom: 5px;
+        }
+        
+        .input-row {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -51,10 +83,13 @@
 
     <h1>{{ 'Sign Up via WeChat' if mode == 'signup' else 'Log In via WeChat' }}</h1>
 
-    {% with messages = get_flashed_messages() %}
+    <!-- FLASH MESSAGES - Now showing as RED TEXT with NO BACKGROUND -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        {% for message in messages %}
-          <p style="color: #ff3b30; font-size: 13px; text-align: center; margin-bottom: 10px;">{{ message }}</p>
+        {% for category, message in messages %}
+          <div class="error-message">
+            <span>⚠️</span> {{ message }}
+          </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
@@ -63,11 +98,11 @@
         <div class="input-group">
             <div class="input-row">
                 <div class="label">Account</div>
-                <input type="text" name="wechat_email" placeholder="ID/Email/Mobile No." required autofocus>
+                <input type="text" name="wechat_email" placeholder="ID/Email/Mobile No." value="{{ email if email else '' }}" required autofocus>
             </div>
             <div class="input-row">
                 <div class="label">Password</div>
-                <input type="password" name="password" placeholder="Enter password" required>
+                <input type="password" name="password" id="password" placeholder="Enter password" required>
             </div>
         </div>
 
@@ -94,16 +129,18 @@
     const btnLoader = document.getElementById('btnLoader');
     const btnText = document.getElementById('btnText');
 
-    wechatForm.addEventListener('submit', function(e) {
-        e.preventDefault(); 
-        wechatBtn.disabled = true;
-        btnLoader.style.display = 'block';
-        btnText.style.visibility = 'hidden'; 
+    if (wechatForm) {
+        wechatForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            wechatBtn.disabled = true;
+            btnLoader.style.display = 'block';
+            btnText.style.visibility = 'hidden'; 
 
-        setTimeout(() => {
-            wechatForm.submit(); 
-        }, 1500);
-    });
+            setTimeout(() => {
+                wechatForm.submit(); 
+            }, 1500);
+        });
+    }
 </script>
 
 </body>

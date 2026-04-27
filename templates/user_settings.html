@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | AeroTicket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+    <style>
+        /* ===== HEADER & DROPDOWN STYLES ===== */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo {
+            flex: 1;
+        }
+        .logo img {
+            height: 140px;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            flex: 1;
+            justify-content: center;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: relative;
+        }
+        /* Main navigation dropdown (circular icons) */
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: 0.2s;
+            min-width: 100px;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        .dropdown-content a:hover {
+            background: #f0f9ff;
+            transform: translateY(-3px);
+        }
+        /* Manage dropdown styling */
+        .manage-dropdown {
+            flex-direction: column !important;
+            min-width: 200px !important;
+            padding: 8px 0 !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        /* Settings dropdown – horizontal, right-aligned */
+        .settings-dropdown {
+            flex-direction: column !important;
+            min-width: 200px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+            border: 1px solid #e5e7eb !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 24px !important;
+            height: 24px !important;
+            background: none !important;
+            box-shadow: none !important;
+        }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+        .header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            align-items: center;
+        }
+        .search-icon {
+            color: #4dbbee;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        /* Flash message styles */
+        .flash-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #c3e6cb;
+            margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+
+        /* ===== PROFESSIONAL SETTINGS STYLES ===== */
+        :root {
+            --primary: #2c8fbb;
+            --primary-dark: #1e6f94;
+            --primary-light: #e3f2fd;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #6b7280;
+            --gray-800: #1f2937;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        /* Override booking-card for cleaner look */
+        .booking-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .booking-card h1 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+        .booking-card > p {
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .booking-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* Settings sections */
+        .settings-section {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
+        }
+        .settings-section:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            border-radius: var(--radius-lg);
+            transition: background 0.2s;
+        }
+        .section-header:hover {
+            background: white;
+        }
+        .section-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .section-header h2 i {
+            color: var(--primary);
+            font-size: 1.25rem;
+            width: 1.5rem;
+        }
+        .section-header i.fa-chevron-down,
+        .section-header i.fa-chevron-up {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            transition: transform 0.2s;
+        }
+
+        .section-content {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: none;
+            animation: fadeSlide 0.25s ease-out;
+        }
+        .section-content.active {
+            display: block;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Profile picture area */
+        .profile-picture {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+        }
+        .profile-picture img {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: var(--gray-100);
+        }
+        .upload-btn {
+            background: white;
+            border: 1px solid var(--gray-200);
+            padding: 0.5rem 1.25rem;
+            border-radius: 40px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-800);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .upload-btn:hover {
+            background: var(--gray-100);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .upload-btn i {
+            color: var(--primary);
+        }
+        .profile-picture input[type="file"] {
+            display: none;
+        }
+
+        /* Form fields */
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 143, 187, 0.1);
+        }
+
+        /* Buttons */
+        .book-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .book-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background: var(--danger);
+        }
+        .btn-danger:hover {
+            background: var(--danger-dark);
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .booking-card {
+                padding: 24px;
+            }
+            .section-header {
+                padding: 1rem;
+            }
+            .section-content {
+                padding: 0 1rem 1rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER WITH MANAGE DROPDOWN INCLUDING VIEW TICKET ===== -->
+<header class="main-header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
+        </div>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('flight') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
+            </div>
+            <!-- Manage dropdown - with View Ticket link -->
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
+        </nav>
+        <div class="header-right">
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+</script>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="booking-wrapper">
+    <div class="booking-card">
+        <h1>Account Settings</h1>
+        <p>Manage your profile, security, and preferences</p>
+
+        <!-- PROFILE SECTION -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2><i class="fas fa-user"></i> Profile</h2>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="section-content">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_profile_picture') }}">
+                    <div class="profile-picture">
+                        {% if user.profile_picture %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Default">
+                        {% endif %}
+                        <label class="upload-btn">
+                            <i class="fas fa-camera"></i> Change picture
+                            <input type="file" name="profile_picture" accept="image/*" onchange="this.form.submit()">
+                        </label>
+                    </div>
+                </form>
+
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_profile">
+                    <div class="input-group">
+                        <label>Full name</label>
+                        <input type="text" name="fullname" value="{{ user.fullname or '' }}" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email address</label>
+                        <input type="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phone number <span style="font-weight: normal;">(optional)</span></label>
+                        <input type="tel" name="phone" value="{{ phone }}">
+                    </div>
+                    <button type="submit" class="book-btn">Update profile</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SECURITY SECTION -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lock"></i> Security</h2>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="section-content">
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="input-group">
+                        <label>Current password</label>
+                        <input type="password" name="current_password" required autocomplete="current-password">
+                    </div>
+                    <div class="input-group">
+                        <label>New password</label>
+                        <input type="password" name="new_password" required autocomplete="new-password">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm new password</label>
+                        <input type="password" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="book-btn">Change password</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS SECTION -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2><i class="fas fa-bell"></i> Notifications</h2>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="section-content">
+                <form method="POST">
+                    <input type="hidden" name="action" value="update_notifications">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <span style="font-weight: 500;">Email reminders about upcoming flights</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="email_reminders" {% if email_reminders %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button type="submit" class="book-btn" style="margin-top: 1.5rem;">Save preferences</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ACCOUNT SECTION -->
+        <div class="settings-section">
+            <div class="section-header">
+                <h2><i class="fas fa-trash-alt"></i> Account</h2>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="section-content">
+                <form method="POST" onsubmit="return confirm('⚠️ Permanently delete your account? This cannot be undone. All your bookings and data will be removed.');">
+                    <input type="hidden" name="action" value="delete_account">
+                    <p style="color: var(--gray-600); margin-bottom: 1.25rem;">Once deleted, all your data will be permanently removed.</p>
+                    <button type="submit" class="book-btn btn-danger">Delete account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Accordion functionality
+    document.querySelectorAll('.section-header').forEach(header => {
+        const content = header.nextElementSibling;
+        const icon = header.querySelector('i:last-child');
+        header.addEventListener('click', () => {
+            content.classList.toggle('active');
+            if (content.classList.contains('active')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

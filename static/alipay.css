@@ -1,168 +1,35 @@
-:root {
-    --ali-blue: #00a3ee;
-    --ali-dark-blue: #008cd6;
-    --ali-bg: #eff2f5;
-    --border-color: #d9dee4;
-}
-
-body {
-    background-color: var(--ali-bg);
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-}
-
-.alipay-wrapper {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Nav Bar */
-.alipay-nav {
-    background: #fff;
-    padding: 15px 10%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--ali-blue);
-}
-
-.ali-logo {
-    height: 35px;
-}
-
-.nav-lang {
-    font-size: 13px;
-    color: #666;
-}
-
-/* Container */
-.ali-container {
-    max-width: 950px;
-    margin: 40px auto;
-    width: 90%;
-}
-
-/* Order Summary Bar */
-.order-summary {
-    background: #fff;
-    padding: 20px 30px;
-    border: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-radius: 4px;
-}
-
-.m-name {
-    font-weight: 700;
-    margin-left: 10px;
-}
-
-.total-val {
-    font-size: 24px;
-    color: #f60;
-    font-weight: 700;
-    margin-left: 10px;
-}
-
-/* Payment Box */
-.payment-box {
-    background: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.tab-header {
-    display: flex;
-    background: #f9fafb;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.tab {
-    padding: 15px 40px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    color: #666;
-}
-
-.tab.active {
-    background: #fff;
-    color: var(--ali-blue);
-    border-top: 3px solid var(--ali-blue);
-    margin-top: -3px;
-    font-weight: 700;
-}
-
-.form-content {
-    padding: 40px 100px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.input-group {
-    margin-bottom: 20px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 8px;
-    color: #333;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.security-tip {
-    font-size: 12px;
-    color: #28a745;
-    margin-bottom: 25px;
-    text-align: center;
-}
-
-.btn-ali {
-    width: 100%;
-    background-color: var(--ali-blue);
-    color: white;
-    border: none;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 700;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.btn-ali:hover {
-    background-color: var(--ali-dark-blue);
-}
-
-.ali-footer-links {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 13px;
-}
-
-.ali-footer-links a {
-    color: var(--ali-blue);
-    text-decoration: none;
-}
-
-/* Legal Footer */
-.ali-legal {
-    margin-top: auto;
-    padding: 30px;
-    text-align: center;
-    font-size: 12px;
-    color: #999;
-}
+:root { --ali-blue: #00a3ee; --ali-dark-blue: #008cd6; --ali-bg: #eff2f5; }
+body { background-color: var(--ali-bg); font-family: 'Roboto', sans-serif; margin: 0; }
+.alipay-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+.alipay-nav { background: #fff; padding: 15px 10%; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--ali-blue); }
+.ali-logo { height: 35px; }
+.ali-container { max-width: 950px; margin: 40px auto; width: 90%; }
+.order-summary { background: #fff; padding: 20px 30px; border: 1px solid #d9dee4; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-radius: 4px; }
+.total-val { font-size: 24px; color: #f60; font-weight: 700; margin-left: 10px; }
+.payment-box { background: #fff; border: 1px solid #d9dee4; border-radius: 4px; overflow: hidden; }
+.tab-header { display: flex; background: #f9fafb; border-bottom: 1px solid #d9dee4; }
+.tab { padding: 15px 40px; font-size: 16px; font-weight: 500; cursor: pointer; color: #666; }
+.tab.active { background: #fff; color: var(--ali-blue); border-top: 3px solid var(--ali-blue); margin-top: -3px; font-weight: 700; }
+.form-content { padding: 40px 100px; max-width: 400px; margin: 0 auto; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; font-size: 14px; margin-bottom: 8px; color: #333; }
+.input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+.security-tip { font-size: 12px; color: #28a745; margin-bottom: 25px; text-align: center; }
+.btn-ali { width: 100%; background-color: var(--ali-blue); color: white; border: none; padding: 14px; font-size: 16px; font-weight: 700; border-radius: 4px; cursor: pointer; }
+.ali-footer-links { margin-top: 20px; text-align: center; font-size: 13px; }
+.ali-footer-links a { color: var(--ali-blue); text-decoration: none; }
+.ali-legal { margin-top: auto; padding: 30px; text-align: center; font-size: 12px; color: #999; }
+.qr-code-container { text-align: center; }
+.qr-code { font-size: 80px; margin: 20px 0; }
+.hidden { display: none; }
+/* Modal styles */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal-content { background: white; border-radius: 24px; padding: 32px; text-align: center; max-width: 320px; width: 90%; }
+.spinner { width: 50px; height: 50px; border: 4px solid #e5e7eb; border-top-color: #00a3ee; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+.success-icon { width: 60px; height: 60px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.success-icon i { color: white; font-size: 30px; }
+.error-icon { width: 60px; height: 60px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.payment-confirmation { background: #f0fdf4; border-radius: 12px; padding: 12px; margin: 16px 0; }
+.view-ticket-btn, .try-again-btn { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+.try-again-btn { background: #ef4444; }
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayPal Checkout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>PayPal Checkout - AeroTicket</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='paypal.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
@@ -17,72 +18,65 @@
 
             <div class="summary-section">
                 <div class="amount-line">
-                    <span class="currency-code">INR</span>
-                    <span class="total-amount">₹{{ amount }}</span>
-                    <span class="chevron">▼</span>
+                    <span class="currency-code">PHP</span>
+                    <span class="total-amount">₱{{ amount }}</span>
                 </div>
-                <p class="merchant-name">AeroTicket International Ltd.</p>
+                <p class="merchant-name">AeroTicket Airlines</p>
+                <p class="flight-info">{{ session.get('flight_no', 'AT0000') }} | {{ session.get('origin', '---') }} → {{ session.get('destination', '---') }}</p>
             </div>
 
             <div class="pp-content">
                 <h2 class="pay-with-title">Pay with</h2>
-                
-                <div class="payment-option selected">
-                    <div class="option-icon">
-                        <img src="https://img.icons8.com/color/48/000000/visa.png" alt="Visa">
-                    </div>
-                    <div class="option-details">
-                        <span class="card-name">Visa •••• 4242</span>
-                        <span class="card-sub">Preferred</span>
-                    </div>
-                    <div class="check-mark">L</div>
+                <div class="payment-option selected" onclick="selectCard('visa')">
+                    <div class="option-icon"><i class="fab fa-cc-visa"></i></div>
+                    <div class="option-details"><span class="card-name">Visa •••• 4242</span><span class="card-sub">Preferred</span></div>
+                    <div class="check-mark">✓</div>
                 </div>
-
-                <div class="payment-option">
-                    <div class="option-icon">
-                        <img src="https://img.icons8.com/color/48/000000/paypal.png" alt="Balance">
-                    </div>
-                    <div class="option-details">
-                        <span class="card-name">PayPal Balance</span>
-                        <span class="card-sub">₹0.00</span>
-                    </div>
+                <div class="payment-option" onclick="selectCard('paypal')">
+                    <div class="option-icon"><i class="fab fa-paypal"></i></div>
+                    <div class="option-details"><span class="card-name">PayPal Balance</span><span class="card-sub">Available: ₱2,500</span></div>
                 </div>
-
-                <div class="reward-toggle">
-                    <span>Rewards available</span>
-                    <div class="toggle-switch"></div>
+                <div class="payment-option" onclick="selectCard('mastercard')">
+                    <div class="option-icon"><i class="fab fa-cc-mastercard"></i></div>
+                    <div class="option-details"><span class="card-name">Mastercard •••• 8899</span></div>
                 </div>
             </div>
 
             <div class="pp-actions">
                 <button onclick="handlePay()" class="btn-complete">Complete Purchase</button>
-                <div class="security-footer">
-                    <p>Your payment is secure. We don't share your full financial info with the merchant.</p>
-                </div>
+                <div class="security-footer"><i class="fas fa-shield-alt"></i> Your payment is secure</div>
             </div>
         </div>
-
         <div class="footer-links">
-            <a href="#">Cancel and return to AeroTicket</a>
-            <div class="legal-links">
-                <a href="#">Policies</a>
-                <a href="#">Terms</a>
-                <a href="#">Privacy</a>
-                <a href="#">Feedback</a>
-            </div>
+            <a href="{{ url_for('payment') }}">Cancel and return to AeroTicket</a>
         </div>
     </div>
 
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden"><div class="modal-content"><div class="spinner"></div><h3>Processing Payment</h3><p>Please wait...</p></div></div>
+    <div id="successModal" class="modal-overlay hidden"><div class="modal-content success-modal"><div class="success-icon"><i class="fas fa-check"></i></div><h3>Payment Successful!</h3><div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Loading...</p></div><button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button></div></div>
+    <div id="errorModal" class="modal-overlay hidden"><div class="modal-content error-modal"><div class="error-icon"><i class="fas fa-times"></i></div><h3>Payment Failed</h3><button onclick="closeErrorModal()" class="try-again-btn">Try Again</button></div></div>
+
     <script>
-        function handlePay() {
+        let selectedCard = 'visa';
+        function selectCard(card) { selectedCard = card; }
+        async function handlePay() {
             const btn = document.querySelector('.btn-complete');
-            btn.innerHTML = '<div class="spinner"></div>';
-            btn.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2500);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+            document.getElementById('loadingModal').classList.remove('hidden');
+            try {
+                const response = await fetch("{{ url_for('paypal_payment') }}", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'success', amount: '{{ amount }}', card: selectedCard }) });
+                const data = await response.json();
+                document.getElementById('loadingModal').classList.add('hidden');
+                if (data.success) { document.getElementById('bookingRef').innerText = `Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                else { document.getElementById('errorModal').classList.remove('hidden'); }
+            } catch (error) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+            btn.innerHTML = 'Complete Purchase';
+            btn.disabled = false;
         }
+        function redirectToTicket() { window.location.href = "{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

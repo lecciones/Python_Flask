@@ -2,78 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>hoolah | Shop now, pay later</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='hoolah.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <div class="hoolah-wrapper">
-        <div class="hoolah-header">
-            <div class="hoolah-logo">hoolah<span>.</span></div>
-            <div class="close-btn">✕</div>
-        </div>
-
+        <div class="hoolah-header"><div class="hoolah-logo">hoolah<span>.</span></div><a href="{{ url_for('payment') }}" class="close-btn">✕</a></div>
         <div class="hoolah-container">
             <div class="order-preview">
-                <p class="merchant-name">AeroTicket</p>
-                <h1 class="total-price">₹{{ amount }}</h1>
+                <p class="merchant-name">AeroTicket Airlines</p>
+                <p class="flight-ref">{{ session.get('flight_no', 'AT0000') }} | {{ session.get('origin', '---') }} → {{ session.get('destination', '---') }}</p>
+                <h1 class="total-price">₱{{ amount }}</h1>
                 <p class="split-info">Split into 3 interest-free payments</p>
             </div>
-
             <div class="timeline-container">
-                <div class="timeline-item active">
-                    <div class="dot"></div>
-                    <div class="timeline-content">
-                        <span class="t-label">Pay today</span>
-                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="dot"></div>
-                    <div class="timeline-content">
-                        <span class="t-label">In 1 month</span>
-                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="dot"></div>
-                    <div class="timeline-content">
-                        <span class="t-label">In 2 months</span>
-                        <span class="t-amount">₹{{ (amount|replace(',','')|float / 3)|round(2) }}</span>
-                    </div>
-                </div>
+                <div class="timeline-item active"><div class="dot"></div><div class="timeline-content"><span class="t-label">Pay today</span><span class="t-amount">₱{{ ((amount|replace(',','')|float / 3)|round(2)) }}</span></div></div>
+                <div class="timeline-item"><div class="dot"></div><div class="timeline-content"><span class="t-label">In 1 month</span><span class="t-amount">₱{{ ((amount|replace(',','')|float / 3)|round(2)) }}</span></div></div>
+                <div class="timeline-item"><div class="dot"></div><div class="timeline-content"><span class="t-label">In 2 months</span><span class="t-amount">₱{{ ((amount|replace(',','')|float / 3)|round(2)) }}</span></div></div>
             </div>
-
-            <div class="payment-method-box">
-                <div class="pm-info">
-                    <img src="https://img.icons8.com/color/48/000000/visa.png" class="card-icon">
-                    <span class="card-mask">Visa •••• 5566</span>
-                </div>
-                <span class="edit-link">Edit</span>
-            </div>
-
-            <p class="terms-text">By clicking "Pay Now", you agree to our <span>Terms of Service</span> and <span>Privacy Policy</span>.</p>
+            <div class="payment-method-box" onclick="toggleCards()"><div class="pm-info"><i class="fab fa-cc-visa"></i><span class="card-mask">Visa •••• 5566</span></div><span class="edit-link">Edit</span></div>
+            <div class="payment-options hidden" id="paymentOptions"><div class="option-item" onclick="selectCard('visa')"><i class="fab fa-cc-visa"></i><span>Visa •••• 4242</span></div><div class="option-item" onclick="selectCard('mastercard')"><i class="fab fa-cc-mastercard"></i><span>Mastercard •••• 8899</span></div></div>
+            <p class="terms-text">By clicking "Pay Now", you agree to our <span>Terms of Service</span></p>
         </div>
-
-        <div class="hoolah-footer">
-            <button onclick="processHoolah()" class="btn-hoolah">
-                Pay ₹{{ (amount|replace(',','')|float / 3)|round(2) }} now
-            </button>
-        </div>
+        <div class="hoolah-footer"><button onclick="processHoolah()" class="btn-hoolah">Pay ₱{{ ((amount|replace(',','')|float / 3)|round(2)) }} now</button></div>
     </div>
 
+    <!-- Modals -->
+    <div id="loadingModal" class="modal-overlay hidden"><div class="modal-content"><div class="spinner"></div><h3>Processing</h3><p>Please wait...</p></div></div>
+    <div id="successModal" class="modal-overlay hidden"><div class="modal-content success-modal"><div class="success-icon"><i class="fas fa-check"></i></div><h3>Payment Successful!</h3><div class="payment-confirmation"><p class="amount-paid">₱{{ amount }}</p><p class="booking-ref" id="bookingRef">Loading...</p></div><button onclick="redirectToTicket()" class="view-ticket-btn">View Boarding Pass</button></div></div>
+    <div id="errorModal" class="modal-overlay hidden"><div class="modal-content error-modal"><div class="error-icon"><i class="fas fa-times"></i></div><h3>Payment Failed</h3><button onclick="closeErrorModal()" class="try-again-btn">Try Again</button></div></div>
+
     <script>
-        function processHoolah() {
-            const btn = document.querySelector('.btn-hoolah');
-            btn.innerHTML = "Processing...";
-            btn.classList.add('loading');
-            
-            setTimeout(() => {
-                window.location.href = "{{ url_for('ticket') }}";
-            }, 2300);
+        let selectedCard='visa';
+        function toggleCards(){ document.getElementById('paymentOptions').classList.toggle('hidden'); }
+        function selectCard(card){ selectedCard=card; const pmInfo=document.querySelector('.pm-info'); if(card==='visa') pmInfo.innerHTML='<i class="fab fa-cc-visa"></i><span class="card-mask">Visa •••• 4242</span>'; else pmInfo.innerHTML='<i class="fab fa-cc-mastercard"></i><span class="card-mask">Mastercard •••• 8899</span>'; document.getElementById('paymentOptions').classList.add('hidden'); }
+        async function processHoolah() {
+            const btn=document.querySelector('.btn-hoolah');
+            btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Processing...';
+            document.getElementById('loadingModal').classList.remove('hidden');
+            try {
+                const response=await fetch("{{ url_for('hoolah_payment') }}", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ status:'success', amount:'{{ amount }}', card:selectedCard }) });
+                const data=await response.json();
+                document.getElementById('loadingModal').classList.add('hidden');
+                if(data.success) { document.getElementById('bookingRef').innerText=`Reference: ${data.booking_ref}`; document.getElementById('successModal').classList.remove('hidden'); }
+                else document.getElementById('errorModal').classList.remove('hidden');
+            } catch(e) { document.getElementById('loadingModal').classList.add('hidden'); document.getElementById('errorModal').classList.remove('hidden'); }
+            btn.innerHTML=`Pay ₱{{ ((amount|replace(',','')|float / 3)|round(2)) }} now`;
         }
+        function redirectToTicket() { window.location.href="{{ url_for('ticket') }}"; }
+        function closeErrorModal() { document.getElementById('errorModal').classList.add('hidden'); }
     </script>
 </body>
 </html>

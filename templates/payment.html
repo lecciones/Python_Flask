@@ -8,15 +8,191 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='payment.css') }}">
     <style>
-        /* Highlight style for selected payment method */
+        /* Header styles (matching final Booking page) */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo {
+            flex: 1;
+        }
+        .logo img {
+            height: 140px;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            flex: 1;
+            justify-content: center;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .dropdown {
+            position: relative;
+        }
+        /* Main navigation dropdown (circular icons) */
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        .dropdown-content a:hover {
+            background: #f0f9ff;
+            transform: translateY(-3px);
+        }
+        /* Settings dropdown (logged in) – horizontal, right-aligned */
+        .settings-dropdown {
+            flex-direction: column !important;
+            min-width: 210px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 28px !important;
+            height: 28px !important;
+            background: none !important;
+            box-shadow: none !important;
+            margin-bottom: 0 !important;
+        }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+        /* Account dropdown (not logged in) – horizontal, right-aligned */
+        .account-dropdown {
+            flex-direction: column !important;
+            min-width: 160px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .account-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            color: #4a4a4a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .account-dropdown a i {
+            width: 20px;
+            color: #4eb8e9;
+        }
+        .account-dropdown a:hover {
+            background: #f0f9ff !important;
+        }
+        .header-right {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            align-items: center;
+        }
+        .search-icon {
+            color: #4dbbee;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Payment page original styles (preserved) */
         .payment-card.selected {
             border-color: #38bdf8;
             background-color: #f0f9ff;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             transform: scale(1.05);
         }
-        
-        /* Passenger summary styling */
         .passenger-summary {
             background: #f8f9fa;
             border-radius: 12px;
@@ -24,19 +200,16 @@
             margin-bottom: 20px;
             border-left: 4px solid #4eb8e9;
         }
-        
         .passenger-summary h3 {
             color: #2c8fbb;
             margin-bottom: 10px;
             font-size: 16px;
         }
-        
         .passenger-list {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
-        
         .passenger-tag {
             background: white;
             padding: 5px 12px;
@@ -44,14 +217,58 @@
             font-size: 13px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
         .passenger-tag strong {
             color: #4eb8e9;
+        }
+        .amount-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .amount-summary h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .amount-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .amount-breakdown {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+        .flight-info {
+            background: #f0f9ff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e7ff;
+        }
+        .flight-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .flight-info-item {
+            font-size: 13px;
+        }
+        .flight-info-item strong {
+            color: #4eb8e9;
+            display: block;
+            font-size: 12px;
+            margin-bottom: 3px;
         }
     </style>
 </head>
 <body class="min-h-screen font-sans">
 
+<!-- ===== HEADER (with Manage dropdown including Check-in) ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -59,30 +276,99 @@
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
             </a>
         </div>
-        
         <nav class="nav-links">
-            <a href="{{ url_for('booking')}}">Book</a>
-            <a href="{{ url_for('manage')}}">Manage</a>
-            <a href="{{ url_for('travel')}}">Travel Info</a>
-            <a href="{{ url_for('explore')}}">Explore</a>
-            <a href="{{ url_for('about')}}">About</a>
+            <a href="{{ url_for('home') }}">Home</a>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('booking') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Manage</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('manage') }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
         </nav>
-
         <div class="header-right">
             {% if session.get('user_id') %}
-                <a href="{{ url_for('logout') }}" class="login-link">
-                    <i class="fas fa-sign-out-alt"></i> Log out
-                </a>
+            <!-- LOGGED IN: Settings dropdown -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <div class="dropdown-content settings-dropdown">
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
             {% else %}
-                <a href="{{ url_for('login') }}" class="login-link">
-                    <i class="fas fa-user-circle"></i> Log in
-                </a>
-            {% endif %}
+            <!-- NOT LOGGED IN: Account dropdown + search icon -->
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
+                <div class="dropdown-content account-dropdown">
+                    <a href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Log in
+                    </a>
+                    <a href="{{ url_for('signup') }}">
+                        <i class="fas fa-user-plus"></i> Sign up
+                    </a>
+                </div>
+            </div>
             <i class="fas fa-search search-icon"></i>
+            {% endif %}
         </div>
     </div>
 </header>
 
+<script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+</script>
+
+<!-- ===== ORIGINAL PAYMENT PAGE CONTENT (unchanged) ===== -->
 <main class="flex justify-center items-center py-20 px-4">
     <div class="bg-white w-full max-w-4xl rounded-sm shadow-2xl p-8">
         
@@ -91,6 +377,51 @@
             <button id="openModal" class="bg-sky-400 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-sky-500 transition">
                 Add Integration
             </button>
+        </div>
+
+        <!-- Flight Information Section -->
+        {% if flight_info %}
+        <div class="flight-info">
+            <h3><i class="fas fa-plane"></i> Flight Details</h3>
+            <div class="flight-info-grid">
+                <div class="flight-info-item">
+                    <strong>Flight Number</strong>
+                    <span>{{ flight_info.flight_no }}</span>
+                </div>
+                <div class="flight-info-item">
+                    <strong>Route</strong>
+                    <span>{{ flight_info.origin }} → {{ flight_info.destination }}</span>
+                </div>
+                <div class="flight-info-item">
+                    <strong>Date</strong>
+                    <span>{{ flight_info.date }}</span>
+                </div>
+                <div class="flight-info-item">
+                    <strong>Time</strong>
+                    <span>{{ flight_info.time }}</span>
+                </div>
+                <div class="flight-info-item">
+                    <strong>Class</strong>
+                    <span>{{ flight_info.class }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Amount Summary Section -->
+        <div class="amount-summary">
+            <h3><i class="fas fa-credit-card"></i> Total Amount Due</h3>
+            <div class="amount-value">₱{{ amount }}</div>
+            <div class="amount-breakdown">
+                {% if passengers and passengers|length > 0 %}
+                    {% set passenger_count = passengers|length %}
+                    {% set price_num = amount|replace('₱', '')|replace(',', '')|float %}
+                    {% set per_person = price_num / passenger_count if passenger_count > 0 else price_num %}
+                    <i class="fas fa-users"></i> {{ passenger_count }} passenger(s) × ₱{{ "%.2f"|format(per_person) }} per person
+                {% else %}
+                    <i class="fas fa-ticket-alt"></i> Total booking amount
+                {% endif %}
+            </div>
         </div>
 
         <!-- Passenger Summary Section -->
@@ -139,11 +470,18 @@
         <form action="{{ url_for('payment') }}" method="POST" id="paymentForm">
             <input type="hidden" name="selected_method" id="selectedMethodInput" required>
             
+            <!-- Preserve amount and flight data -->
+            <input type="hidden" name="total_amount" id="totalAmountHidden" value="{{ amount }}">
+            <input type="hidden" name="price" id="priceAmountHidden" value="{{ amount }}">
+            
             <!-- Preserve passenger data in hidden fields -->
             <input type="hidden" name="origin" id="preserveOrigin">
             <input type="hidden" name="destination" id="preserveDest">
             <input type="hidden" name="cabin_class" id="preserveCabin">
             <input type="hidden" name="selected_seats" id="preserveSeats">
+            <input type="hidden" name="flight_no" id="preserveFlightNo" value="{{ flight_info.flight_no if flight_info else '' }}">
+            <input type="hidden" name="flight_date" id="preserveFlightDate" value="{{ flight_info.date if flight_info else '' }}">
+            <input type="hidden" name="flight_time" id="preserveFlightTime" value="{{ flight_info.time if flight_info else '' }}">
             
             {% if passengers and passengers|length > 0 %}
                 {% for passenger in passengers %}
@@ -170,7 +508,7 @@
 
             <div class="flex justify-center">
                 <button type="submit" class="bg-sky-500 text-white px-10 py-3 rounded-md font-bold text-lg hover:bg-sky-600 shadow-lg transition-all">
-                    Finalize Payment
+                    Finalize Payment (₱{{ amount }})
                 </button>
             </div>
         </form>
@@ -222,12 +560,15 @@
     const cabinClass = urlParams.get('cabin') || 'Economy';
     const price = urlParams.get('price') || '0.00';
     const selectedSeats = urlParams.get('seat') || '';
+    const amount = '{{ amount }}';
     
     // Set hidden fields for form submission
     document.getElementById('preserveOrigin').value = origin;
     document.getElementById('preserveDest').value = destination;
     document.getElementById('preserveCabin').value = cabinClass;
     document.getElementById('preserveSeats').value = selectedSeats;
+    document.getElementById('totalAmountHidden').value = amount;
+    document.getElementById('priceAmountHidden').value = amount;
     
     // Payment Selection Logic
     function selectPaymentMethod(name, element) {
@@ -242,7 +583,13 @@
         const formData = new FormData(paymentForm);
         formData.append('selected_method', name);
         
-        // 4. Submit the form to Python so it can save passenger names to session
+        // 4. Show loading state
+        const submitButton = document.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitButton.disabled = true;
+        
+        // 5. Submit the form
         setTimeout(() => {
             paymentForm.submit();
         }, 500);
@@ -261,10 +608,36 @@
     console.log('Payment page loaded with:', {
         passengers: {{ passengers|tojson|safe }},
         amount: '{{ amount }}',
+        cleanAmount: '{{ amount|replace("₱", "")|replace(",", "") }}',
         origin: origin,
         destination: destination,
         cabinClass: cabinClass,
-        seats: selectedSeats
+        seats: selectedSeats,
+        flightInfo: {{ flight_info|tojson|safe if flight_info else 'null' }}
+    });
+    
+    // Prevent form submission if no payment method selected
+    paymentForm.addEventListener('submit', function(e) {
+        if (!methodInput.value) {
+            e.preventDefault();
+            alert('Please select a payment method first');
+            return false;
+        }
+        
+        // Add amount to form data if not already there
+        const amountInput = document.createElement('input');
+        amountInput.type = 'hidden';
+        amountInput.name = 'amount';
+        amountInput.value = amount;
+        paymentForm.appendChild(amountInput);
+        
+        console.log('Submitting payment with:', {
+            method: methodInput.value,
+            amount: amount,
+            passengers: {{ passengers|length }}
+        });
+        
+        return true;
     });
 </script>
 
