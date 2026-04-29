@@ -8,247 +8,1008 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&family=Libre+Barcode+39&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='ticket.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <style>
-        /* Fixed header – unchanged */
-        .main-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: white;
-            padding: 5px 0;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .logo img { height: 140px; width: auto; margin-top: -25px; margin-bottom: -25px; }
-        .nav-links { display: flex; gap: 35px; }
-        .nav-links a, .dropbtn { text-decoration: none; color: #4dbbee; font-weight: 700; font-size: 1.1rem; }
-        .dropdown { position: relative; }
-        .dropdown-content {
-            display: flex;
+   <style>
+    /* Fixed header styles matching original */
+    .main-header {
+        background-color: #ffffff;
+        padding: 5px 0;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+    .header-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+    }
+    .logo { display: flex; justify-content: flex-start; flex: 1; }
+    .logo img {
+        height: 140px !important;
+        width: auto;
+        margin-top: -25px;
+        margin-bottom: -25px;
+        display: block;
+        position: relative;
+        z-index: 5;
+    }
+    .nav-links {
+        display: flex;
+        gap: 35px;
+        margin-bottom: 0;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+    }
+    .nav-links a, .dropbtn {
+        text-decoration: none;
+        color: #4dbbee;
+        font-weight: 700;
+        font-size: 1.1rem;
+        line-height: 1;
+        white-space: nowrap;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content {
+        display: flex;
+        flex-direction: row;
+        position: absolute;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        min-width: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 1001;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 15px;
+        padding: 20px;
+        gap: 15px;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+        margin-top: 10px;
+    }
+    .dropdown:hover .dropdown-content,
+    .dropdown-content:hover {
+        opacity: 1;
+        visibility: visible;
+        margin-top: 0;
+    }
+    .dropdown-content a {
+        color: #4a4a4a;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 15px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        gap: 10px;
+        min-width: 100px;
+    }
+    .dropdown-content a .menu-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(46, 143, 187, 0.3);
+    }
+    .dropdown-content a .menu-icon i { color: white; font-size: 24px; }
+    .dropdown-content a:hover { background: #f0f9ff; transform: translateY(-5px); }
+    .dropdown-content a:hover .menu-icon { transform: scale(1.1); box-shadow: 0 6px 16px rgba(46, 143, 187, 0.4); }
+
+    /* MANAGE DROPDOWN - HORIZONTAL */
+    .manage-dropdown {
+        flex-direction: row !important;
+        min-width: auto !important;
+        padding: 20px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        margin-top: 10px !important;
+        gap: 15px !important;
+    }
+    .manage-dropdown a {
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 12px 18px !important;
+        min-width: 100px !important;
+        border-radius: 12px !important;
+        text-align: center !important;
+    }
+    .manage-dropdown a .menu-icon {
+        width: 50px !important;
+        height: 50px !important;
+        background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-bottom: 0 !important;
+    }
+    .manage-dropdown a .menu-icon i {
+        color: white !important;
+        font-size: 24px !important;
+    }
+    .manage-dropdown a:hover {
+        background: #f0f9ff !important;
+        transform: translateY(-3px) !important;
+    }
+
+    /* SETTINGS DROPDOWN - VERTICAL */
+    .settings-dropdown {
+        flex-direction: column !important;
+        min-width: 210px !important;
+        padding: 8px 0 !important;
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
+        margin-top: 10px !important;
+    }
+    .settings-dropdown a {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        padding: 10px 20px !important;
+        min-width: auto !important;
+        border-radius: 0 !important;
+        text-align: left !important;
+    }
+    .settings-dropdown a .menu-icon {
+        width: 28px !important;
+        height: 28px !important;
+        background: none !important;
+        box-shadow: none !important;
+        margin-bottom: 0 !important;
+    }
+    .settings-dropdown a .menu-icon i {
+        color: #4eb8e9 !important;
+        font-size: 18px !important;
+    }
+    .settings-dropdown a:hover {
+        background: #f0f9ff !important;
+        transform: none !important;
+    }
+
+    /* ACCOUNT DROPDOWN - VERTICAL */
+    .account-dropdown {
+        flex-direction: column !important;
+        min-width: 160px !important;
+        padding: 8px 0 !important;
+        left: auto !important;
+        right: 0 !important;
+        transform: none !important;
+        margin-top: 10px !important;
+    }
+    .account-dropdown a {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        padding: 10px 20px !important;
+        min-width: auto !important;
+        border-radius: 0 !important;
+        color: #4a4a4a;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .account-dropdown a i {
+        width: 20px;
+        color: #4eb8e9;
+    }
+    .account-dropdown a:hover {
+        background: #f0f9ff !important;
+        transform: none !important;
+    }
+    .header-right {
+        display: flex;
+        justify-content: flex-end;
+        gap: 25px;
+        flex: 1;
+        align-items: center;
+    }
+    .search-icon {
+        color: #4dbbee;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    /* Main container */
+    .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 110px 20px 40px;
+    }
+    
+    .carousel-wrapper {
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .nav-btn {
+        font-family: monospace;
+        font-weight: bold;
+        cursor: pointer;
+        background: #4eb8e9;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .nav-btn:active {
+        transform: scale(0.96);
+    }
+    .nav-btn:hover {
+        background: #2c8fbb;
+        transform: scale(1.1);
+    }
+    .nav-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .tickets-carousel {
+        display: flex !important;
+        overflow: hidden !important;
+        scroll-behavior: smooth !important;
+        justify-content: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .flip-card {
+        flex: 0 0 100% !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        scroll-snap-align: start;
+        transition: none;
+    }
+    
+    .tickets-carousel::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .flip-card-inner {
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .counter-info {
+        text-align: center;
+        margin: 20px 0 10px;
+        font-size: 16px;
+        font-weight: 500;
+        background: rgba(99, 197, 241, 0.15);
+        padding: 8px 20px;
+        border-radius: 40px;
+        color: #2c8fbb;
+        display: inline-block;
+        width: auto;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* Check-in Status Badge Styles */
+    .checkin-status {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .checkin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .checkin-badge.checked-in {
+        background: #27ae60;
+        color: white;
+    }
+    .checkin-badge.not-checked-in {
+        background: #f39c12;
+        color: white;
+    }
+    .checkin-badge i {
+        font-size: 16px;
+    }
+    .checkin-time {
+        font-size: 12px;
+        margin-top: 5px;
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Montserrat', sans-serif;
+        transition: all 0.2s;
+    }
+    .btn-edit { background: #4eb8e9; color: white; }
+    .btn-edit:hover { background: #2c8fbb; transform: translateY(-2px); }
+    .btn-seat { background: #f5a623; color: white; }
+    .btn-seat:hover { background: #e09515; transform: translateY(-2px); }
+    .btn-delete { background: #e74c3c; color: white; }
+    .btn-delete:hover { background: #c0392b; transform: translateY(-2px); }
+    .btn-back { background: #95a5a6; color: white; }
+    .btn-back:hover { background: #7f8c8d; transform: translateY(-2px); }
+
+    .flash-message {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        border-radius: 40px;
+        background: #4eb8e9;
+        color: white;
+        font-weight: 500;
+        z-index: 1001;
+        animation: fadeInUp 0.3s ease;
+    }
+    .flash-message.error { background: #e74c3c; }
+    .flash-message.success { background: #27ae60; }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 32px;
+        width: 90%;
+        max-width: 500px;
+    }
+    .modal-content input, .modal-content select {
+        width: 100%;
+        padding: 12px 16px;
+        margin: 10px 0 20px;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+    }
+    .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+    .modal-btn { padding: 10px 20px; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; }
+    .modal-btn-save { background: #4eb8e9; color: white; }
+    .modal-btn-cancel { background: #e0e0e0; color: #333; }
+    
+    .loading-state { text-align: center; padding: 80px 20px; background: white; border-radius: 24px; }
+    
+    /* ========== TICKET STYLES ========== */
+    .ticket {
+        display: flex;
+        width: 1000px;
+        max-width: 100%;
+        height: 290px;
+        background: white;
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: visible;
+        transform-style: preserve-3d;
+    }
+    .cutout-top, .cutout-bottom {
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        background: #eef2f5;
+        border-radius: 50%;
+        left: 236px;
+        z-index: 25;
+        border: none;
+        box-shadow: none;
+        pointer-events: none;
+    }
+    .cutout-top { top: -14px; }
+    .cutout-bottom { bottom: -14px; }
+    .stub {
+        width: 250px;
+        border-right: 2px dashed #63c5f1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        flex-shrink: 0;
+    }
+    .top-blue {
+        background-color: #4eb8e9;
+        height: 63.4px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+        width: 100%;
+        flex-shrink: 0;
+    }
+    .logo-white {
+        height: 45px;
+        object-fit: contain;
+    }
+    .seat-top {
+        font-size: 42px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        color: white;
+        line-height: 1;
+    }
+    .stub-body {
+        padding: 18px 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 166px;
+        margin-bottom: 8px;
+    }
+    .info-item { flex: 1; }
+    .info-item:last-child { text-align: right; }
+    .info-item:last-child label, 
+    .info-item:last-child .val-blue-sm {
+        text-align: right;
+        display: block;
+        width: 100%;
+    }
+    .info-item label {
+        font-size: 13px;
+        font-weight: 550;
+        color: #63c5f1;
+        letter-spacing: 0.5px;
+        margin-bottom: -5px;
+        display: block;
+        line-height: 2;
+        margin-top: -3px;
+    }
+    .val-blue {
+        color: #63c5f1;
+        font-weight: 550;
+        font-size: 18px;
+    }
+    .date-time-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 4px 0;
+    }
+    .val-blue-sm {
+        color: #63c5f1;
+        font-weight: 550;
+        font-size: 18px;
+        line-height: 1;
+    }
+    .barcode-sm {
+        font-family: 'Libre Barcode 39', cursive;
+        font-size: 38px;
+        color: #2c2c2c;
+        margin: 0px 0 8px 0;
+        letter-spacing: 1px;
+        text-align: left;
+        display: block;
+        transform: scaleX(0.6);
+        transform-origin: left;
+        width: fit-content;
+        margin-top: -8px;
+    }
+    .barcode-sub-sm {
+        font-size: 5px;
+        font-weight: 800;
+        color: #2c2c2c;
+        margin-top: -35px;
+        display: block;
+        letter-spacing: 0.5px;
+        margin-left: 20px;
+    }
+    .destination-label-sm {
+        color: #63c5f1;
+        font-size: 10px;
+        font-weight: 700;
+    }
+    .stub-route {
+        color: #63c5f1;
+        font-weight: 550;
+        font-size: 23px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        margin-bottom: 10px;
+        margin-top: -18px;
+        padding-left: 5px;
+    }
+    .main-body {
+        flex: 1;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-width: 0;
+        overflow: visible;
+    }
+    .top-blue-wide {
+        background-color: #4eb8e9;
+        height: 63.4px;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        flex-shrink: 0;
+    }
+    .boarding-title {
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        color: white;
+    }
+    .main-content {
+        padding: 20px 28px 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        position: relative;
+        flex: 1;
+        min-height: 230px;
+    }
+    .data-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .data-col { min-width: 80px; }
+    .data-col label {
+        font-size: 18px;
+        font-weight: 550;
+        color: #63c5f1;
+        letter-spacing: 0.4px;
+        margin-bottom: 3px;
+        display: block;
+        margin-top: -4px;
+    }
+    .name-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-top: -11px;
+    }
+    .name-row label {
+        display: inline;
+        margin-bottom: 30px;
+        font-size: 18px;
+        font-weight: 550;
+        color: #63c5f1;
+        white-space: nowrap;
+    }
+    .val-black {
+        font-size: 18px;
+        font-weight: 550;
+        color: #1f2a3e;
+    }
+    .val-blue-lg {
+        font-size: 26px;
+        font-weight: 550;
+        color: #63c5f1;
+    }
+    .destination-label-lg {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 12px;
+        font-weight: 550;
+        color: #63c5f1;
+        margin-bottom: -20px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: -40px;
+    }
+    .route-banner {
+        background: #63c5f1;
+        color: white;
+        padding: 6px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        font-size: 28px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        width: fit-content;
+        margin-top: 3px;
+        border-radius: 8px;
+        max-width: calc(100% - 180px);
+    }
+    .date-time-row {
+        display: flex;
+        justify-content: flex-start;
+        gap: 40px;
+        align-items: flex-end;
+        width: auto;
+        margin-top: -10px;
+        margin-bottom: 15px;
+        padding-right: 180px;
+    }
+    .barcode-wrap {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        right: 19px;
+        bottom: 34px;
+        width: fit-content;
+        z-index: 10;
+    }
+    .barcode-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 5px 0;
+    }
+    .barcode-canvas {
+        background: white;
+        border-radius: 4px;
+        width: 180px !important;
+        height: 40px !important;
+    }
+    .barcode-sub {
+        font-size: 7px;
+        font-weight: 600;
+        color: #0c0b0b;
+        text-align: center;
+        margin-top: 5px;
+        display: block;
+        letter-spacing: 0.5px;
+        font-family: monospace;
+    }
+    .seat-wrapper {
+        order: 5;
+        margin-top: 10px;
+        margin-right: 200px;
+    }
+    .seat-image-style {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .seat-number-box {
+        background-color: #63c5f1;
+        color: white;
+        font-size: 30px;
+        font-weight: 400;
+        padding: 0 20px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 1px;
+        margin-top: -32px;
+        border-radius: 8px;
+    }
+    .seat-text-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 1.1;
+    }
+    .seat-main-label, .seat-class-label {
+        font-size: 13px;
+        color: #63c5f1;
+        font-weight: 550;
+        margin: 0;
+    }
+    .seat-main-label { margin-top: -18px; }
+    .ticket-back {
+        display: flex;
+        width: 1000px;
+        height: 290px;
+        background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: visible;
+        font-family: 'Montserrat', sans-serif;
+        margin-top: 0;
+        transform-style: preserve-3d;
+    }
+    .ticket-back::before, .ticket-back::after {
+        content: '';
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        background: #eef2f5;
+        border-radius: 50%;
+        left: 236px;
+        z-index: 25;
+        border: none;
+        box-shadow: none;
+        pointer-events: none;
+    }
+    .ticket-back::before { top: -14px; }
+    .ticket-back::after { bottom: -14px; }
+    .back-stub {
+        width: 250px;
+        border-right: 2px dashed rgba(255, 255, 255, 0.5);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .back-stub-top {
+        padding: 25px 20px 5px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .logo-back-sm {
+        height: 55px;
+        margin-bottom: 25px;
+        filter: brightness(0) invert(1);
+    }
+    .label-white-sm {
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        align-self: flex-start;
+        padding-left: 5px;
+        letter-spacing: 0.5px;
+    }
+    .back-seat-box {
+        background-color: white;
+        width: 100%;
+        height: 85px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 5px 0;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.05), 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .seat-huge-blue {
+        font-size: 85px;
+        font-weight: 500;
+        color: #4eb8e9;
+        line-height: 1;
+    }
+    .back-stub-bottom {
+        padding: 10px 20px;
+    }
+    .class-label-white {
+        color: white;
+        font-size: 16px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    .back-main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .logo-back-main {
+        height: 180px;
+        opacity: 0.9;
+        filter: brightness(0) invert(1);
+    }
+    .dest-acronym {
+        display: inline-block;
+        min-width: 45px;
+    }
+    @media (max-width: 1260px) {
+        .flip-card { width: 90vw; min-width: 85vw; height: auto; }
+        .ticket, .ticket-back { width: 100%; height: auto; flex-wrap: wrap; }
+        .stub, .back-stub { width: 100%; border-right: none; border-bottom: 2px dashed #63c5f1; }
+        .cutout-top, .cutout-bottom, .ticket-back::before, .ticket-back::after { display: none; }
+        .nav-btn { width: 40px; height: 40px; font-size: 24px; }
+        .barcode-wrap { position: relative; right: auto; bottom: auto; margin-top: 10px; margin-bottom: 10px; }
+        .date-time-row { padding-right: 0; }
+        .route-banner { max-width: 100%; }
+        .seat-wrapper { margin-right: 0; }
+        .main-content { min-height: auto; }
+    }
+    @media (min-width: 1261px) {
+        .barcode-wrap {
             position: absolute;
-            background: white;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 15px;
-            padding: 20px;
-            gap: 15px;
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.2s;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            margin-top: 10px;
-            z-index: 1001;
+            right: 15px;
+            bottom: 34px;
         }
-        .dropdown:hover .dropdown-content,
-        .dropdown-content:hover { opacity: 1; visibility: visible; margin-top: 0; }
-        .dropdown-content a {
+        .date-time-row {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #333;
-            font-weight: 600;
-            font-size: 0.85rem;
-            gap: 10px;
-            padding: 12px 18px;
-            border-radius: 12px;
+            justify-content: flex-start;
+            gap: 45px;
+            align-items: baseline;
+            width: auto;
+            margin-top: -7px;
+            margin-bottom: 15px;
+            padding-right: 0;
         }
-        .dropdown-content a .menu-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .dropdown-content a .menu-icon i { color: white; font-size: 24px; }
-        .manage-dropdown { flex-direction: column !important; min-width: 200px !important; }
-        .settings-dropdown { flex-direction: column !important; min-width: 200px !important; left: auto !important; right: 0 !important; transform: none !important; }
-        .settings-dropdown a { flex-direction: row !important; justify-content: flex-start !important; gap: 12px !important; }
-        .settings-dropdown a .menu-icon { width: 24px !important; height: 24px !important; background: none !important; }
-        .settings-dropdown a .menu-icon i { color: #4eb8e9 !important; font-size: 18px !important; }
-        .header-right { flex: 1; display: flex; justify-content: flex-end; gap: 25px; align-items: center; }
-
-        /* Carousel – only one ticket visible */
-        .main-container { max-width: 1200px; margin: 0 auto; padding: 110px 20px 40px; }
-        .carousel-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
-        .tickets-carousel {
-            display: flex !important;
-            overflow: hidden !important;
-            scroll-behavior: smooth;
-            justify-content: flex-start !important;
-            flex-wrap: nowrap;
-            gap: 0;
-            width: 100%;
-        }
-        .flip-card {
-            flex: 0 0 100% !important;
-            min-width: 0;
-            width: 100%;
-            scroll-snap-align: start;
-        }
-        .nav-btn {
-            background: #4eb8e9;
-            border: none;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            font-size: 32px;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .nav-btn:hover { background: #2c8fbb; transform: scale(1.05); }
-        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-        .counter-info {
-            text-align: center;
-            margin: 20px 0 10px;
-            font-size: 14px;
-            color: #1f6392;
-            font-weight: 500;
-        }
-        .action-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-        .action-btn {
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Montserrat', sans-serif;
-        }
-        .btn-edit { background: #4eb8e9; color: white; }
-        .btn-edit:hover { background: #2c8fbb; transform: translateY(-2px); }
-        .btn-seat { background: #f5a623; color: white; }
-        .btn-seat:hover { background: #e09515; transform: translateY(-2px); }
-        .btn-delete { background: #e74c3c; color: white; }
-        .btn-delete:hover { background: #c0392b; transform: translateY(-2px); }
-        .btn-back { background: #95a5a6; color: white; }
-        .btn-back:hover { background: #7f8c8d; }
-
-        .flash-message {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 12px 24px;
-            border-radius: 40px;
-            background: #4eb8e9;
-            color: white;
-            font-weight: 500;
-            z-index: 1001;
-            animation: slideIn 0.3s ease;
-        }
-        .flash-message.error { background: #e74c3c; }
-        .flash-message.success { background: #27ae60; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 32px;
-            width: 90%;
-            max-width: 500px;
-        }
-        .modal-content input, .modal-content select {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 10px 0 20px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-        }
-        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
-        .modal-btn { padding: 10px 20px; border-radius: 40px; border: none; cursor: pointer; font-weight: 600; }
-        .modal-btn-save { background: #4eb8e9; color: white; }
-        .modal-btn-cancel { background: #e0e0e0; color: #333; }
-        .loading-state { text-align: center; padding: 80px 20px; background: white; border-radius: 24px; }
-        @media (max-width: 800px) {
-            .main-container { padding-top: 100px; }
-            .nav-btn { width: 40px; height: 40px; font-size: 24px; }
-        }
-    </style>
+        .date-time-row .info-item { flex: 0 0 auto; }
+        .date-time-row .val-blue-sm { font-size: 16px; font-weight: 600; }
+    }
+    @media (max-width: 800px) {
+        .route-banner { font-size: 18px; flex-wrap: wrap; justify-content: center; text-align: center; gap: 5px; }
+        .data-row { flex-direction: column; align-items: flex-start; }
+        .boarding-title { font-size: 24px; }
+        .seat-number-box { font-size: 24px; padding: 0 15px; height: 35px; }
+    }
+</style>
 </head>
 <body>
 
-<!-- FIXED HEADER (unchanged) -->
+<!-- HEADER WITH HORIZONTAL MANAGE DROPDOWN -->
 <header class="main-header">
     <div class="header-container">
-        <div class="logo"><a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket"></a></div>
+        <div class="logo">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="AeroTicket Logo">
+            </a>
+        </div>
         <nav class="nav-links">
             <a href="{{ url_for('home') }}">Home</a>
-            <div class="dropdown"><a href="{{ url_for('booking') }}" class="dropbtn">Book</a><div class="dropdown-content"><a href="{{ url_for('flight') }}"><div class="menu-icon"><i class="fas fa-plane"></i></div>Flights</a></div></div>
             <div class="dropdown">
-                {% if session.get('user_id') %}<a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>{% else %}<a href="{{ url_for('login') }}" class="dropbtn">Manage</a>{% endif %}
-                <div class="dropdown-content manage-dropdown">
-                    {% if session.get('user_id') and has_bookings and latest_booking_id %}<a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}"><div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>View Ticket</a>{% endif %}
-                    <a href="{{ url_for('check_in') }}"><div class="menu-icon"><i class="fas fa-check-circle"></i></div>Check-in</a>
+                <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('flight') }}">
+                        <div class="menu-icon"><i class="fas fa-plane"></i></div>
+                        Flights
+                    </a>
                 </div>
             </div>
-            <div class="dropdown"><a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a><div class="dropdown-content"><a href="{{ url_for('explore') }}"><div class="menu-icon"><i class="fas fa-globe-asia"></i></div>Explore</a><a href="{{ url_for('about') }}"><div class="menu-icon"><i class="fas fa-info-circle"></i></div>About</a></div></div>
+            <div class="dropdown">
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
+                {% endif %}
+                <div class="dropdown-content manage-dropdown">
+                    {% if session.get('user_id') and has_bookings and latest_booking_id %}
+                    <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
+                        <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
+                        View Ticket
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('check_in') }}">
+                        <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
+                        Check-in
+                    </a>
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="{{ url_for('travel') }}" class="dropbtn">Travel Info</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('explore') }}">
+                        <div class="menu-icon"><i class="fas fa-globe-asia"></i></div>
+                        Explore
+                    </a>
+                    <a href="{{ url_for('about') }}">
+                        <div class="menu-icon"><i class="fas fa-info-circle"></i></div>
+                        About
+                    </a>
+                </div>
+            </div>
         </nav>
         <div class="header-right">
+            {% if session.get('user_id') %}
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
                 <div class="dropdown-content settings-dropdown">
-                    <a href="{{ url_for('user_dashboard') }}"><div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>My Dashboard</a>
-                    <a href="{{ url_for('user_settings') }}"><div class="menu-icon"><i class="fas fa-user-cog"></i></div>Account Settings</a>
-                    {% if session.get('is_admin') %}<a href="{{ url_for('admin_dashboard') }}"><div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>Admin Dashboard</a><a href="{{ url_for('admin_settings') }}"><div class="menu-icon"><i class="fas fa-sliders-h"></i></div>Admin Settings</a>{% endif %}
-                    <a href="#" onclick="confirmLogout(event);"><div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>Logout</a>
+                    {% if not session.get('is_admin') %}
+                    <a href="{{ url_for('user_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
+                        My Dashboard
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('user_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
+                        Account Settings
+                    </a>
+                    {% if session.get('is_admin') %}
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
+                        Admin Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_settings') }}">
+                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
+                        Admin Settings
+                    </a>
+                    {% endif %}
+                    <a href="#" onclick="confirmLogout(event);">
+                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
                 </div>
             </div>
+            {% else %}
+            <div class="dropdown">
+                <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
+                <div class="dropdown-content account-dropdown">
+                    <a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Log in</a>
+                    <a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Sign up</a>
+                </div>
+            </div>
+            <i class="fas fa-search search-icon"></i>
+            {% endif %}
         </div>
     </div>
 </header>
 
 <div class="main-container">
+    <!-- CHECK-IN STATUS BADGE - ADDED -->
+    <div class="checkin-status" id="checkinStatus" style="display: none;">
+        <div class="checkin-badge" id="checkinBadge">
+            <i class="fas"></i>
+            <span id="checkinText">Loading...</span>
+        </div>
+        <div class="checkin-time" id="checkinTime"></div>
+    </div>
+
     <div class="carousel-wrapper">
         <button class="nav-btn" id="prevBtn" disabled>‹</button>
         <div class="tickets-carousel" id="ticketsCarousel">
@@ -256,7 +1017,9 @@
         </div>
         <button class="nav-btn" id="nextBtn" disabled>›</button>
     </div>
-    <div class="counter-info" id="counterInfo"></div>
+    <div style="text-align: center;">
+        <div class="counter-info" id="counterInfo"></div>
+    </div>
     <div class="action-buttons" id="actionButtons" style="display: none;">
         <button class="action-btn btn-edit" id="editPassengerBtn"><i class="fas fa-user-edit"></i> Edit Passenger</button>
         <button class="action-btn btn-seat" id="changeSeatBtn"><i class="fas fa-chair"></i> Change Seat</button>
@@ -267,10 +1030,17 @@
 
 <!-- Modals -->
 <div id="editModal" class="modal"><div class="modal-content"><h3><i class="fas fa-user-edit"></i> Edit Passenger</h3><form id="editForm"><label>Full Name</label><input type="text" id="editName" required><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('editModal')">Cancel</button><button type="submit" class="modal-btn modal-btn-save">Save</button></div></form></div></div>
-<div id="seatModal" class="modal"><div class="modal-content"><h3><i class="fas fa-chair"></i> Change Seat</h3><form id="seatForm"><label>New Seat</label><select id="newSeat" required><option value="12A">12A (Window)</option><option value="12B">12B (Middle)</option><option value="12C">12C (Aisle)</option><option value="12D">12D (Aisle)</option><option value="12E">12E (Middle)</option><option value="12F">12F (Window)</option><option value="14A">14A (Window)</option><option value="14B">14B (Middle)</option><option value="14C">14C (Aisle)</option><option value="14D">14D (Aisle)</option><option value="14E">14E (Middle)</option><option value="14F">14F (Window)</option></select><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('seatModal')">Cancel</button><button type="submit" class="modal-btn modal-btn-save">Update Seat</button></div></form></div></div>
+<div id="seatModal" class="modal"><div class="modal-content"><h3><i class="fas fa-chair"></i> Change Seat</h3><form id="seatForm"><label>New Seat</label><select id="newSeat" required><option value="12A">12A (Window)</option><option value="12B">12B (Middle)</option><option value="12C">12C (Aisle)</option><option value="12D">12D (Aisle)</option><option value="12E">12E (Middle)</option><option value="12F">12F (Window)</option></select><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('seatModal')">Cancel</button><button type="submit" class="modal-btn modal-btn-save">Update Seat</button></div></form></div></div>
 <div id="cancelModal" class="modal"><div class="modal-content"><h3><i class="fas fa-exclamation-triangle"></i> Cancel Ticket</h3><p>Are you sure you want to cancel <strong id="cancelPassengerName"></strong>'s ticket? This cannot be undone.</p><div class="modal-buttons"><button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal('cancelModal')">No, Keep It</button><button type="button" id="confirmCancelBtn" class="modal-btn modal-btn-save" style="background:#e74c3c;">Yes, Cancel Ticket</button></div></div></div>
 
 <script>
+    function confirmLogout(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to log out?")) {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+    }
+    
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('id');
     
@@ -278,6 +1048,7 @@
     let passengers = [];
     let flight = null;
     let bookingRef = null;
+    let checkInData = null;
     let currentIndex = 0;
     let carousel = null;
     let prevBtn = null, nextBtn = null;
@@ -290,11 +1061,51 @@
         return defaultValue;
     }
     
-    // Use the date exactly as provided (already in "DD MMM YYYY" format)
+    function getAcronym(cityName) {
+        const acronyms = {
+            'SINGAPORE': 'SIN', 'SINGAPORE CHANGI': 'SIN', 'HONGKONG': 'HKG', 'HONG KONG': 'HKG',
+            'DUBAI': 'DXB', 'MANILA': 'MNL', 'CEBU': 'CEB', 'DAVAO': 'DVO'
+        };
+        const upperName = cityName.toUpperCase().trim();
+        return acronyms[upperName] || upperName.substring(0, 3);
+    }
+    
     function formatDate(dateStr) {
         if (!dateStr) return '15 JAN 2026';
-        // Return as-is – backend already gives "15 JAN 2026"
         return dateStr;
+    }
+    
+    // Update check-in status display
+    function updateCheckInStatus() {
+        const checkinDiv = document.getElementById('checkinStatus');
+        const badge = document.getElementById('checkinBadge');
+        const textSpan = document.getElementById('checkinText');
+        const timeSpan = document.getElementById('checkinTime');
+        
+        if (!checkInData) {
+            checkinDiv.style.display = 'none';
+            return;
+        }
+        
+        checkinDiv.style.display = 'block';
+        
+        if (checkInData.checked_in) {
+            badge.classList.add('checked-in');
+            badge.classList.remove('not-checked-in');
+            badge.innerHTML = '<i class="fas fa-check-circle"></i> <span>✓ Checked In</span>';
+            
+            if (checkInData.check_in_time) {
+                const checkinDate = new Date(checkInData.check_in_time);
+                timeSpan.innerHTML = `Checked in on ${checkinDate.toLocaleDateString()} at ${checkinDate.toLocaleTimeString()}`;
+            } else {
+                timeSpan.innerHTML = '';
+            }
+        } else {
+            badge.classList.add('not-checked-in');
+            badge.classList.remove('checked-in');
+            badge.innerHTML = '<i class="fas fa-clock"></i> <span>⚠ Pending Check-in</span>';
+            timeSpan.innerHTML = 'Check-in opens 24 hours before departure';
+        }
     }
     
     function renderSingleTicket(passenger, flightInfo, bookingReference, cabinClass) {
@@ -304,22 +1115,22 @@
         const gate = getValue(flightInfo, ['gate', 'gate_number', 'gateNo'], 'A1');
         const origin = getValue(flightInfo, ['origin', 'from', 'departure_airport'], 'MNL');
         const destination = getValue(flightInfo, ['destination', 'to', 'arrival_airport'], 'CEB');
+        const originAcronym = getAcronym(origin);
+        const destinationAcronym = getAcronym(destination);
         const departureDateRaw = flightInfo?.departure_date || flightInfo?.date || '15 JAN 2026';
         const formattedDate = formatDate(departureDateRaw);
         const departureTime = getValue(flightInfo, ['departure_time', 'time', 'depart_time'], '06:00');
         const finalCabin = cabinClass || getValue(bookingData, ['cabin_class', 'class'], 'Economy');
         
-        // Barcode data – identical to original ticket.html
         const barcodeValue = `${flightNumber.replace(/\s/g, '')}|${bookingReference}|${seatNumber}|${passengerName.substring(0,4).toUpperCase().replace(/\s/g, '')}`;
         
-        // HTML structure exactly matches original ticket.html (barcode-wrap absolute positioning)
         return `
             <div class="flip-card" data-passenger-id="${passenger.id || passenger.passenger_id || ''}">
                 <div class="flip-card-inner">
-                    <!-- FRONT SIDE -->
                     <div class="flip-card-front">
                         <div class="ticket">
-                            <div class="cutout-top"></div><div class="cutout-bottom"></div>
+                            <div class="cutout-top"></div>
+                            <div class="cutout-bottom"></div>
                             <div class="stub">
                                 <div class="top-blue">
                                     <img src="{{ url_for('static', filename='images/logo_ticket.png') }}" class="logo-white" alt="logo">
@@ -337,7 +1148,11 @@
                                     <div class="barcode-sm">*${flightNumber.replace(/\s/g, '')}*</div>
                                     <div class="barcode-sub-sm">PNR: ${bookingReference}</div>
                                     <div class="destination-label-sm">YOUR DESTINATION</div>
-                                    <div class="stub-route">${origin} <span class="plane-mini">—</span> ${destination}</div>
+                                    <div class="stub-route">
+                                        <span class="dest-acronym">${originAcronym}</span>
+                                        <span class="plane-mini">—</span>
+                                        <span class="dest-acronym">${destinationAcronym}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="main-body">
@@ -353,15 +1168,14 @@
                                     </div>
                                     <div class="destination-label-lg">YOUR DESTINATION</div>
                                     <div class="route-banner">
-                                        <span class="city">${origin}</span>
+                                        <span class="city dest-acronym">${originAcronym}</span>
                                         <span class="plane-mid">→</span>
-                                        <span class="city">${destination}</span>
+                                        <span class="city dest-acronym">${destinationAcronym}</span>
                                     </div>
                                     <div class="date-time-row">
                                         <div class="info-item"><div class="val-blue-sm">${formattedDate}</div></div>
                                         <div class="info-item"><div class="val-blue-sm">${departureTime}</div></div>
                                     </div>
-                                    <!-- BARCODE - ABSOLUTE POSITIONING (same as original) -->
                                     <div class="barcode-wrap">
                                         <div class="barcode-container">
                                             <canvas class="barcode-canvas" data-barcode-value="${barcodeValue}"></canvas>
@@ -383,7 +1197,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- BACK SIDE -->
                     <div class="flip-card-back">
                         <div class="ticket-back">
                             <div class="back-stub">
@@ -418,7 +1231,6 @@
         const html = passengers.map(p => renderSingleTicket(p, flight, bookingRef, cabinClass)).join('');
         ticketsCarousel.innerHTML = html;
         
-        // Force scroll to first ticket (hide second)
         const forceScrollZero = () => {
             if (carousel) carousel.scrollLeft = 0;
         };
@@ -427,7 +1239,6 @@
         setTimeout(forceScrollZero, 50);
         setTimeout(forceScrollZero, 150);
         
-        // Generate barcodes
         setTimeout(() => {
             document.querySelectorAll('.barcode-canvas').forEach(canvas => {
                 const value = canvas.getAttribute('data-barcode-value');
@@ -498,9 +1309,11 @@
             passengers = data.passengers || (data.passenger ? [data.passenger] : []);
             flight = data.flight || data;
             bookingRef = getValue(bookingData, ['booking_reference', 'reference', 'pnr'], 'ABC123');
+            checkInData = data.check_in || { checked_in: false, check_in_time: null };
             
             if (!passengers.length) throw new Error('No passengers found');
             currentIndex = 0;
+            updateCheckInStatus();
             renderAllTickets();
             document.getElementById('actionButtons').style.display = 'flex';
         } catch (error) {
@@ -510,7 +1323,6 @@
         }
     }
     
-    // CRUD operations
     async function updatePassenger(newName) {
         const passenger = getCurrentPassenger();
         if (!passenger) return false;
@@ -518,7 +1330,7 @@
             const res = await fetch(`/api/passenger/${passenger.id || passenger.passenger_id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, full_name: newName })
+                body: JSON.stringify({ name: newName })
             });
             if (!res.ok) throw new Error();
             passenger.full_name = newName;
@@ -536,7 +1348,7 @@
             const res = await fetch(`/api/passenger/${passenger.id || passenger.passenger_id}/seat`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ seat: newSeat, seat_number: newSeat })
+                body: JSON.stringify({ seat: newSeat })
             });
             if (!res.ok) throw new Error();
             passenger.seat_number = newSeat;
@@ -600,7 +1412,6 @@
         window.addEventListener('resize', handleResize);
         fetchBooking();
         
-        // CRUD listeners
         document.getElementById('editPassengerBtn').addEventListener('click', () => {
             const p = getCurrentPassenger();
             if (p) {
@@ -641,7 +1452,6 @@
         });
         window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) e.target.classList.remove('active'); });
     });
-    function confirmLogout(e) { e.preventDefault(); if(confirm("Log out?")) window.location.href="{{ url_for('logout') }}"; }
 </script>
 </body>
 </html>

@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | AeroTicket</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ===== HEADER & DROPDOWN STYLES ===== */
         .main-header {
@@ -20,7 +23,7 @@
             z-index: 1000;
         }
         .header-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             width: 100%;
             display: flex;
@@ -110,24 +113,46 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Manage dropdown styling */
+
         .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
             left: 50% !important;
             right: auto !important;
             transform: translateX(-50%) !important;
             margin-top: 10px !important;
+            gap: 15px !important;
         }
         .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 200px !important;
@@ -163,6 +188,7 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
+
         .header-right {
             flex: 1;
             display: flex;
@@ -171,7 +197,6 @@
             align-items: center;
         }
         
-        /* Flash message styles */
         .flash-message {
             background: #d4edda;
             color: #155724;
@@ -186,7 +211,6 @@
             border-bottom: 1px solid #f5c6cb;
         }
 
-        /* ===== ADMIN DASHBOARD STYLES ===== */
         :root {
             --primary: #2c8fbb;
             --primary-dark: #1e6f94;
@@ -197,9 +221,20 @@
             --gray-600: #6b7280;
             --gray-800: #1f2937;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --radius-lg: 16px;
             --radius-md: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         .dashboard-wrapper {
@@ -210,7 +245,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -221,6 +256,7 @@
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--gray-200);
             transition: all 0.2s;
+            cursor: pointer;
         }
         .stat-card:hover {
             transform: translateY(-2px);
@@ -251,18 +287,58 @@
             margin-top: 0.25rem;
         }
 
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 1.5rem;
+        .admin-tabs {
+            display: flex;
+            gap: 0.5rem;
             margin-bottom: 2rem;
+            border-bottom: 2px solid var(--gray-200);
+            padding-bottom: 0;
         }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+        .tab-btn.active {
+            color: var(--primary);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .admin-card {
             background: white;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--gray-200);
             overflow: hidden;
+            margin-bottom: 1.5rem;
         }
         .card-header {
             background: var(--gray-50);
@@ -271,6 +347,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         .card-header h3 {
             font-size: 1.125rem;
@@ -278,113 +356,164 @@
             color: var(--gray-800);
             margin: 0;
         }
-        .card-header i {
+        .card-header h3 i {
             color: var(--primary);
+            margin-right: 0.5rem;
         }
         .card-body {
             padding: 1.5rem;
         }
-        .user-list {
-            max-height: 300px;
-            overflow-y: auto;
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        .user-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--gray-200);
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
-        .user-item:last-child {
-            border-bottom: none;
-        }
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-        .user-name {
-            font-weight: 600;
+        .btn-secondary {
+            background: var(--gray-100);
             color: var(--gray-800);
+            border: 1px solid var(--gray-200);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
-        .user-email {
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
             font-size: 0.75rem;
-            color: var(--gray-600);
-        }
-        .user-actions {
-            display: flex;
-            gap: 0.5rem;
         }
         .btn-icon {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 0.25rem 0.5rem;
+            padding: 0.5rem;
             border-radius: 6px;
             transition: 0.2s;
-            text-decoration: none;
+            font-size: 1rem;
         }
-        .btn-icon.delete {
-            color: #ef4444;
+        .btn-icon.edit { color: #3b82f6; }
+        .btn-icon.edit:hover { background: #dbeafe; }
+        .btn-icon.delete { color: #ef4444; }
+        .btn-icon.delete:hover { background: #fee2e2; }
+        .btn-icon.view { color: #10b981; }
+        .btn-icon.view:hover { background: #d1fae5; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .btn-icon.delete:hover {
-            background: #fee2e2;
-        }
-        .btn-icon.reset {
-            color: #f59e0b;
-        }
-        .btn-icon.reset:hover {
-            background: #fef3c7;
-        }
-        .flight-item {
-            padding: 0.75rem 0;
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            text-align: left;
             border-bottom: 1px solid var(--gray-200);
         }
-        .flight-item:last-child {
-            border-bottom: none;
-        }
-        .flight-route {
+        .data-table th {
+            background: var(--gray-50);
             font-weight: 600;
+            color: var(--gray-800);
         }
-        .flight-date {
-            font-size: 0.75rem;
-            color: var(--gray-600);
+        .data-table tr:hover {
+            background: var(--gray-50);
         }
-        .booking-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 40px;
             font-size: 0.7rem;
             font-weight: 600;
+            display: inline-block;
         }
-        .status-confirmed {
-            background: #dcfce7;
-            color: #15803d;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--gray-200);
-            padding: 0.5rem 1rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            color: var(--gray-800);
-            display: inline-flex;
+        .status-confirmed { background: #dcfce7; color: #15803d; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-completed { background: #dbeafe; color: #1e40af; }
+        .status-checkedin { background: #27ae60; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
             align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
             gap: 0.5rem;
         }
-        .btn-outline:hover {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            color: var(--primary);
+        .form-group {
+            margin-bottom: 1rem;
         }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -424,27 +553,32 @@
         input:checked + .slider:before {
             transform: translateX(24px);
         }
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        canvas { max-height: 300px; }
+
         @media (max-width: 1024px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .dashboard-wrapper { padding: 0 1rem; }
         }
         @media (max-width: 640px) {
-            .dashboard-wrapper {
-                padding: 0 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .admin-grid {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .admin-tabs { flex-wrap: wrap; }
+            .tab-btn { flex: 1; text-align: center; }
+            .data-table { font-size: 0.75rem; }
+            .data-table th, .data-table td { padding: 0.5rem; }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER WITH MANAGE DROPDOWN INCLUDING VIEW TICKET ===== -->
+<!-- ===== HEADER WITH ADMIN MENU FIX ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -463,7 +597,6 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -471,14 +604,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -502,11 +633,14 @@
         <div class="header-right">
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <!-- ADMIN MENU FIX: My Dashboard only shows for regular users, NOT for admins -->
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -540,7 +674,6 @@
     }
 </script>
 
-<!-- Flash messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -551,136 +684,838 @@
     {% endif %}
 {% endwith %}
 
-<!-- ===== MAIN ADMIN DASHBOARD ===== -->
 <div class="dashboard-wrapper">
     <h1 style="font-size: 1.875rem; font-weight: 600; margin-bottom: 0.5rem;">Admin Dashboard</h1>
-    <p style="color: var(--gray-600); margin-bottom: 2rem;">Manage flights, users, and system settings</p>
+    <p style="color: var(--gray-600); margin-bottom: 2rem;">Complete control over users, bookings, flights, and promotions</p>
 
+    <!-- Stats Overview with Check-in Count -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="switchTab('users-tab')">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
             <div class="stat-value">{{ total_users }}</div>
             <div class="stat-label">Total Users</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="switchTab('bookings-tab')">
             <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
             <div class="stat-value">{{ total_bookings }}</div>
             <div class="stat-label">Total Bookings</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="switchTab('flights-tab')">
             <div class="stat-icon"><i class="fas fa-plane"></i></div>
             <div class="stat-value">{{ total_flights }}</div>
             <div class="stat-label">Active Flights</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-            <div class="stat-value">{{ sales_summary.total }}</div>
-            <div class="stat-label">Sales (30 days)</div>
+        <div class="stat-card" onclick="switchTab('promos-tab')">
+            <div class="stat-icon"><i class="fas fa-tags"></i></div>
+            <div class="stat-value">{{ total_promos|default(0) }}</div>
+            <div class="stat-label">Active Promos</div>
+        </div>
+        <div class="stat-card" onclick="switchTab('bookings-tab')">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-value">{{ checked_in_count|default(0) }}</div>
+            <div class="stat-label">Checked In</div>
         </div>
     </div>
 
-    <div class="admin-grid">
+    <!-- Admin Tabs -->
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('users-tab')"><i class="fas fa-users"></i> Users</button>
+        <button class="tab-btn" onclick="switchTab('bookings-tab')"><i class="fas fa-ticket-alt"></i> Bookings</button>
+        <button class="tab-btn" onclick="switchTab('flights-tab')"><i class="fas fa-plane"></i> Flights</button>
+        <button class="tab-btn" onclick="switchTab('promos-tab')"><i class="fas fa-tags"></i> Promo Codes</button>
+        <button class="tab-btn" onclick="switchTab('analytics-tab')"><i class="fas fa-chart-line"></i> Analytics</button>
+        <button class="tab-btn" onclick="switchTab('settings-tab')"><i class="fas fa-cog"></i> Settings</button>
+    </div>
+
+    <!-- ===== USERS TAB ===== -->
+    <div id="users-tab" class="tab-content active">
         <div class="admin-card">
             <div class="card-header">
-                <h3><i class="fas fa-users"></i> Users Management</h3>
-                <a href="#" class="btn-outline" style="padding: 0.25rem 0.75rem;">View All</a>
+                <h3><i class="fas fa-users"></i> All Users</h3>
+                <button class="btn-primary" onclick="openUserModal()"><i class="fas fa-plus"></i> Add User</button>
             </div>
             <div class="card-body">
-                <div class="user-list">
-                    {% for user in users[:5] %}
-                    <div class="user-item">
-                        <div class="user-info">
-                            <span class="user-name">{{ user.fullname or 'No Name' }}</span>
-                            <span class="user-email">{{ user.email }}</span>
-                        </div>
-                        <div class="user-actions">
-                            <a href="{{ url_for('admin_reset_password', user_id=user.id) }}" class="btn-icon reset" title="Reset Password">
-                                <i class="fas fa-key"></i>
-                            </a>
-                            <a href="{{ url_for('admin_ban_user', user_id=user.id) }}" class="btn-icon delete" title="Delete User" onclick="return confirm('Delete this user?');">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </div>
+                <table id="users-table" class="data-table" style="width:100%">
+                    <thead>
+                        <tr><th>ID</th><th>Full Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for user in all_users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.fullname or 'N/A' }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <select class="role-select" data-user-id="{{ user.id }}" onchange="updateUserRole({{ user.id }}, this.value)">
+                                    <option value="user" {% if not user.is_admin %}selected{% endif %}>User</option>
+                                    <option value="admin" {% if user.is_admin %}selected{% endif %}>Admin</option>
+                                </select>
+                            </td>
+                            <td>
+                                <span class="status-badge {% if user.is_active %}status-confirmed{% else %}status-cancelled{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Banned{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
+                            <td>
+                                <button class="btn-icon edit" onclick="editUser({{ user.id }})"><i class="fas fa-edit"></i></button>
+                                {% if not user.is_admin or user.id != session.user_id %}
+                                <button class="btn-icon delete" onclick="deleteUser({{ user.id }})"><i class="fas fa-trash"></i></button>
+                                {% endif %}
+                                <button class="btn-icon" onclick="resetUserPassword({{ user.id }})" style="color: #f59e0b;"><i class="fas fa-key"></i></button>
+                                <button class="btn-icon" onclick="toggleUserStatus({{ user.id }})" style="color: #8b5cf6;"><i class="fas {% if user.is_active %}fa-ban{% else %}fa-check-circle{% endif %}"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== BOOKINGS TAB ===== -->
+    <div id="bookings-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-ticket-alt"></i> All Bookings</h3>
+                <div>
+                    <input type="text" id="booking-search" placeholder="Search by reference or email..." class="form-group" style="width: 250px; display: inline-block; margin-right: 0.5rem;">
+                    <button class="btn-secondary" onclick="exportBookings()"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <table id="bookings-table" class="data-table" style="width:100%">
+                    <thead>
+                        <tr><th>ID</th><th>Reference</th><th>User Email</th><th>Flight</th><th>Total Price</th><th>Check-in Status</th><th>Booking Status</th><th>Booked Date</th><th>Actions</th></td>
+                    </thead>
+                    <tbody>
+                        {% for booking in all_bookings %}
+                        <tr>
+                            <td>{{ booking.id }}</td>
+                            <td>{{ booking.booking_reference }}</td>
+                            <td>{{ booking.user_email or 'N/A' }}</td>
+                            <td>{{ booking.flight_number or 'N/A' }}</td>
+                            <td>₱{{ booking.total_price|replace('₱', '')|replace(',', '') }}</td>
+                            <td>
+                                {% if booking.checked_in %}
+                                    <span class="status-badge status-checkedin"><i class="fas fa-check-circle"></i> Checked In</span>
+                                {% else %}
+                                    <span class="status-badge status-pending"><i class="fas fa-clock"></i> Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <select class="booking-status-select" data-booking-id="{{ booking.id }}" onchange="updateBookingStatus({{ booking.id }}, this.value)">
+                                    <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                    <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                                </select>
+                            </td>
+                            <td>{{ booking.created_at.strftime('%Y-%m-%d') if booking.created_at else 'N/A' }}</td>
+                            <td>
+                                <button class="btn-icon view" onclick="viewBookingDetails({{ booking.id }})"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon edit" onclick="editBooking({{ booking.id }})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon delete" onclick="cancelBooking({{ booking.id }})"><i class="fas fa-times-circle"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FLIGHTS TAB ===== -->
+    <div id="flights-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-plane"></i> Manage Flights</h3>
+                <button class="btn-primary" onclick="openFlightModal()"><i class="fas fa-plus"></i> Add Flight</button>
+            </div>
+            <div class="card-body">
+                <table id="flights-table" class="data-table" style="width:100%">
+                    <thead>
+                        <tr><th>ID</th><th>Flight #</th><th>Origin</th><th>Destination</th><th>Departure</th><th>Arrival</th><th>Economy</th><th>Business</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for flight in all_flights %}
+                        <tr>
+                            <td>{{ flight.id }}</td>
+                            <td>{{ flight.flight_number }}</td>
+                            <td>{{ flight.origin }}</td>
+                            <td>{{ flight.destination }}</td>
+                            <td>{{ flight.departure_date }}</td>
+                            <td>{{ flight.arrival_date }}</td>
+                            <td>₱{{ flight.economy_price|replace('₱', '')|replace(',', '') }}</td>
+                            <td>₱{{ flight.business_price|replace('₱', '')|replace(',', '') }}</td>
+                            <td>
+                                <select class="flight-status-select" data-flight-id="{{ flight.id }}" onchange="updateFlightStatus({{ flight.id }}, this.value)">
+                                    <option value="active" {% if flight.status == 'active' %}selected{% endif %}>Active</option>
+                                    <option value="cancelled" {% if flight.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    <option value="completed" {% if flight.status == 'completed' %}selected{% endif %}>Completed</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-icon edit" onclick="editFlight({{ flight.id }})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon delete" onclick="deleteFlight({{ flight.id }})"><i class="fas fa-trash"></i></button>
+                                <button class="btn-icon" onclick="viewFlightBookings({{ flight.id }})" style="color: #10b981;"><i class="fas fa-users"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PROMO CODES TAB ===== -->
+    <div id="promos-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-tags"></i> Promo Codes</h3>
+                <button class="btn-primary" onclick="openPromoModal()"><i class="fas fa-plus"></i> Create Promo</button>
+            </div>
+            <div class="card-body">
+                <table id="promos-table" class="data-table" style="width:100%">
+                    <thead>
+                        <tr><th>ID</th><th>Code</th><th>Description</th><th>Discount %</th><th>Valid From</th><th>Valid Until</th><th>Usage Limit</th><th>Used Count</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for promo in all_promos %}
+                        <tr>
+                            <td>{{ promo.id }}</td>
+                            <td><strong>{{ promo.code }}</strong></td>
+                            <td>{{ promo.description or 'N/A' }}</td>
+                            <td>{{ promo.discount_percent }}%</td>
+                            <td>{{ promo.valid_from.strftime('%Y-%m-%d') if promo.valid_from else 'N/A' }}</td>
+                            <td>{{ promo.valid_until.strftime('%Y-%m-%d') if promo.valid_until else 'N/A' }}</td>
+                            <td>{{ promo.usage_limit or '∞' }}</td>
+                            <td>{{ promo.used_count or 0 }}</td>
+                            <td>
+                                <select class="promo-status-select" data-promo-id="{{ promo.id }}" onchange="updatePromoStatus({{ promo.id }}, this.value)">
+                                    <option value="active" {% if promo.is_active %}selected{% endif %}>Active</option>
+                                    <option value="inactive" {% if not promo.is_active %}selected{% endif %}>Inactive</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-icon edit" onclick="editPromo({{ promo.id }})"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon delete" onclick="deletePromo({{ promo.id }})"><i class="fas fa-trash"></i></button>
+                             </td>
+                         </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-simple"></i> Promo Usage Statistics</h3>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 0;">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ active_promos|default(0) }}</div>
+                        <div class="stat-label">Active Promos</div>
                     </div>
-                    {% endfor %}
+                    <div class="stat-card">
+                        <div class="stat-value">{{ total_promo_uses|default(0) }}</div>
+                        <div class="stat-label">Total Uses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ total_discount_given|default(0) }}</div>
+                        <div class="stat-label">Total Discount (₱)</div>
+                    </div>
                 </div>
-                {% if users|length > 5 %}
-                <div style="margin-top: 1rem; text-align: center;">
-                    <small style="color: var(--gray-600);">+ {{ users|length - 5 }} more users</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ANALYTICS TAB ===== -->
+    <div id="analytics-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-line"></i> Revenue Analytics</h3>
+                <select id="analytics-period" onchange="loadAnalytics()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="365">Last Year</option>
+                </select>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="margin-bottom: 1rem;">Daily Revenue</h4>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div>
+                        <h4 style="margin-bottom: 1rem;">Booking Trends</h4>
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
                 </div>
-                {% endif %}
+                <div style="margin-top: 2rem;">
+                    <h4 style="margin-bottom: 1rem;">Top Routes</h4>
+                    <table class="data-table">
+                        <thead><tr><th>Route</th><th>Bookings</th><th>Revenue</th></tr></thead>
+                        <tbody id="top-routes-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS TAB ===== -->
+    <div id="settings-tab" class="tab-content">
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-globe"></i> General Settings</h3>
+            </div>
+            <div class="card-body">
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label>Site Name</label>
+                        <input type="text" name="site_name" value="{{ settings.site_name }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" name="contact_email" value="{{ settings.contact_email }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="text" name="contact_phone" value="{{ settings.contact_phone }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea name="address" rows="3" class="form-control">{{ settings.address }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Booking Fee (₱)</label>
+                        <input type="number" name="booking_fee" value="{{ settings.booking_fee }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Tax Rate (%)</label>
+                        <input type="number" name="tax_rate" value="{{ settings.tax_rate }}" class="form-control" step="0.01">
+                    </div>
+                    <button type="submit" class="btn-primary">Save Settings</button>
+                </form>
             </div>
         </div>
 
         <div class="admin-card">
             <div class="card-header">
-                <h3><i class="fas fa-plane"></i> Flights</h3>
-                <a href="{{ url_for('admin_settings') }}" class="btn-outline" style="padding: 0.25rem 0.75rem;">Add Flight</a>
+                <h3><i class="fas fa-shield-alt"></i> System Controls</h3>
             </div>
             <div class="card-body">
-                <div class="flight-list">
-                    {% for flight in events[:4] %}
-                    <div class="flight-item">
-                        <div class="flight-route">{{ flight.flight_number }} • {{ flight.origin }} → {{ flight.destination }}</div>
-                        <div class="flight-date">{{ flight.departure_date }} | ₱{{ flight.economy_price }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <div class="admin-card">
-            <div class="card-header">
-                <h3><i class="fas fa-clock"></i> Recent Bookings</h3>
-                <a href="{{ url_for('admin_export_sales') }}" class="btn-outline" style="padding: 0.25rem 0.75rem;">
-                    <i class="fas fa-download"></i> Export
-                </a>
-            </div>
-            <div class="card-body">
-                <div class="booking-list">
-                    {% for booking in recent_bookings[:5] %}
-                    <div class="booking-item">
-                        <div>
-                            <div style="font-weight: 500;">{{ booking.booking_reference }}</div>
-                            <div style="font-size: 0.75rem; color: var(--gray-600);">₱{{ booking.total_price }}</div>
-                        </div>
-                        <span class="status-badge status-confirmed">{{ booking.status }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <div class="admin-card">
-            <div class="card-header">
-                <h3><i class="fas fa-cog"></i> System Settings</h3>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem;">Site Name</label>
-                    <input type="text" value="{{ settings.site_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-200); border-radius: 8px;">
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.25rem;">Contact Email</label>
-                    <input type="email" value="{{ settings.contact_email }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--gray-200); border-radius: 8px;">
-                </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <span>Maintenance Mode</span>
+                    <span><strong>Maintenance Mode</strong><br><small>When enabled, only admins can access the site</small></span>
                     <label class="toggle-switch">
-                        <input type="checkbox" {% if settings.maintenance %}checked{% endif %}>
+                        <input type="checkbox" id="maintenance-toggle" {% if settings.maintenance %}checked{% endif %} onchange="toggleMaintenance()">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div style="display: flex; gap: 1rem;">
-                    <a href="{{ url_for('admin_clear_cache') }}" class="btn-outline">Clear Cache</a>
-                    <form method="POST" action="{{ url_for('admin_maintenance') }}" style="display: inline;">
-                        <button type="submit" class="btn-outline">Toggle Maintenance</button>
-                    </form>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button class="btn-secondary" onclick="clearCache()"><i class="fas fa-broom"></i> Clear Cache</button>
+                    <button class="btn-secondary" onclick="backupDatabase()"><i class="fas fa-database"></i> Backup Database</button>
+                    <button class="btn-danger" onclick="exportAllData()"><i class="fas fa-file-export"></i> Export All Data</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- ===== MODALS ===== -->
+
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="userModalTitle">Add User</h3>
+            <button class="btn-icon" onclick="closeModal('userModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="userFullname" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="userEmail" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="userPassword" class="form-control">
+                    <small id="passwordHint">Leave blank to keep current password (for edit)</small>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="userRole" class="form-control">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+            <button class="btn-primary" onclick="saveUser()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="flightModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 id="flightModalTitle">Add Flight</h3>
+            <button class="btn-icon" onclick="closeModal('flightModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="flightForm">
+                <input type="hidden" id="flightId">
+                <div class="form-group">
+                    <label>Flight Number</label>
+                    <input type="text" id="flightNumber" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Origin</label>
+                    <input type="text" id="flightOrigin" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Destination</label>
+                    <input type="text" id="flightDestination" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Departure Date & Time</label>
+                    <input type="datetime-local" id="flightDeparture" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Arrival Date & Time</label>
+                    <input type="datetime-local" id="flightArrival" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Economy Price (₱)</label>
+                    <input type="number" id="flightEconomyPrice" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Business Price (₱)</label>
+                    <input type="number" id="flightBusinessPrice" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Available Seats (Economy)</label>
+                    <input type="number" id="flightEconomySeats" value="100" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Available Seats (Business)</label>
+                    <input type="number" id="flightBusinessSeats" value="20" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('flightModal')">Cancel</button>
+            <button class="btn-primary" onclick="saveFlight()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="promoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="promoModalTitle">Create Promo Code</h3>
+            <button class="btn-icon" onclick="closeModal('promoModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="promoForm">
+                <input type="hidden" id="promoId">
+                <div class="form-group">
+                    <label>Promo Code</label>
+                    <input type="text" id="promoCode" required class="form-control" placeholder="e.g., SUMMER20">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="promoDescription" class="form-control" placeholder="Summer Sale 2024">
+                </div>
+                <div class="form-group">
+                    <label>Discount Percentage (%)</label>
+                    <input type="number" id="promoDiscount" required class="form-control" min="1" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Valid From</label>
+                    <input type="datetime-local" id="promoValidFrom" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Valid Until</label>
+                    <input type="datetime-local" id="promoValidUntil" required class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Usage Limit (Leave empty for unlimited)</label>
+                    <input type="number" id="promoUsageLimit" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Minimum Booking Amount (₱)</label>
+                    <input type="number" id="promoMinAmount" value="0" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('promoModal')">Cancel</button>
+            <button class="btn-primary" onclick="savePromo()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="bookingDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Booking Details</h3>
+            <button class="btn-icon" onclick="closeModal('bookingDetailsModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="bookingDetailsContent">
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#users-table').DataTable({ pageLength: 10, responsive: true });
+    $('#bookings-table').DataTable({ pageLength: 10, responsive: true });
+    $('#flights-table').DataTable({ pageLength: 10, responsive: true });
+    $('#promos-table').DataTable({ pageLength: 10, responsive: true });
+    
+    loadAnalytics();
+    
+    $('#booking-search').on('keyup', function() {
+        $('#bookings-table').DataTable().search(this.value).draw();
+    });
+});
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ===== USER MANAGEMENT =====
+function openUserModal(userId = null) {
+    if (userId) {
+        fetch(`/api/admin/user/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+                document.getElementById('userId').value = user.id;
+                document.getElementById('userFullname').value = user.fullname;
+                document.getElementById('userEmail').value = user.email;
+                document.getElementById('userRole').value = user.is_admin ? 'admin' : 'user';
+                document.getElementById('userModalTitle').textContent = 'Edit User';
+                document.getElementById('passwordHint').style.display = 'block';
+            });
+    } else {
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('userModalTitle').textContent = 'Add User';
+        document.getElementById('passwordHint').style.display = 'none';
+    }
+    document.getElementById('userModal').classList.add('active');
+}
+
+function saveUser() {
+    const userId = document.getElementById('userId').value;
+    const data = {
+        fullname: document.getElementById('userFullname').value,
+        email: document.getElementById('userEmail').value,
+        password: document.getElementById('userPassword').value,
+        is_admin: document.getElementById('userRole').value === 'admin'
+    };
+    
+    const url = userId ? `/api/admin/user/${userId}` : '/api/admin/user';
+    const method = userId ? 'PUT' : 'POST';
+    
+    fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(res => res.json())
+        .then(() => { location.reload(); });
+}
+
+function editUser(id) { openUserModal(id); }
+function deleteUser(id) {
+    if (confirm('Delete this user permanently?')) {
+        fetch(`/api/admin/user/${id}`, { method: 'DELETE' })
+            .then(() => location.reload());
+    }
+}
+
+function updateUserRole(userId, role) {
+    fetch(`/api/admin/user/${userId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_admin: role === 'admin' })
+    }).then(() => location.reload());
+}
+
+function resetUserPassword(userId) {
+    const newPassword = prompt('Enter new password:');
+    if (newPassword) {
+        fetch(`/api/admin/user/${userId}/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPassword })
+        }).then(() => alert('Password reset successfully!'));
+    }
+}
+
+function toggleUserStatus(userId) {
+    fetch(`/api/admin/user/${userId}/toggle-status`, { method: 'POST' })
+        .then(() => location.reload());
+}
+
+// ===== BOOKING MANAGEMENT =====
+function updateBookingStatus(bookingId, status) {
+    fetch(`/api/admin/booking/${bookingId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
+    }).then(() => location.reload());
+}
+
+function cancelBooking(bookingId) {
+    if (confirm('Cancel this booking?')) {
+        updateBookingStatus(bookingId, 'cancelled');
+    }
+}
+
+function viewBookingDetails(bookingId) {
+    fetch(`/api/admin/booking/${bookingId}`)
+        .then(res => res.json())
+        .then(booking => {
+            document.getElementById('bookingDetailsContent').innerHTML = `
+                <p><strong>Reference:</strong> ${booking.booking_reference}</p>
+                <p><strong>Passenger:</strong> ${booking.passenger_name || 'N/A'}</p>
+                <p><strong>Email:</strong> ${booking.email}</p>
+                <p><strong>Flight:</strong> ${booking.flight_number} - ${booking.origin} → ${booking.destination}</p>
+                <p><strong>Departure:</strong> ${booking.departure_date}</p>
+                <p><strong>Seat Class:</strong> ${booking.seat_class}</p>
+                <p><strong>Seat Number:</strong> ${booking.seat_number || 'Not assigned'}</p>
+                <p><strong>Total Price:</strong> ₱${booking.total_price}</p>
+                <p><strong>Check-in Status:</strong> ${booking.checked_in ? '<span class="status-badge status-checkedin">✓ Checked In</span>' : '<span class="status-badge status-pending">⏳ Pending</span>'}</p>
+                <p><strong>Booking Status:</strong> <span class="status-badge status-${booking.status}">${booking.status}</span></p>
+                <p><strong>Booked On:</strong> ${booking.created_at}</p>
+                ${booking.promo_code ? `<p><strong>Promo Applied:</strong> ${booking.promo_code} (${booking.discount_percent}% off)</p>` : ''}
+            `;
+            document.getElementById('bookingDetailsModal').classList.add('active');
+        });
+}
+
+function editBooking(bookingId) {
+    viewBookingDetails(bookingId);
+}
+
+function exportBookings() {
+    window.location.href = '/api/admin/bookings/export';
+}
+
+// ===== FLIGHT MANAGEMENT =====
+function openFlightModal(flightId = null) {
+    if (flightId) {
+        fetch(`/api/admin/flight/${flightId}`)
+            .then(res => res.json())
+            .then(flight => {
+                document.getElementById('flightId').value = flight.id;
+                document.getElementById('flightNumber').value = flight.flight_number;
+                document.getElementById('flightOrigin').value = flight.origin;
+                document.getElementById('flightDestination').value = flight.destination;
+                document.getElementById('flightDeparture').value = flight.departure_date?.replace(' ', 'T')?.slice(0, 16);
+                document.getElementById('flightArrival').value = flight.arrival_date?.replace(' ', 'T')?.slice(0, 16);
+                document.getElementById('flightEconomyPrice').value = flight.economy_price;
+                document.getElementById('flightBusinessPrice').value = flight.business_price;
+                document.getElementById('flightEconomySeats').value = flight.economy_seats || 100;
+                document.getElementById('flightBusinessSeats').value = flight.business_seats || 20;
+                document.getElementById('flightModalTitle').textContent = 'Edit Flight';
+            });
+    } else {
+        document.getElementById('flightForm').reset();
+        document.getElementById('flightId').value = '';
+        document.getElementById('flightModalTitle').textContent = 'Add Flight';
+    }
+    document.getElementById('flightModal').classList.add('active');
+}
+
+function saveFlight() {
+    const flightId = document.getElementById('flightId').value;
+    const data = {
+        flight_number: document.getElementById('flightNumber').value,
+        origin: document.getElementById('flightOrigin').value,
+        destination: document.getElementById('flightDestination').value,
+        departure_date: document.getElementById('flightDeparture').value,
+        arrival_date: document.getElementById('flightArrival').value,
+        economy_price: parseFloat(document.getElementById('flightEconomyPrice').value),
+        business_price: parseFloat(document.getElementById('flightBusinessPrice').value),
+        economy_seats: parseInt(document.getElementById('flightEconomySeats').value),
+        business_seats: parseInt(document.getElementById('flightBusinessSeats').value)
+    };
+    
+    const url = flightId ? `/api/admin/flight/${flightId}` : '/api/admin/flight';
+    const method = flightId ? 'PUT' : 'POST';
+    
+    fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(() => location.reload());
+}
+
+function editFlight(id) { openFlightModal(id); }
+
+function deleteFlight(id) {
+    if (confirm('Delete this flight? This will affect all bookings.')) {
+        fetch(`/api/admin/flight/${id}`, { method: 'DELETE' })
+            .then(() => location.reload());
+    }
+}
+
+function updateFlightStatus(flightId, status) {
+    fetch(`/api/admin/flight/${flightId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
+    }).then(() => location.reload());
+}
+
+function viewFlightBookings(flightId) {
+    window.location.href = `/admin/flight/${flightId}/bookings`;
+}
+
+// ===== PROMO CODE MANAGEMENT =====
+function openPromoModal(promoId = null) {
+    if (promoId) {
+        fetch(`/api/admin/promo/${promoId}`)
+            .then(res => res.json())
+            .then(promo => {
+                document.getElementById('promoId').value = promo.id;
+                document.getElementById('promoCode').value = promo.code;
+                document.getElementById('promoDescription').value = promo.description;
+                document.getElementById('promoDiscount').value = promo.discount_percent;
+                document.getElementById('promoValidFrom').value = promo.valid_from?.replace(' ', 'T')?.slice(0, 16);
+                document.getElementById('promoValidUntil').value = promo.valid_until?.replace(' ', 'T')?.slice(0, 16);
+                document.getElementById('promoUsageLimit').value = promo.usage_limit || '';
+                document.getElementById('promoMinAmount').value = promo.min_amount || 0;
+                document.getElementById('promoModalTitle').textContent = 'Edit Promo';
+            });
+    } else {
+        document.getElementById('promoForm').reset();
+        document.getElementById('promoId').value = '';
+        document.getElementById('promoModalTitle').textContent = 'Create Promo Code';
+    }
+    document.getElementById('promoModal').classList.add('active');
+}
+
+function savePromo() {
+    const promoId = document.getElementById('promoId').value;
+    const data = {
+        code: document.getElementById('promoCode').value.toUpperCase(),
+        description: document.getElementById('promoDescription').value,
+        discount_percent: parseFloat(document.getElementById('promoDiscount').value),
+        valid_from: document.getElementById('promoValidFrom').value,
+        valid_until: document.getElementById('promoValidUntil').value,
+        usage_limit: document.getElementById('promoUsageLimit').value ? parseInt(document.getElementById('promoUsageLimit').value) : null,
+        min_amount: parseFloat(document.getElementById('promoMinAmount').value) || 0
+    };
+    
+    const url = promoId ? `/api/admin/promo/${promoId}` : '/api/admin/promo';
+    const method = promoId ? 'PUT' : 'POST';
+    
+    fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        .then(() => location.reload());
+}
+
+function editPromo(id) { openPromoModal(id); }
+
+function deletePromo(id) {
+    if (confirm('Delete this promo code?')) {
+        fetch(`/api/admin/promo/${id}`, { method: 'DELETE' })
+            .then(() => location.reload());
+    }
+}
+
+function updatePromoStatus(promoId, status) {
+    fetch(`/api/admin/promo/${promoId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: status === 'active' })
+    }).then(() => location.reload());
+}
+
+// ===== ANALYTICS =====
+let revenueChart, bookingsChart;
+
+function loadAnalytics() {
+    const days = document.getElementById('analytics-period').value;
+    
+    fetch(`/api/admin/analytics?days=${days}`)
+        .then(res => res.json())
+        .then(data => {
+            if (revenueChart) revenueChart.destroy();
+            const revCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revCtx, {
+                type: 'line',
+                data: { labels: data.dates, datasets: [{ label: 'Revenue (₱)', data: data.revenue, borderColor: '#2c8fbb', tension: 0.4 }] },
+                options: { responsive: true }
+            });
+            
+            if (bookingsChart) bookingsChart.destroy();
+            const bookCtx = document.getElementById('bookingsChart').getContext('2d');
+            bookingsChart = new Chart(bookCtx, {
+                type: 'bar',
+                data: { labels: data.dates, datasets: [{ label: 'Bookings', data: data.bookings, backgroundColor: '#4eb8e9' }] },
+                options: { responsive: true }
+            });
+            
+            document.getElementById('top-routes-body').innerHTML = data.top_routes.map(route => 
+                `<tr><td>${route.route}</td><td>${route.bookings}</td><td>₱${route.revenue}</td></tr>`
+            ).join('');
+        });
+}
+
+// ===== SYSTEM SETTINGS =====
+document.getElementById('settings-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(() => alert('Settings saved successfully!'));
+});
+
+function toggleMaintenance() {
+    const isChecked = document.getElementById('maintenance-toggle').checked;
+    fetch('/api/admin/maintenance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: isChecked })
+    }).then(() => alert(isChecked ? 'Maintenance mode enabled' : 'Maintenance mode disabled'));
+}
+
+function clearCache() {
+    fetch('/api/admin/clear-cache', { method: 'POST' })
+        .then(() => alert('Cache cleared!'));
+}
+
+function backupDatabase() {
+    window.location.href = '/api/admin/backup';
+}
+
+function exportAllData() {
+    window.location.href = '/api/admin/export-all';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+}
+
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+    }
+}
+</script>
 
 </body>
 </html>

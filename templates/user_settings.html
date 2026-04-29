@@ -56,7 +56,6 @@
         .dropdown {
             position: relative;
         }
-        /* Main navigation dropdown (circular icons) */
         .dropdown-content {
             display: flex;
             flex-direction: row;
@@ -111,25 +110,48 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Manage dropdown styling */
+
+        /* MANAGE DROPDOWN - HORIZONTAL (same as Book dropdown) */
         .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
             left: 50% !important;
             right: auto !important;
             transform: translateX(-50%) !important;
             margin-top: 10px !important;
+            gap: 15px !important;
         }
         .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
-        /* Settings dropdown – horizontal, right-aligned */
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* SETTINGS DROPDOWN - VERTICAL (right-aligned) - WITH ADMIN FIX */
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 200px !important;
@@ -165,6 +187,7 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
+
         .header-right {
             flex: 1;
             display: flex;
@@ -172,13 +195,7 @@
             gap: 25px;
             align-items: center;
         }
-        .search-icon {
-            color: #4dbbee;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
         
-        /* Flash message styles */
         .flash-message {
             background: #d4edda;
             color: #155724;
@@ -205,13 +222,13 @@
             --gray-800: #1f2937;
             --danger: #ef4444;
             --danger-dark: #dc2626;
+            --success: #10b981;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             --radius-lg: 16px;
             --radius-md: 12px;
         }
 
-        /* Override booking-card for cleaner look */
         .booking-card {
             background: white;
             border-radius: 24px;
@@ -238,7 +255,6 @@
             padding: 40px 20px;
         }
 
-        /* Settings sections */
         .settings-section {
             background: var(--gray-50);
             border-radius: var(--radius-lg);
@@ -305,7 +321,6 @@
             }
         }
 
-        /* Profile picture area */
         .profile-picture {
             display: flex;
             align-items: center;
@@ -348,7 +363,6 @@
             display: none;
         }
 
-        /* Form fields */
         .input-group {
             margin-bottom: 1.25rem;
         }
@@ -377,8 +391,13 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(44, 143, 187, 0.1);
         }
+        .input-group .error-message {
+            color: var(--danger);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
 
-        /* Buttons */
         .book-btn {
             background: var(--primary);
             color: white;
@@ -397,6 +416,10 @@
             background: var(--primary-dark);
             transform: translateY(-1px);
         }
+        .book-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .btn-danger {
             background: var(--danger);
         }
@@ -404,7 +427,6 @@
             background: var(--danger-dark);
         }
 
-        /* Toggle switch */
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -445,7 +467,23 @@
             transform: translateX(24px);
         }
 
-        /* Responsive */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--gray-800);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1100;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
         @media (max-width: 640px) {
             .booking-card {
                 padding: 24px;
@@ -461,7 +499,7 @@
 </head>
 <body>
 
-<!-- ===== HEADER WITH MANAGE DROPDOWN INCLUDING VIEW TICKET ===== -->
+<!-- ===== HEADER WITH ADMIN MENU FIX ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -480,7 +518,7 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
+            <!-- MANAGE DROPDOWN - HORIZONTAL -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -488,14 +526,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -519,11 +555,14 @@
         <div class="header-right">
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <!-- ADMIN MENU FIX: My Dashboard only shows for regular users, NOT for admins -->
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -581,35 +620,31 @@
                 <i class="fas fa-chevron-down"></i>
             </div>
             <div class="section-content">
-                <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_profile_picture') }}">
-                    <div class="profile-picture">
-                        {% if user.profile_picture %}
-                            <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Default">
-                        {% endif %}
-                        <label class="upload-btn">
-                            <i class="fas fa-camera"></i> Change picture
-                            <input type="file" name="profile_picture" accept="image/*" onchange="this.form.submit()">
-                        </label>
-                    </div>
-                </form>
+                <div class="profile-picture">
+                    <img id="profileImage" src="{% if user.profile_picture %}{{ url_for('static', filename='uploads/' + user.profile_picture) }}{% else %}https://ui-avatars.com/api/?name={{ user.fullname|urlencode }}&background=2c8fbb&color=fff{% endif %}" alt="Profile">
+                    <label class="upload-btn">
+                        <i class="fas fa-camera"></i> Change picture
+                        <input type="file" id="avatarInput" accept="image/*">
+                    </label>
+                </div>
 
-                <form method="POST">
-                    <input type="hidden" name="action" value="update_profile">
+                <form id="profileForm">
                     <div class="input-group">
                         <label>Full name</label>
-                        <input type="text" name="fullname" value="{{ user.fullname or '' }}" required>
+                        <input type="text" id="fullname" name="fullname" value="{{ user.fullname or '' }}" required>
                     </div>
                     <div class="input-group">
                         <label>Email address</label>
-                        <input type="email" name="email" value="{{ user.email }}" required>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        <div class="error-message" id="emailError"></div>
                     </div>
                     <div class="input-group">
                         <label>Phone number <span style="font-weight: normal;">(optional)</span></label>
-                        <input type="tel" name="phone" value="{{ phone }}">
+                        <input type="tel" id="phone" name="phone" value="{{ phone or '' }}">
                     </div>
-                    <button type="submit" class="book-btn">Update profile</button>
+                    <button type="submit" class="book-btn" id="updateProfileBtn">
+                        <i class="fas fa-save"></i> Update profile
+                    </button>
                 </form>
             </div>
         </div>
@@ -621,21 +656,25 @@
                 <i class="fas fa-chevron-down"></i>
             </div>
             <div class="section-content">
-                <form method="POST">
-                    <input type="hidden" name="action" value="change_password">
+                <form id="passwordForm">
                     <div class="input-group">
                         <label>Current password</label>
-                        <input type="password" name="current_password" required autocomplete="current-password">
+                        <input type="password" id="currentPassword" required autocomplete="current-password">
+                        <div class="error-message" id="currentPwdError"></div>
                     </div>
                     <div class="input-group">
                         <label>New password</label>
-                        <input type="password" name="new_password" required autocomplete="new-password">
+                        <input type="password" id="newPassword" required autocomplete="new-password">
+                        <div class="error-message" id="newPwdError"></div>
                     </div>
                     <div class="input-group">
                         <label>Confirm new password</label>
-                        <input type="password" name="confirm_password" required>
+                        <input type="password" id="confirmPassword" required>
+                        <div class="error-message" id="confirmPwdError"></div>
                     </div>
-                    <button type="submit" class="book-btn">Change password</button>
+                    <button type="submit" class="book-btn" id="changePasswordBtn">
+                        <i class="fas fa-key"></i> Change password
+                    </button>
                 </form>
             </div>
         </div>
@@ -647,17 +686,16 @@
                 <i class="fas fa-chevron-down"></i>
             </div>
             <div class="section-content">
-                <form method="POST">
-                    <input type="hidden" name="action" value="update_notifications">
-                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                        <span style="font-weight: 500;">Email reminders about upcoming flights</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="email_reminders" {% if email_reminders %}checked{% endif %}>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <button type="submit" class="book-btn" style="margin-top: 1.5rem;">Save preferences</button>
-                </form>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                    <span style="font-weight: 500;">Email reminders about upcoming flights</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="emailReminders" {% if email_reminders %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button class="book-btn" id="saveNotificationsBtn">
+                    <i class="fas fa-save"></i> Save preferences
+                </button>
             </div>
         </div>
 
@@ -668,31 +706,283 @@
                 <i class="fas fa-chevron-down"></i>
             </div>
             <div class="section-content">
-                <form method="POST" onsubmit="return confirm('⚠️ Permanently delete your account? This cannot be undone. All your bookings and data will be removed.');">
-                    <input type="hidden" name="action" value="delete_account">
-                    <p style="color: var(--gray-600); margin-bottom: 1.25rem;">Once deleted, all your data will be permanently removed.</p>
-                    <button type="submit" class="book-btn btn-danger">Delete account</button>
-                </form>
+                <p style="color: var(--gray-600); margin-bottom: 1.25rem;">⚠️ Once deleted, all your data will be permanently removed. This action cannot be undone.</p>
+                <button class="book-btn btn-danger" id="deleteAccountBtn">
+                    <i class="fas fa-trash-alt"></i> Delete account
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // Toast notification function
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = isError ? '#dc2626' : '#10b981';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
     // Accordion functionality
-    document.querySelectorAll('.section-header').forEach(header => {
-        const content = header.nextElementSibling;
+    document.querySelectorAll('.settings-section .section-header').forEach(header => {
+        const content = header.parentElement.querySelector('.section-content');
         const icon = header.querySelector('i:last-child');
-        header.addEventListener('click', () => {
-            content.classList.toggle('active');
-            if (content.classList.contains('active')) {
+        
+        // Open first section by default
+        if (header.closest('.settings-section') === document.querySelector('.settings-section')) {
+            content.classList.add('active');
+            if (icon) {
                 icon.classList.remove('fa-chevron-down');
                 icon.classList.add('fa-chevron-up');
+            }
+        }
+        
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            content.classList.toggle('active');
+            if (content.classList.contains('active')) {
+                if (icon) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                }
             } else {
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
             }
         });
+    });
+
+    // ==================== UPLOAD AVATAR ====================
+    const avatarInput = document.getElementById('avatarInput');
+    const profileImage = document.getElementById('profileImage');
+
+    avatarInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showToast('Please select an image file', true);
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Image must be less than 5MB', true);
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        const btnText = avatarInput.previousElementSibling;
+        const originalText = btnText.innerHTML;
+        btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        
+        try {
+            const response = await fetch('/api/upload_avatar', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error);
+            
+            // Update image with cache buster
+            profileImage.src = data.avatar_url + '?t=' + Date.now();
+            showToast('Profile picture updated successfully!');
+        } catch (error) {
+            showToast(error.message, true);
+        } finally {
+            btnText.innerHTML = originalText;
+            avatarInput.value = '';
+        }
+    });
+
+    // ==================== UPDATE PROFILE ====================
+    const profileForm = document.getElementById('profileForm');
+    const updateProfileBtn = document.getElementById('updateProfileBtn');
+
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const fullname = document.getElementById('fullname').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            document.getElementById('emailError').textContent = 'Please enter a valid email address';
+            document.getElementById('emailError').style.display = 'block';
+            return;
+        }
+        document.getElementById('emailError').style.display = 'none';
+        
+        updateProfileBtn.disabled = true;
+        updateProfileBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+        
+        try {
+            const response = await fetch('/api/update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fullname, email, phone })
+            });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error);
+            
+            showToast('Profile updated successfully!');
+            
+            // Update avatar if name changed
+            if (fullname && !profileImage.src.includes('uploads')) {
+                profileImage.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullname)}&background=2c8fbb&color=fff`;
+            }
+        } catch (error) {
+            showToast(error.message, true);
+        } finally {
+            updateProfileBtn.disabled = false;
+            updateProfileBtn.innerHTML = '<i class="fas fa-save"></i> Update profile';
+        }
+    });
+
+    // ==================== CHANGE PASSWORD ====================
+    const passwordForm = document.getElementById('passwordForm');
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    function validatePassword() {
+        let isValid = true;
+        
+        if (newPassword.value.length < 6) {
+            document.getElementById('newPwdError').textContent = 'Password must be at least 6 characters';
+            document.getElementById('newPwdError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('newPwdError').style.display = 'none';
+        }
+        
+        if (newPassword.value !== confirmPassword.value) {
+            document.getElementById('confirmPwdError').textContent = 'Passwords do not match';
+            document.getElementById('confirmPwdError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('confirmPwdError').style.display = 'none';
+        }
+        
+        return isValid;
+    }
+
+    newPassword.addEventListener('input', validatePassword);
+    confirmPassword.addEventListener('input', validatePassword);
+
+    passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!validatePassword()) return;
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPwd = newPassword.value;
+        
+        changePasswordBtn.disabled = true;
+        changePasswordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+        
+        try {
+            const response = await fetch('/api/change_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    old_password: currentPassword, 
+                    new_password: newPwd 
+                })
+            });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error);
+            
+            showToast('Password changed successfully!');
+            passwordForm.reset();
+            document.getElementById('currentPwdError').style.display = 'none';
+        } catch (error) {
+            if (error.message.includes('Current password is incorrect')) {
+                document.getElementById('currentPwdError').textContent = 'Current password is incorrect';
+                document.getElementById('currentPwdError').style.display = 'block';
+            } else {
+                showToast(error.message, true);
+            }
+        } finally {
+            changePasswordBtn.disabled = false;
+            changePasswordBtn.innerHTML = '<i class="fas fa-key"></i> Change password';
+        }
+    });
+
+    // ==================== NOTIFICATIONS ====================
+    const saveNotificationsBtn = document.getElementById('saveNotificationsBtn');
+    const emailReminders = document.getElementById('emailReminders');
+
+    saveNotificationsBtn.addEventListener('click', async () => {
+        saveNotificationsBtn.disabled = true;
+        saveNotificationsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        
+        try {
+            const response = await fetch('/api/update_notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email_reminders: emailReminders.checked 
+                })
+            });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error);
+            
+            showToast('Notification preferences saved!');
+        } catch (error) {
+            showToast(error.message, true);
+        } finally {
+            saveNotificationsBtn.disabled = false;
+            saveNotificationsBtn.innerHTML = '<i class="fas fa-save"></i> Save preferences';
+        }
+    });
+
+    // ==================== DELETE ACCOUNT ====================
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+    deleteAccountBtn.addEventListener('click', async () => {
+        const confirmed = confirm('⚠️ WARNING: This will permanently delete your account and all your bookings. This action cannot be undone. Are you absolutely sure?');
+        
+        if (!confirmed) return;
+        
+        const finalConfirm = confirm('Type "DELETE" to confirm account deletion:');
+        if (!finalConfirm) return;
+        
+        deleteAccountBtn.disabled = true;
+        deleteAccountBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        
+        try {
+            const response = await fetch('/api/delete_account', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            
+            if (!response.ok) throw new Error(data.error);
+            
+            showToast('Account deleted successfully. Redirecting...');
+            setTimeout(() => {
+                window.location.href = '/logout';
+            }, 2000);
+        } catch (error) {
+            showToast(error.message, true);
+            deleteAccountBtn.disabled = false;
+            deleteAccountBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete account';
+        }
     });
 </script>
 

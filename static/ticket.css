@@ -136,7 +136,7 @@ body {
     border-radius: 0 0 24px 24px; 
     box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
     position: relative;
-    overflow: visible;  /* CHANGED: visible instead of hidden to prevent hole clipping */
+    overflow: visible;
     transform-style: preserve-3d;
 }
 
@@ -197,6 +197,16 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/* Ensure all text in stub-body is left-aligned */
+.stub-body .info-row,
+.stub-body .date-time-wrapper,
+.stub-body .barcode-sm,
+.stub-body .barcode-sub-sm,
+.stub-body .destination-label-sm,
+.stub-body .stub-route {
+    text-align: left;
 }
 
 .info-row {
@@ -273,16 +283,27 @@ body {
     margin-left: 20px;
 }
 
+/* FIXED: Left-aligned stub route */
 .stub-route {
     color: #63c5f1;
     font-weight: 550;
     font-size: 23px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: 8px;
     margin-bottom: 10px;
     margin-top: -18px;
+    padding-left: 5px;
+}
+
+.stub-route .dest-acronym {
+    min-width: 55px;
+    text-align: left;
+}
+
+.stub-route .plane-mini {
+    font-size: 18px;
 }
 
 .main-body {
@@ -486,6 +507,12 @@ body {
 
 .seat-main-label { margin-top: -18px; }
 
+/* Acronym styling for consistent width */
+.dest-acronym {
+    display: inline-block;
+    min-width: 55px;
+}
+
 /* --- BACK TICKET STYLES --- */
 .ticket-back {
     display: flex;
@@ -495,7 +522,7 @@ body {
     border-radius: 0 0 24px 24px; 
     box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.2);
     position: relative;
-    overflow: visible;  /* CHANGED: visible instead of hidden */
+    overflow: visible;
     font-family: 'Montserrat', sans-serif;
     margin-top: 0; 
     transform-style: preserve-3d;

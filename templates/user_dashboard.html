@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='booking.css') }}">
     <style>
-        /* ===== ENHANCED DASHBOARD STYLES (ONLY FOR NEW CONTENT – NO HEADER STYLES) ===== */
+        /* ===== ENHANCED DASHBOARD STYLES ===== */
         :root {
             --primary: #2c8fbb;
             --primary-dark: #1e6f94;
@@ -23,7 +23,234 @@
             --radius-md: 16px;
         }
 
-        /* Dashboard two-column layout */
+        /* ===== HEADER & DROPDOWN STYLES ===== */
+        .main-header {
+            background-color: #ffffff;
+            padding: 5px 0;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 4px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .logo { display: flex; justify-content: flex-start; flex: 1; }
+        .logo img {
+            height: 140px !important;
+            width: auto;
+            margin-top: -25px;
+            margin-bottom: -25px;
+            display: block;
+            position: relative;
+            z-index: 5;
+        }
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            margin-bottom: 0;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+        }
+        .nav-links a, .dropbtn {
+            text-decoration: none;
+            color: #4dbbee;
+            font-weight: 700;
+            font-size: 1.1rem;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .dropdown { position: relative; display: inline-block; }
+        
+        /* Main navigation dropdown (circular icons) - HORIZONTAL */
+        .dropdown-content {
+            display: flex;
+            flex-direction: row;
+            position: absolute;
+            background: white;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 15px;
+            padding: 20px;
+            gap: 15px;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            margin-top: 10px;
+            z-index: 1001;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown-content:hover {
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0;
+        }
+        .dropdown-content a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            transition: 0.2s;
+            min-width: 100px;
+        }
+        .dropdown-content a .menu-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dropdown-content a .menu-icon i {
+            color: white;
+            font-size: 24px;
+        }
+        .dropdown-content a:hover {
+            background: #f0f9ff;
+            transform: translateY(-3px);
+        }
+
+        /* MANAGE DROPDOWN - HORIZONTAL (same as Book dropdown) */
+        .manage-dropdown {
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+            gap: 15px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
+        }
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* SETTINGS DROPDOWN - VERTICAL (right-aligned) */
+        .settings-dropdown {
+            flex-direction: column !important;
+            min-width: 210px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .settings-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            text-align: left !important;
+        }
+        .settings-dropdown a .menu-icon {
+            width: 28px !important;
+            height: 28px !important;
+            background: none !important;
+            box-shadow: none !important;
+            margin-bottom: 0 !important;
+        }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+
+        /* ACCOUNT DROPDOWN - VERTICAL (right-aligned) */
+        .account-dropdown {
+            flex-direction: column !important;
+            min-width: 160px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
+        }
+        .account-dropdown a {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            color: #4a4a4a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .account-dropdown a i {
+            width: 20px;
+            color: #4eb8e9;
+        }
+        .account-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
+
+        .header-right {
+            display: flex;
+            justify-content: flex-end;
+            gap: 25px;
+            flex: 1;
+            align-items: center;
+        }
+        .search-icon {
+            color: #4dbbee;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
         .dashboard-container {
             max-width: 1440px;
             margin: 2rem auto 3rem;
@@ -33,15 +260,10 @@
             gap: 2rem;
         }
         @media (max-width: 1024px) {
-            .dashboard-container {
-                grid-template-columns: 1fr;
-            }
+            .dashboard-container { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
-            .dashboard-container {
-                padding: 0 1.25rem;
-                margin: 1.5rem auto;
-            }
+            .dashboard-container { padding: 0 1.25rem; margin: 1.5rem auto; }
         }
 
         .dashboard-main-card {
@@ -56,7 +278,6 @@
             gap: 1.5rem;
         }
 
-        /* Profile card */
         .profile-card {
             background: white;
             border-radius: var(--radius-lg);
@@ -76,6 +297,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid var(--primary-light);
+            cursor: pointer;
         }
         .default-avatar {
             width: 80px;
@@ -99,12 +321,15 @@
             padding: 0.25rem 0.75rem;
             border-radius: 40px;
         }
-        .admin-badge {
-            background: #fef3c7;
-            color: #b45309;
+        .provider-badge {
+            background: #e8eef2;
+            color: #4a5568;
+        }
+        .google-badge {
+            background: #fff3e0;
+            color: #db4437;
         }
 
-        /* Quick actions */
         .quick-action-grid {
             display: flex;
             flex-direction: column;
@@ -127,17 +352,13 @@
             width: 100%;
             text-align: left;
         }
-        .quick-btn i {
-            width: 24px;
-            color: var(--primary);
-        }
+        .quick-btn i { width: 24px; color: var(--primary); }
         .quick-btn:hover {
             background: white;
             border-color: var(--gray-200);
             transform: translateX(4px);
         }
 
-        /* Stats grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -169,17 +390,25 @@
             color: var(--gray-600);
             margin-top: 6px;
         }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 40px;
+            width: 80%;
+            margin: 0 auto;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
 
-        /* Bookings list */
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
             margin-bottom: 1.5rem;
-        }
-        .section-header h2 {
-            font-size: 1.35rem;
-            font-weight: 700;
         }
         .booking-row {
             display: flex;
@@ -205,15 +434,9 @@
             justify-content: center;
             margin-right: 1rem;
         }
-        .flight-icon i {
-            color: var(--primary);
-        }
-        .booking-info-main {
-            flex: 1;
-        }
-        .booking-title {
-            font-weight: 700;
-        }
+        .flight-icon i { color: var(--primary); }
+        .booking-info-main { flex: 1; }
+        .booking-title { font-weight: 700; }
         .route-detail {
             font-size: 0.85rem;
             color: var(--gray-600);
@@ -227,16 +450,31 @@
             padding: 0.2rem 0.7rem;
             border-radius: 40px;
             font-weight: 600;
-            background: var(--gray-200);
         }
-        .status-upcoming {
-            background: #e0f2fe;
-            color: #0369a1;
+        .status-upcoming { background: #e0f2fe; color: #0369a1; }
+        .status-completed { background: #dcfce7; color: #15803d; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        
+        /* Check-in status badges */
+        .checkin-status-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        .status-completed {
-            background: #dcfce7;
-            color: #15803d;
+        .checkin-status-badge.checked-in {
+            background: #27ae60;
+            color: white;
         }
+        .checkin-status-badge.not-checked-in {
+            background: #f39c12;
+            color: white;
+        }
+        
         .btn-outline-sm {
             background: transparent;
             border: 1px solid var(--gray-200);
@@ -266,6 +504,15 @@
             border-color: #ef4444;
             color: #b91c1c;
         }
+        .btn-checkin-sm {
+            border-color: #27ae60;
+            color: #15803d;
+        }
+        .btn-checkin-sm:hover {
+            background: #dcfce7;
+            border-color: #27ae60;
+        }
+        
         .empty-state-modern {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -273,28 +520,30 @@
             border-radius: var(--radius-lg);
             border: 1px dashed var(--gray-200);
         }
-        .miles-progress {
-            margin-top: 1rem;
-        }
+        
+        .points-progress { margin-top: 1rem; }
         .progress-bar-bg {
             background: var(--gray-200);
             border-radius: 40px;
-            height: 6px;
+            height: 8px;
             overflow: hidden;
             margin: 0.5rem 0;
         }
         .progress-fill {
             width: 0%;
             height: 100%;
-            background: var(--primary);
+            background: linear-gradient(90deg, var(--primary), #4eb8e9);
             border-radius: 40px;
+            transition: width 0.5s ease;
         }
+        
         .help-card {
             background: var(--gray-50);
             border-radius: var(--radius-lg);
             padding: 1.2rem;
             border: 1px solid var(--gray-200);
         }
+        
         footer {
             background: white;
             border-top: 1px solid var(--gray-200);
@@ -304,92 +553,8 @@
             color: var(--gray-600);
             margin-top: 2rem;
         }
-        @media (max-width: 640px) {
-            .stats-grid {
-                gap: 0.75rem;
-            }
-            .booking-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-        }
 
-        /* ===== SETTINGS DROPDOWN STYLING (MATCH YOUR IMAGE) ===== */
-        .settings-dropdown {
-            min-width: 200px !important;
-            background: white !important;
-            border-radius: 12px !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-            padding: 0.5rem 0 !important;
-            border: 1px solid #e5e7eb !important;
-            right: 0 !important;
-            left: auto !important;
-        }
-
-        .settings-dropdown a {
-            display: flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-            padding: 10px 16px !important;
-            color: #1f2937 !important;
-            font-size: 0.875rem !important;
-            font-weight: 500 !important;
-            text-decoration: none !important;
-            transition: background 0.2s ease !important;
-        }
-
-        .settings-dropdown a:hover {
-            background: #f3f4f6 !important;
-            color: #2c8fbb !important;
-        }
-
-        .settings-dropdown a .menu-icon {
-            width: 24px !important;
-            text-align: center !important;
-        }
-
-        .settings-dropdown a .menu-icon i {
-            color: #2c8fbb !important;
-            font-size: 1rem !important;
-            width: auto !important;
-        }
-
-        /* Manage dropdown styling */
-        .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-            margin-top: 10px !important;
-        }
-        .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
-        }
-        
-        /* Flash message styles */
-        .flash-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #c3e6cb;
-            margin: 0;
-        }
-        .flash-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border-bottom: 1px solid #f5c6cb;
-        }
-
-        /* ----- NEW MODAL & TOAST STYLES (added) ----- */
+        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -417,9 +582,7 @@
             padding: 2rem;
             box-shadow: var(--shadow-md);
         }
-        .modal-container h3 {
-            margin-bottom: 1rem;
-        }
+        .modal-container h3 { margin-bottom: 1rem; }
         .modal-container input, .modal-container select {
             width: 100%;
             padding: 0.75rem;
@@ -433,6 +596,7 @@
             gap: 1rem;
             margin-top: 1rem;
         }
+        
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -443,12 +607,35 @@
             border-radius: 40px;
             z-index: 1100;
             font-size: 0.875rem;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .flash-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #c3e6cb;
+            margin: 0;
+        }
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 640px) {
+            .stats-grid { gap: 0.75rem; }
+            .booking-row { flex-direction: column; align-items: flex-start; gap: 12px; }
         }
     </style>
 </head>
 <body>
 
-<!-- ========== ORIGINAL HEADER – EXACTLY AS PROVIDED, UNTOUCHED ========== -->
+<!-- ===== HEADER WITH HORIZONTAL MANAGE DROPDOWN ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -461,13 +648,13 @@
             <div class="dropdown">
                 <a href="{{ url_for('booking') }}" class="dropbtn">Book</a>
                 <div class="dropdown-content">
-                    <a href="{{ url_for('booking') }}">
+                    <a href="{{ url_for('flight') }}">
                         <div class="menu-icon"><i class="fas fa-plane"></i></div>
                         Flights
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
+            <!-- MANAGE DROPDOWN - HORIZONTAL -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -475,14 +662,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -511,20 +696,10 @@
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
-                    <a href="#" id="editProfileModalBtn">
+                    <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
                     </a>
-                    {% if session.get('is_admin') %}
-                    <a href="{{ url_for('admin_dashboard') }}">
-                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
-                        Admin Dashboard
-                    </a>
-                    <a href="{{ url_for('admin_settings') }}">
-                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
-                        Admin Settings
-                    </a>
-                    {% endif %}
                     <a href="{{ url_for('logout') }}">
                         <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
                         Logout
@@ -535,7 +710,7 @@
     </div>
 </header>
 
-<!-- Flash messages -->
+<!-- Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -546,185 +721,125 @@
     {% endif %}
 {% endwith %}
 
-<!-- ========== ENHANCED DASHBOARD AREA (NEW – NO HEADER CSS) ========== -->
+<!-- ===== DASHBOARD MAIN CONTENT ===== -->
 <div class="dashboard-container">
-    <!-- LEFT COLUMN -->
+    <!-- LEFT COLUMN - My Bookings -->
     <div class="dashboard-main-card">
         <div style="margin-bottom: 0.5rem;">
-            <h1 style="font-size: 1.8rem; font-weight: 700;" id="welcomeName">Welcome back, {{ user.fullname or user.email }}</h1>
-            <p style="color: var(--gray-600);">Your flight insights at a glance</p>
+            <h1 style="font-size: 1.8rem; font-weight: 700;" id="welcomeName">My Bookings</h1>
+            <p style="color: var(--gray-600);">View and manage your flight reservations</p>
         </div>
 
-        <!-- Stats Grid -->
+        <!-- Stats Grid with Loading States -->
         <div class="stats-grid">
             <div class="stat-modern">
-                <div class="stat-number" id="bookingCount">{{ bookings|length }}</div>
-                <div class="stat-label">Recent bookings</div>
+                <div class="stat-number" id="bookingCount">0</div>
+                <div class="stat-label">Total Bookings</div>
             </div>
             <div class="stat-modern">
-                <div class="stat-number" id="totalSpent">₱{{ "{:,.0f}".format(total_spent|float) if total_spent else "0" }}</div>
-                <div class="stat-label">Total spent</div>
+                <div class="stat-number" id="totalSpent">₱0</div>
+                <div class="stat-label">Total Spent</div>
             </div>
             <div class="stat-modern">
-                <div class="stat-number" id="upcomingCountPlaceholder">—</div>
-                <div class="stat-label">Upcoming flights</div>
+                <div class="stat-number" id="upcomingCount">0</div>
+                <div class="stat-label">Upcoming Flights</div>
             </div>
         </div>
 
-        <!-- Recent Bookings Header -->
+        <!-- Bookings List -->
         <div class="section-header">
-            <h2><i class="fas fa-history" style="margin-right: 8px; color: var(--primary);"></i> Recent activity</h2>
-            <div>
-                <button id="refreshBookingsBtn" class="btn-outline-sm" style="margin-right: 8px;"><i class="fas fa-sync-alt"></i> Refresh</button>
-                <a href="{{ url_for('user_settings') }}" style="font-size: 0.8rem; color: var(--primary); text-decoration: none;">View all →</a>
-            </div>
+            <h2><i class="fas fa-history" style="margin-right: 8px; color: var(--primary);"></i> My Flight History</h2>
+            <button id="refreshBookingsBtn" class="btn-outline-sm"><i class="fas fa-sync-alt"></i> Refresh</button>
         </div>
 
         <div id="bookingsListContainer">
-            {% if bookings %}
-                {% for booking in bookings %}
-                <div class="booking-row" data-booking-id="{{ booking.id }}" data-booking-date="{{ booking.date }}">
-                    <div style="display: flex; align-items: center; flex:1;">
-                        <div class="flight-icon">
-                            <i class="fas fa-plane-departure"></i>
-                        </div>
-                        <div class="booking-info-main">
-                            <div class="booking-title">{{ booking.flight_no }} • {{ booking.origin }} ✈ {{ booking.destination }}</div>
-                            <div class="route-detail">
-                                <span><i class="far fa-calendar-alt"></i> {{ booking.date }}</span>
-                                <span><i class="fas fa-users"></i> {{ booking.seats }} pax</span>
-                                <span><i class="fas fa-tag"></i> ₱{{ "{:,.0f}".format(booking.total|float) }}</span>
-                                <span class="status-badge">Loading</span>
-                            </div>
-                            <div style="font-size: 0.7rem; color: var(--gray-600); margin-top: 4px;">
-                                <i class="fas fa-barcode"></i> Ref: {{ booking.booking_reference }}
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <a href="{{ url_for('view_ticket') }}?id={{ booking.id }}" class="btn-outline-sm view-ticket-btn">
-                            <i class="fas fa-eye"></i> View Ticket
-                        </a>
-                        <button class="btn-outline-sm btn-danger-sm cancel-booking-btn" data-id="{{ booking.id }}">
-                            <i class="fas fa-trash-alt"></i> Cancel
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state-modern" id="emptyBookingsMsg">
-                    <i class="fas fa-plane-slash" style="font-size: 2.5rem; color: var(--gray-600); margin-bottom: 1rem;"></i>
-                    <p>No flights booked yet</p>
-                    <a href="{{ url_for('booking') }}" style="color: var(--primary); font-weight: 500;">Explore destinations →</a>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Travel inspiration -->
-        <div style="margin-top: 2rem; background: var(--primary-light); border-radius: var(--radius-md); padding: 1rem; border-left: 3px solid var(--primary);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-map-marked-alt" style="color: var(--primary);"></i>
-                <span style="font-weight: 500;">Exclusive deals just for you</span>
-            </div>
-            <p style="font-size: 0.8rem; margin-top: 6px; color: var(--gray-600);">Check Tokyo, Singapore and Dubai — limited seats remaining.</p>
+            <div class="loading-shimmer" style="height: 100px; margin: 20px;"></div>
+            <div class="loading-shimmer" style="height: 100px; margin: 20px;"></div>
         </div>
     </div>
 
-    <!-- RIGHT COLUMN: Profile + Quick Actions -->
+    <!-- RIGHT COLUMN - Profile & Quick Actions -->
     <div class="dashboard-sidebar">
-        <!-- Profile card -->
-        <div class="profile-card" id="profileCard">
+        <!-- Profile Card -->
+        <div class="profile-card">
             <div class="avatar-container">
-                <div id="avatarPreview">
-                    {% if user.profile_pic %}
-                        <img src="{% if user.profile_pic.startswith('http') %}{{ user.profile_pic }}{% else %}{{ url_for('static', filename='uploads/' + user.profile_pic) }}{% endif %}" alt="Profile" class="profile-img" id="userProfileImg">
-                    {% else %}
-                        <div class="default-avatar" id="defaultAvatar">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                    {% endif %}
+                <div id="avatarPreview" onclick="document.getElementById('avatarFileInput').click();">
+                    <div class="default-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
                 </div>
                 <div>
-                    <h3 style="font-size: 1.25rem; font-weight: 700;" id="profileName">{{ user.fullname or 'Traveler' }}</h3>
-                    <p style="color: var(--gray-600); font-size: 0.8rem; margin: 4px 0;" id="profileEmail">{{ user.email }}</p>
+                    <h3 style="font-size: 1.25rem; font-weight: 700;" id="profileName">Loading...</h3>
+                    <p style="color: var(--gray-600); font-size: 0.8rem; margin: 4px 0;" id="profileEmail">Loading...</p>
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 6px;">
-                        <span class="member-badge"><i class="fas fa-gem"></i> Elite Silver</span>
-                        {% if session.get('is_admin') or user.is_admin %}
-                        <span class="member-badge admin-badge"><i class="fas fa-user-shield"></i> Administrator</span>
-                        {% endif %}
-                        <span class="member-badge"><i class="fas fa-globe"></i> Member since 2024</span>
+                        <span class="member-badge" id="memberBadge"><i class="fas fa-gem"></i> Member</span>
+                        <span class="member-badge provider-badge" id="providerBadge"><i class="fas fa-envelope"></i> Email</span>
+                        <span class="member-badge" id="joinDateBadge"><i class="fas fa-calendar"></i> Joined</span>
                     </div>
                 </div>
             </div>
+            <input type="file" id="avatarFileInput" accept="image/*" style="display: none;" onchange="uploadAvatar(this.files[0])">
 
-            <!-- Mileage progress -->
-            <div class="miles-progress">
-                <div style="display: flex; justify-content: space-between; font-size: 0.7rem;">
-                    <span><i class="fas fa-chart-line"></i> Tier miles</span>
-                    <span id="milesText">0 / 3,500</span>
+            <!-- Loyalty Points -->
+            <div class="points-progress">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                    <span><i class="fas fa-star"></i> Loyalty Points</span>
+                    <span id="pointsText">0 pts</span>
                 </div>
                 <div class="progress-bar-bg">
-                    <div class="progress-fill" id="mileProgressFill" style="width: 0%;"></div>
+                    <div class="progress-fill" id="pointsProgressFill" style="width: 0%;"></div>
                 </div>
-                <button id="redeemMilesBtn" class="btn-outline-sm" style="width:100%; margin-top:8px;">Redeem miles</button>
+                <p style="font-size: 0.65rem; color: var(--gray-600); margin-top: 5px;">💡 Earn 1 point per ₱100 spent | 2000 points = Free Flight Upgrade</p>
             </div>
         </div>
 
-        <!-- Quick actions -->
+        <!-- Quick Actions -->
         <div class="profile-card">
-            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;"><i class="fas fa-bolt"></i> Quick actions</h4>
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;"><i class="fas fa-bolt"></i> Quick Actions</h4>
             <div class="quick-action-grid">
-                <a href="{{ url_for('booking') }}" class="quick-btn"><i class="fas fa-plane-departure"></i> Book new flight</a>
-                <a href="{{ url_for('manage') }}" class="quick-btn"><i class="fas fa-ticket-alt"></i> Manage bookings</a>
-                <button id="editProfileQuickBtn" class="quick-btn"><i class="fas fa-user-edit"></i> Edit profile</button>
-                <button id="changePasswordQuickBtn" class="quick-btn"><i class="fas fa-key"></i> Change password</button>
-                <button id="supportBtn" class="quick-btn"><i class="fas fa-headset"></i> Support center</button>
+                <a href="{{ url_for('booking') }}" class="quick-btn"><i class="fas fa-plane-departure"></i> Book New Flight</a>
+                <a href="{{ url_for('manage') }}" class="quick-btn"><i class="fas fa-ticket-alt"></i> Manage Bookings</a>
+                <a href="{{ url_for('check_in') }}" class="quick-btn"><i class="fas fa-check-circle"></i> Check-in</a>
+                <button id="editProfileBtn" class="quick-btn"><i class="fas fa-user-edit"></i> Edit Profile</button>
+                <button id="changePasswordBtn" class="quick-btn"><i class="fas fa-key"></i> Change Password</button>
+                <button id="supportBtn" class="quick-btn"><i class="fas fa-headset"></i> Contact Support</button>
             </div>
         </div>
 
-        <!-- Admin extra panel (only if admin) -->
-        {% if session.get('is_admin') %}
-        <div class="profile-card" id="adminExtraPanel">
-            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.8rem;"><i class="fas fa-chalkboard-user"></i> Admin controls</h4>
-            <div class="quick-action-grid">
-                <a href="{{ url_for('admin_dashboard') }}" class="quick-btn"><i class="fas fa-chart-simple"></i> Admin dashboard</a>
-                <button id="manageUsersBtn" class="quick-btn"><i class="fas fa-users-gear"></i> User management</button>
-                <button id="flightAnalyticsBtn" class="quick-btn"><i class="fas fa-chart-line"></i> Flight analytics</button>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Help card -->
+        <!-- Help & Support -->
         <div class="help-card">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem;">
-                <i class="fas fa-shield-alt" style="color: var(--primary);"></i>
-                <span style="font-weight: 600;">Travel safe & smart</span>
+                <i class="fas fa-headset" style="color: var(--primary);"></i>
+                <span style="font-weight: 600;">Need Help?</span>
             </div>
-            <p style="font-size: 0.75rem; line-height: 1.4;">Free rebooking up to 24h before departure for Elite members. Check visa requirements before travel.</p>
+            <p style="font-size: 0.75rem; line-height: 1.4;">24/7 Customer Support available. Call us or send an email for assistance with your bookings.</p>
             <hr style="margin: 0.8rem 0; border-color: var(--gray-200);">
             <div style="display: flex; justify-content: space-between;">
-                <span style="font-size: 0.7rem;"><i class="fas fa-phone-alt"></i> 24/7 hotline</span>
+                <span style="font-size: 0.7rem;"><i class="fas fa-phone-alt"></i> Hotline</span>
                 <span style="font-weight: 600; font-size: 0.8rem;">+1 (888) 876-AERO</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                <span style="font-size: 0.7rem;"><i class="fas fa-envelope"></i> Email</span>
+                <span style="font-weight: 600; font-size: 0.7rem;">support@aeroticket.com</span>
             </div>
         </div>
     </div>
 </div>
 
 <footer>
-    <p>&copy; 2025 AeroTicket — Elevated journeys. All trademarks belong to their respective owners.</p>
+    <p>&copy; 2025 AeroTicket — All rights reserved. Safe travels!</p>
 </footer>
 
-<!-- ======================= MODALS (added) ======================= -->
+<!-- ===== MODALS ===== -->
 <!-- Edit Profile Modal -->
 <div id="editProfileModal" class="modal-overlay">
     <div class="modal-container">
         <h3>Edit Profile</h3>
         <input type="text" id="editFullname" placeholder="Full name">
         <input type="email" id="editEmail" placeholder="Email">
-        <input type="file" id="avatarUpload" accept="image/*">
         <div class="modal-buttons">
             <button class="btn-outline-sm" id="closeProfileModal">Cancel</button>
-            <button class="btn-outline-sm" id="saveProfileBtn">Save changes</button>
+            <button class="btn-outline-sm" id="saveProfileBtn">Save Changes</button>
         </div>
     </div>
 </div>
@@ -733,316 +848,348 @@
 <div id="changePasswordModal" class="modal-overlay">
     <div class="modal-container">
         <h3>Change Password</h3>
-        <input type="password" id="oldPassword" placeholder="Current password">
-        <input type="password" id="newPassword" placeholder="New password">
-        <input type="password" id="confirmPassword" placeholder="Confirm password">
+        <input type="password" id="oldPassword" placeholder="Current Password">
+        <input type="password" id="newPassword" placeholder="New Password (min 6 characters)">
+        <input type="password" id="confirmPassword" placeholder="Confirm New Password">
         <div class="modal-buttons">
             <button class="btn-outline-sm" id="closePwdModal">Cancel</button>
-            <button class="btn-outline-sm" id="savePasswordBtn">Update password</button>
-        </div>
-    </div>
-</div>
-
-<!-- Redeem Miles Modal -->
-<div id="redeemMilesModal" class="modal-overlay">
-    <div class="modal-container">
-        <h3>Redeem Miles</h3>
-        <p>Your miles: <span id="currentMilesSpan">0</span></p>
-        <select id="rewardSelect">
-            <option value="500">500 miles - ₱500 off</option>
-            <option value="1000">1000 miles - Lounge access</option>
-            <option value="2500">2500 miles - Free upgrade</option>
-        </select>
-        <div class="modal-buttons">
-            <button class="btn-outline-sm" id="closeRedeemModal">Cancel</button>
-            <button class="btn-outline-sm" id="confirmRedeemBtn">Redeem</button>
-        </div>
-    </div>
-</div>
-
-<!-- Admin Modals (simple alert-style but we'll use modal for users list) -->
-<div id="adminUsersModal" class="modal-overlay">
-    <div class="modal-container">
-        <h3>User Management</h3>
-        <div id="userListContainer" style="max-height:300px; overflow-y:auto;"></div>
-        <div class="modal-buttons">
-            <button class="btn-outline-sm" id="closeUsersModal">Close</button>
+            <button class="btn-outline-sm" id="savePasswordBtn">Update Password</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ------------------------- Helper Functions -------------------------
-    function showToast(msg, isError = false) {
+    // ==================== HELPER FUNCTIONS ====================
+    function showToast(message, isError = false) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
-        toast.style.background = isError ? '#b91c1c' : '#2c8fbb';
-        toast.innerText = msg;
+        toast.style.background = isError ? '#dc2626' : '#2c8fbb';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
-    async function fetchJSON(url, options = {}) {
+    async function apiRequest(url, options = {}) {
         try {
-            const res = await fetch(url, {
+            const response = await fetch(url, {
                 ...options,
                 headers: { 'Content-Type': 'application/json', ...options.headers }
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Request failed');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Request failed');
             return data;
-        } catch (err) {
-            showToast(err.message, true);
-            throw err;
+        } catch (error) {
+            showToast(error.message, true);
+            throw error;
         }
     }
 
-    // ------------------------- Load Dashboard Data (API) -------------------------
-    async function loadDashboardData() {
+    // ==================== FETCH AND UPDATE DASHBOARD ====================
+    async function updateDashboard() {
         try {
-            const data = await fetchJSON('/api/dashboard');
-            // Update stats
-            document.getElementById('bookingCount').innerText = data.bookingCount;
-            document.getElementById('totalSpent').innerHTML = '₱' + data.totalSpent.toLocaleString();
-            document.getElementById('upcomingCountPlaceholder').innerText = data.upcomingCount;
-            // Update miles
-            const miles = Math.min(Math.floor(data.totalSpent * 1.2), 3500);
-            document.getElementById('milesText').innerHTML = `${Math.floor(miles)} / 3,500`;
-            document.getElementById('mileProgressFill').style.width = (miles / 3500 * 100) + '%';
-            // Update profile info
-            if (data.user.fullname) document.getElementById('profileName').innerText = data.user.fullname;
-            document.getElementById('profileEmail').innerText = data.user.email;
-            document.getElementById('welcomeName').innerText = `Welcome back, ${data.user.fullname || data.user.email}`;
-            // Update avatar if changed
-            if (data.user.profile_pic) {
-                const avatarDiv = document.getElementById('avatarPreview');
-                avatarDiv.innerHTML = `<img src="${data.user.profile_pic}" alt="Profile" class="profile-img" id="userProfileImg">`;
+            const data = await apiRequest('/api/user/dashboard');
+            
+            // Update stats with fetched data
+            document.getElementById('bookingCount').innerText = data.total_bookings || 0;
+            document.getElementById('totalSpent').innerHTML = '₱' + (data.total_spent || 0).toLocaleString();
+            document.getElementById('upcomingCount').innerText = data.upcoming_count || 0;
+            
+            // Update points (1 point per ₱100 spent)
+            const points = Math.floor((data.total_spent || 0) / 100);
+            const maxPoints = 2000;
+            const displayPoints = Math.min(points, maxPoints);
+            document.getElementById('pointsText').innerHTML = `${displayPoints} / ${maxPoints} pts`;
+            document.getElementById('pointsProgressFill').style.width = (displayPoints / maxPoints * 100) + '%';
+            
+            // Update profile information
+            if (data.user) {
+                document.getElementById('profileName').innerText = data.user.fullname || data.user.email.split('@')[0];
+                document.getElementById('profileEmail').innerText = data.user.email;
+                document.getElementById('welcomeName').innerHTML = `My Bookings`;
+                
+                // Update provider badge
+                const providerBadge = document.getElementById('providerBadge');
+                if (data.user.provider === 'google') {
+                    providerBadge.innerHTML = '<i class="fab fa-google"></i> Google Account';
+                    providerBadge.classList.add('google-badge');
+                } else if (data.user.provider === 'apple') {
+                    providerBadge.innerHTML = '<i class="fab fa-apple"></i> Apple Account';
+                } else if (data.user.provider === 'wechat') {
+                    providerBadge.innerHTML = '<i class="fab fa-weixin"></i> WeChat Account';
+                } else {
+                    providerBadge.innerHTML = '<i class="fas fa-envelope"></i> Email Account';
+                }
+                
+                // Update join date
+                if (data.user.created_at) {
+                    const joinDate = new Date(data.user.created_at);
+                    document.getElementById('joinDateBadge').innerHTML = `<i class="fas fa-calendar"></i> Joined ${joinDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+                }
+                
+                // Update profile picture
+                if (data.user.profile_picture) {
+                    const avatarDiv = document.getElementById('avatarPreview');
+                    avatarDiv.innerHTML = `<img src="${data.user.profile_picture}?t=${Date.now()}" alt="Profile" class="profile-img">`;
+                } else {
+                    const avatarDiv = document.getElementById('avatarPreview');
+                    avatarDiv.innerHTML = `<div class="default-avatar"><i class="fas fa-user-circle"></i></div>`;
+                }
             }
-            // Render bookings
-            renderBookings(data.bookings);
-        } catch (err) {
-            console.error('Failed to load dashboard', err);
+            
+            // Render bookings with check-in status
+            renderBookings(data.bookings || []);
+        } catch (error) {
+            console.error('Failed to update dashboard:', error);
+            // Show error state
+            document.getElementById('bookingsListContainer').innerHTML = `
+                <div class="empty-state-modern">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; color: #dc2626; margin-bottom: 1rem;"></i>
+                    <p>Unable to load bookings. Please try again.</p>
+                    <button onclick="updateDashboard()" class="btn-outline-sm">Retry</button>
+                </div>`;
         }
     }
 
     function renderBookings(bookings) {
         const container = document.getElementById('bookingsListContainer');
-        if (!bookings.length) {
-            container.innerHTML = `<div class="empty-state-modern" id="emptyBookingsMsg">
-                <i class="fas fa-plane-slash" style="font-size: 2.5rem; color: var(--gray-600); margin-bottom: 1rem;"></i>
-                <p>No flights booked yet</p>
-                <a href="{{ url_for('booking') }}" style="color: var(--primary); font-weight: 500;">Explore destinations →</a>
-            </div>`;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (!bookings || bookings.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state-modern">
+                    <i class="fas fa-plane-slash" style="font-size: 2.5rem; color: var(--gray-600); margin-bottom: 1rem;"></i>
+                    <p>You haven't booked any flights yet</p>
+                    <a href="{{ url_for('booking') }}" style="color: var(--primary); font-weight: 500;">Book your first flight →</a>
+                </div>`;
             return;
         }
+        
         let html = '';
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        bookings.forEach(b => {
-            let flightDate = new Date(b.date);
-            if (isNaN(flightDate)) {
-                const parts = b.date.split('-');
-                if (parts.length === 3) flightDate = new Date(parts[0], parts[1]-1, parts[2]);
+        let upcomingCount = 0;
+        
+        bookings.forEach(booking => {
+            let isUpcoming = false;
+            let statusClass = 'status-completed';
+            let statusText = 'Completed';
+            
+            if (booking.status === 'cancelled') {
+                statusClass = 'status-cancelled';
+                statusText = 'Cancelled';
+            } else if (booking.status === 'pending') {
+                statusClass = 'status-pending';
+                statusText = 'Pending';
+            } else if (booking.departure_date) {
+                const flightDate = new Date(booking.departure_date);
+                flightDate.setHours(0, 0, 0, 0);
+                isUpcoming = flightDate >= today;
+                if (isUpcoming && booking.status !== 'cancelled') {
+                    statusClass = 'status-upcoming';
+                    statusText = 'Upcoming';
+                    upcomingCount++;
+                }
             }
-            flightDate.setHours(0,0,0,0);
-            const isUpcoming = flightDate >= today;
-            const statusClass = isUpcoming ? 'status-upcoming' : 'status-completed';
-            const statusText = isUpcoming ? '✈️ Upcoming' : '✅ Completed';
+            
+            // Determine check-in status display
+            let checkinStatusHtml = '';
+            if (booking.checked_in) {
+                checkinStatusHtml = `<span class="checkin-status-badge checked-in"><i class="fas fa-check-circle"></i> Checked In</span>`;
+            } else if (booking.status !== 'cancelled' && isUpcoming) {
+                checkinStatusHtml = `<span class="checkin-status-badge not-checked-in"><i class="fas fa-clock"></i> Not Checked In</span>`;
+            }
+            
+            // Update upcoming count in stats
+            if (upcomingCount > 0) {
+                document.getElementById('upcomingCount').innerText = upcomingCount;
+            }
+            
             html += `
-            <div class="booking-row" data-booking-id="${b.id}" data-booking-date="${b.date}">
+            <div class="booking-row" data-booking-id="${booking.id}">
                 <div style="display: flex; align-items: center; flex:1;">
-                    <div class="flight-icon"><i class="fas fa-plane-departure"></i></div>
+                    <div class="flight-icon">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
                     <div class="booking-info-main">
-                        <div class="booking-title">${b.flight_no} • ${b.origin} ✈ ${b.destination}</div>
+                        <div class="booking-title">${booking.flight_number || 'N/A'} • ${booking.origin || 'N/A'} ✈ ${booking.destination || 'N/A'}</div>
                         <div class="route-detail">
-                            <span><i class="far fa-calendar-alt"></i> ${b.date}</span>
-                            <span><i class="fas fa-users"></i> ${b.seats} pax</span>
-                            <span><i class="fas fa-tag"></i> ₱${b.total.toLocaleString()}</span>
+                            <span><i class="far fa-calendar-alt"></i> ${booking.departure_date || 'TBD'}</span>
+                            <span><i class="fas fa-clock"></i> ${booking.departure_time || '--:--'}</span>
+                            <span><i class="fas fa-users"></i> ${booking.total_passengers || 1} passenger(s)</span>
+                            <span><i class="fas fa-tag"></i> ₱${(parseFloat(booking.total_price) || 0).toLocaleString()}</span>
                             <span class="status-badge ${statusClass}">${statusText}</span>
+                            ${checkinStatusHtml}
                         </div>
                         <div style="font-size: 0.7rem; color: var(--gray-600); margin-top: 4px;">
-                            <i class="fas fa-barcode"></i> Ref: ${b.booking_reference}
+                            <i class="fas fa-barcode"></i> Reference: ${booking.booking_reference || 'N/A'}
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--gray-600);">
+                            <i class="fas fa-chair"></i> Class: ${booking.cabin_class || 'Economy'}
                         </div>
                     </div>
                 </div>
-                <div>
-                    <a href="{{ url_for('view_ticket') }}?id=${b.id}" class="btn-outline-sm view-ticket-btn"><i class="fas fa-eye"></i> View Ticket</a>
-                    <button class="btn-outline-sm btn-danger-sm cancel-booking-btn" data-id="${b.id}"><i class="fas fa-trash-alt"></i> Cancel</button>
+                <div style="display: flex; gap: 8px;">
+                    <a href="{{ url_for('view_ticket') }}?id=${booking.id}" class="btn-outline-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    ${!booking.checked_in && booking.status !== 'cancelled' && isUpcoming ? `<a href="{{ url_for('check_in') }}" class="btn-outline-sm btn-checkin-sm">
+                        <i class="fas fa-check-circle"></i> Check In
+                    </a>` : ''}
+                    ${booking.status !== 'cancelled' && booking.status !== 'completed' ? `<button class="btn-outline-sm btn-danger-sm cancel-booking-btn" data-id="${booking.id}">
+                        <i class="fas fa-trash-alt"></i> Cancel
+                    </button>` : ''}
                 </div>
             </div>`;
         });
+        
         container.innerHTML = html;
+        
         // Attach cancel event listeners
         document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const bookingId = btn.dataset.id;
-                if (confirm('Cancel this booking? This action is irreversible.')) {
+                if (confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                     try {
-                        await fetchJSON(`/api/cancel_booking/${bookingId}`, { method: 'DELETE' });
+                        await apiRequest(`/api/cancel_booking/${bookingId}`, { method: 'DELETE' });
                         showToast('Booking cancelled successfully');
-                        loadDashboardData(); // refresh
-                    } catch (err) { showToast(err.message, true); }
+                        updateDashboard();
+                    } catch (error) {
+                        showToast(error.message, true);
+                    }
                 }
             });
         });
     }
 
-    // ------------------------- Profile Edit -------------------------
+    // ==================== PROFILE MANAGEMENT ====================
+    async function uploadAvatar(file) {
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        try {
+            const response = await fetch('/api/upload_avatar', { method: 'POST', body: formData });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            
+            // Update avatar display with cache buster
+            const avatarDiv = document.getElementById('avatarPreview');
+            if (data.avatar_url) {
+                avatarDiv.innerHTML = `<img src="${data.avatar_url}?t=${Date.now()}" alt="Profile" class="profile-img">`;
+            }
+            showToast('Profile picture updated');
+        } catch (error) {
+            showToast(error.message, true);
+        }
+    }
+
+    async function updateProfile(fullname, email) {
+        const data = await apiRequest('/api/update_profile', {
+            method: 'POST',
+            body: JSON.stringify({ fullname, email })
+        });
+        showToast('Profile updated successfully');
+        updateDashboard();
+    }
+
+    async function changePassword(oldPassword, newPassword) {
+        const data = await apiRequest('/api/change_password', {
+            method: 'POST',
+            body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+        });
+        showToast('Password changed successfully');
+        return data;
+    }
+
+    // ==================== MODAL HANDLERS ====================
+    // Edit Profile Modal
     const profileModal = document.getElementById('editProfileModal');
-    const editProfileQuickBtn = document.getElementById('editProfileQuickBtn');
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const editProfileNavBtn = document.getElementById('editProfileNavBtn');
     const closeProfileModal = document.getElementById('closeProfileModal');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
-
+    
     function openProfileModal() {
         document.getElementById('editFullname').value = document.getElementById('profileName').innerText;
         document.getElementById('editEmail').value = document.getElementById('profileEmail').innerText;
         profileModal.classList.add('active');
     }
-    editProfileQuickBtn.onclick = openProfileModal;
-    document.getElementById('editProfileModalBtn').onclick = (e) => { e.preventDefault(); openProfileModal(); };
-    closeProfileModal.onclick = () => profileModal.classList.remove('active');
-    saveProfileBtn.onclick = async () => {
-        const fullname = document.getElementById('editFullname').value;
-        const email = document.getElementById('editEmail').value;
-        const avatarFile = document.getElementById('avatarUpload').files[0];
-        const formData = new FormData();
-        formData.append('fullname', fullname);
-        formData.append('email', email);
-        if (avatarFile) formData.append('avatar', avatarFile);
-        try {
-            const res = await fetch('/api/update_profile', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            showToast('Profile updated');
+    
+    if (editProfileBtn) editProfileBtn.onclick = openProfileModal;
+    if (editProfileNavBtn) editProfileNavBtn.onclick = (e) => { e.preventDefault(); openProfileModal(); };
+    if (closeProfileModal) closeProfileModal.onclick = () => profileModal.classList.remove('active');
+    if (saveProfileBtn) {
+        saveProfileBtn.onclick = async () => {
+            const fullname = document.getElementById('editFullname').value;
+            const email = document.getElementById('editEmail').value;
+            await updateProfile(fullname, email);
             profileModal.classList.remove('active');
-            loadDashboardData();
-        } catch (err) { showToast(err.message, true); }
-    };
-
-    // ------------------------- Change Password -------------------------
+        };
+    }
+    
+    // Change Password Modal
     const pwdModal = document.getElementById('changePasswordModal');
-    document.getElementById('changePasswordQuickBtn').onclick = () => pwdModal.classList.add('active');
-    document.getElementById('closePwdModal').onclick = () => pwdModal.classList.remove('active');
-    document.getElementById('savePasswordBtn').onclick = async () => {
-        const oldPwd = document.getElementById('oldPassword').value;
-        const newPwd = document.getElementById('newPassword').value;
-        const confirm = document.getElementById('confirmPassword').value;
-        if (newPwd !== confirm) return showToast('New passwords do not match', true);
-        try {
-            await fetchJSON('/api/change_password', { method: 'POST', body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) });
-            showToast('Password changed successfully');
-            pwdModal.classList.remove('active');
-            document.getElementById('oldPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-        } catch (err) { showToast(err.message, true); }
-    };
-
-    // ------------------------- Redeem Miles -------------------------
-    const redeemModal = document.getElementById('redeemMilesModal');
-    document.getElementById('redeemMilesBtn').onclick = async () => {
-        try {
-            const data = await fetchJSON('/api/dashboard');
-            const miles = Math.min(Math.floor(data.totalSpent * 1.2), 3500);
-            document.getElementById('currentMilesSpan').innerText = miles;
-            redeemModal.classList.add('active');
-        } catch (err) { showToast('Could not load miles', true); }
-    };
-    document.getElementById('closeRedeemModal').onclick = () => redeemModal.classList.remove('active');
-    document.getElementById('confirmRedeemBtn').onclick = async () => {
-        const reward = document.getElementById('rewardSelect').value;
-        try {
-            await fetchJSON('/api/redeem_miles', { method: 'POST', body: JSON.stringify({ reward_value: reward }) });
-            showToast('Reward redeemed!');
-            redeemModal.classList.remove('active');
-            loadDashboardData();
-        } catch (err) { showToast(err.message, true); }
-    };
-
-    // ------------------------- Admin Functions -------------------------
-    {% if session.get('is_admin') %}
-    const usersModal = document.getElementById('adminUsersModal');
-    document.getElementById('manageUsersBtn').onclick = async () => {
-        try {
-            const users = await fetchJSON('/api/admin/users');
-            const container = document.getElementById('userListContainer');
-            let html = '<ul style="list-style:none; padding:0;">';
-            users.forEach(u => {
-                html += `<li style="padding:8px 0; border-bottom:1px solid #eee;">${u.email} (${u.is_admin ? 'Admin' : 'User'})</li>`;
-            });
-            html += '</ul>';
-            container.innerHTML = html;
-            usersModal.classList.add('active');
-        } catch (err) { showToast(err.message, true); }
-    };
-    document.getElementById('closeUsersModal').onclick = () => usersModal.classList.remove('active');
-    document.getElementById('flightAnalyticsBtn').onclick = async () => {
-        try {
-            const analytics = await fetchJSON('/api/admin/analytics');
-            showToast(`Total bookings: ${analytics.totalBookings} | Most popular route: ${analytics.popularRoute}`);
-        } catch (err) { showToast(err.message, true); }
-    };
-    {% endif %}
-
-    // ------------------------- Other UI -------------------------
-    document.getElementById('supportBtn').onclick = () => {
-        showToast("📞 Call +1 (888) 876-AERO or email support@aeroticket.com");
-    };
-    document.getElementById('refreshBookingsBtn').onclick = () => loadDashboardData();
-
-    // Initialize: compute initial upcoming count and miles from server data, then attach
-    document.addEventListener('DOMContentLoaded', function() {
-        // Update booking statuses from existing server-rendered rows (initial)
-        const bookingRows = document.querySelectorAll('.booking-row[data-booking-date]');
-        const today = new Date(); today.setHours(0,0,0,0);
-        let upcomingCount = 0;
-        bookingRows.forEach(row => {
-            const dateStr = row.getAttribute('data-booking-date');
-            if (!dateStr) return;
-            let flightDate = new Date(dateStr);
-            if (isNaN(flightDate)) {
-                const parts = dateStr.split('-');
-                if (parts.length === 3) flightDate = new Date(parts[0], parts[1]-1, parts[2]);
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const closePwdModal = document.getElementById('closePwdModal');
+    const savePasswordBtn = document.getElementById('savePasswordBtn');
+    
+    if (changePasswordBtn) changePasswordBtn.onclick = () => pwdModal.classList.add('active');
+    if (closePwdModal) closePwdModal.onclick = () => pwdModal.classList.remove('active');
+    if (savePasswordBtn) {
+        savePasswordBtn.onclick = async () => {
+            const oldPwd = document.getElementById('oldPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmPassword').value;
+            
+            if (!oldPwd || !newPwd) {
+                showToast('Please fill in all fields', true);
+                return;
             }
-            if (isNaN(flightDate)) return;
-            flightDate.setHours(0,0,0,0);
-            const statusSpan = row.querySelector('.status-badge');
-            if (flightDate >= today) {
-                statusSpan.textContent = '✈️ Upcoming';
-                statusSpan.classList.add('status-upcoming');
-                statusSpan.classList.remove('status-completed');
-                upcomingCount++;
-            } else {
-                statusSpan.textContent = '✅ Completed';
-                statusSpan.classList.add('status-completed');
-                statusSpan.classList.remove('status-upcoming');
+            if (newPwd !== confirmPwd) {
+                showToast('New passwords do not match', true);
+                return;
             }
-        });
-        document.getElementById('upcomingCountPlaceholder').innerText = upcomingCount;
-
-        let totalSpentVal = 0;
-        {% if total_spent %}
-            totalSpentVal = parseFloat("{{ total_spent }}");
-        {% endif %}
-        const milesTarget = 3500;
-        let earnedMiles = Math.min(Math.floor(totalSpentVal * 1.2), milesTarget);
-        document.getElementById('mileProgressFill').style.width = (earnedMiles / milesTarget * 100) + '%';
-        document.getElementById('milesText').innerText = Math.floor(earnedMiles) + ' / ' + milesTarget;
-
-        // Attach cancel buttons for server-rendered rows (if any)
-        document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const bookingId = btn.dataset.id;
-                if (confirm('Cancel this booking?')) {
-                    try {
-                        await fetchJSON(`/api/cancel_booking/${bookingId}`, { method: 'DELETE' });
-                        showToast('Booking cancelled');
-                        loadDashboardData();
-                    } catch (err) { showToast(err.message, true); }
-                }
-            });
-        });
+            if (newPwd.length < 6) {
+                showToast('Password must be at least 6 characters', true);
+                return;
+            }
+            
+            try {
+                await changePassword(oldPwd, newPwd);
+                pwdModal.classList.remove('active');
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } catch (error) {
+                // Error already shown in apiRequest
+            }
+        };
+    }
+    
+    // Support button
+    const supportBtn = document.getElementById('supportBtn');
+    if (supportBtn) {
+        supportBtn.onclick = () => {
+            showToast('📞 Call us: +1 (888) 876-AERO or email: support@aeroticket.com');
+        };
+    }
+    
+    // Refresh button
+    const refreshBtn = document.getElementById('refreshBookingsBtn');
+    if (refreshBtn) refreshBtn.onclick = () => updateDashboard();
+    
+    // Close modals when clicking outside
+    window.onclick = (event) => {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('active');
+        }
+    };
+    
+    // Initialize dashboard on load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateDashboard();
     });
 </script>
+
 </body>
 </html>

@@ -80,9 +80,250 @@
         
         /* Hide any old flash message containers that might have backgrounds */
         .flash-message, .alert, .alert-error, .alert-danger, .alert-success {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
+            display: none !important;
+        }
+        
+        /* Toast Popup Styles */
+        .toast-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .toast-popup.error {
+            background: #ef4444;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast-popup.success {
+            background: #10b981;
+        }
+        
+        /* ===== FORGOT PASSWORD MODAL STYLES ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-content h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .modal-content p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .modal-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+        
+        .modal-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+        
+        .modal-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .modal-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .modal-close:hover {
+            color: #333;
+        }
+        
+        .cancel-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .cancel-btn:hover {
+            color: #666;
+        }
+        
+        /* Reset Link Modal Styles */
+        .reset-link-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10001;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .reset-link-content {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        .reset-link-content h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .reset-link-content p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .link-container {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+        
+        .link-container a {
+            color: #4285f4;
+            text-decoration: none;
+            font-size: 13px;
+            display: block;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .copy-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .close-reset-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: #f0f0f0;
+            color: #666;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .close-reset-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .expiry-text {
+            font-size: 11px;
+            color: #999;
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -91,8 +332,14 @@
 <div class="container">
     <div class="left-panel">
         <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" width="48" class="logo">
-        <h1 id="header-title">Sign in</h1>
-        <p class="subtext" id="header-subtext">with your Google Account. This account will be available to other Google apps in the browser.</p>
+        <h1 id="header-title">{{ 'Sign in' if mode == 'login' else 'Create Account' }}</h1>
+        <p class="subtext" id="header-subtext">
+            {% if mode == 'login' %}
+                with your Google Account. This account will be available to other Google apps in the browser.
+            {% else %}
+                with your Google Account to create a new AeroTicket account.
+            {% endif %}
+        </p>
     </div>
 
     <div class="right-panel">
@@ -114,13 +361,14 @@
 
             <form action="/login/google" method="POST" id="emailForm">
                 <input type="hidden" name="step" value="email">
+                <input type="hidden" name="mode" value="{{ mode }}">
 
                 <div class="input-wrapper">
                     <input type="email" name="email" id="email" placeholder=" " value="{{ email if email else '' }}" required>
                     <label for="email" id="label-email">Email or phone</label>
                 </div>
 
-                <a href="#" class="forgot-link" id="link-forgot">Forgot email?</a>
+                <a href="#" id="forgotPasswordLink" class="forgot-link">Forgot email?</a>
 
                 <div class="guest-mode-info" id="guest-info">
                     Not your computer? Use Guest mode to sign in privately.<br>
@@ -150,6 +398,18 @@
     </div>
 </div>
 
+<!-- Forgot Password Modal -->
+<div id="forgotModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="closeModal">&times;</span>
+        <h3>Reset Your Password</h3>
+        <p>Enter your email address to generate a password reset link.</p>
+        <input type="email" id="resetEmail" class="modal-input" placeholder="Enter your email address">
+        <button class="modal-btn" id="sendResetLink">Generate Reset Link</button>
+        <button class="cancel-btn" id="cancelModal">Cancel</button>
+    </div>
+</div>
+
 <script>
     // Toggle Language Menu
     function toggleLangMenu() {
@@ -158,18 +418,23 @@
 
     // Language Switch Function
     function changeLanguage(lang) {
+        const mode = '{{ mode }}';
         const translations = {
             'en': {
-                title: "Sign in",
-                subtext: "with your Google Account. This account will be available to other Google apps in the browser.",
+                title: mode == 'login' ? "Sign in" : "Create Account",
+                subtext: mode == 'login' 
+                    ? "with your Google Account. This account will be available to other Google apps in the browser."
+                    : "with your Google Account to create a new AeroTicket account.",
                 email: "Email or phone",
                 forgot: "Forgot email?",
                 next: "Next",
                 lang: "English (United States) ▼"
             },
             'tl': {
-                title: "Mag-sign in",
-                subtext: "gamit ang iyong Google Account. Magagamit ang account na ito sa iba pang Google app sa browser.",
+                title: mode == 'login' ? "Mag-sign in" : "Gumawa ng Account",
+                subtext: mode == 'login'
+                    ? "gamit ang iyong Google Account. Magagamit ang account na ito sa iba pang Google app sa browser."
+                    : "gamit ang iyong Google Account upang lumikha ng bagong AeroTicket account.",
                 email: "Email o telepono",
                 forgot: "Nakalimutan ang email?",
                 next: "Susunod",
@@ -194,12 +459,12 @@
 
     if (emailForm) {
         emailForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Stop instant submit
-            formContent.style.display = 'none'; // Hide layouts
-            loadingScreen.style.display = 'flex'; // Show loading panel
+            e.preventDefault();
+            formContent.style.display = 'none';
+            loadingScreen.style.display = 'flex';
 
             setTimeout(() => {
-                emailForm.submit(); // Submit after 1.5 seconds
+                emailForm.submit();
             }, 1500);
         });
     }
@@ -214,6 +479,182 @@
             }
         }
     }
+    
+    // ===== FORGOT PASSWORD FUNCTIONALITY WITH BACKEND API =====
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    const modal = document.getElementById('forgotModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const cancelModal = document.getElementById('cancelModal');
+    const sendResetLink = document.getElementById('sendResetLink');
+    const resetEmail = document.getElementById('resetEmail');
+    
+    // Open modal when clicking Forgot Password
+    if (forgotLink) {
+        forgotLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.style.display = 'flex';
+            resetEmail.value = '';
+        });
+    }
+    
+    // Close modal functions
+    function closeModalFunction() {
+        modal.style.display = 'none';
+    }
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModalFunction);
+    }
+    
+    if (cancelModal) {
+        cancelModal.addEventListener('click', closeModalFunction);
+    }
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModalFunction();
+        }
+    });
+    
+    // Show toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-popup ' + type;
+        toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '" style="margin-right: 10px;"></i> ' + message;
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(function() {
+                toast.remove();
+            }, 300);
+        }, 4000);
+    }
+    
+    // Show reset link in modal (on the website)
+    function showResetLinkModal(resetLink, email) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('resetLinkModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Create modal container
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'resetLinkModal';
+        modalDiv.className = 'reset-link-modal';
+        
+        // Create modal content
+        modalDiv.innerHTML = `
+            <div class="reset-link-content">
+                <span style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999;" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                <h3>🔐 Password Reset Link</h3>
+                <p>A reset link has been generated for <strong>${escapeHtml(email)}</strong></p>
+                <div class="link-container">
+                    <p style="font-size: 12px; color: #888; margin-bottom: 8px;">Click the link below to reset your password:</p>
+                    <a href="${resetLink}" target="_blank">${resetLink}</a>
+                </div>
+                <div class="button-group">
+                    <button class="copy-btn" onclick="copyToClipboard('${resetLink}')">📋 Copy Link</button>
+                    <button class="close-reset-btn" onclick="this.closest('#resetLinkModal').remove()">Close</button>
+                </div>
+                <p class="expiry-text">⚠️ This link will expire in 1 hour</p>
+            </div>
+        `;
+        
+        document.body.appendChild(modalDiv);
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('Link copied to clipboard!', 'success');
+        }, function(err) {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Link copied to clipboard!', 'success');
+        });
+    }
+    
+    // Send reset link to backend API
+    if (sendResetLink) {
+        sendResetLink.addEventListener('click', function() {
+            const email = resetEmail.value.trim();
+            
+            if (!email) {
+                showToast('Please enter your email address.', 'error');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                showToast('Please enter a valid email address.', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            sendResetLink.disabled = true;
+            sendResetLink.textContent = 'Generating...';
+            
+            // Call backend API
+            fetch('/request-password-reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.reset_link) {
+                    // Show reset link in modal on the website
+                    showResetLinkModal(data.reset_link, email);
+                    closeModalFunction();
+                    resetEmail.value = '';
+                } else {
+                    showToast(data.message, 'error');
+                }
+                
+                sendResetLink.disabled = false;
+                sendResetLink.textContent = 'Generate Reset Link';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+                sendResetLink.disabled = false;
+                sendResetLink.textContent = 'Generate Reset Link';
+            });
+        });
+    }
+    
+    // Show success popup from session (only if it exists)
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if session.get('show_success_popup') %}
+            const toast = document.createElement('div');
+            toast.className = 'toast-popup success';
+            toast.innerHTML = '<i class="fas fa-check-circle" style="margin-right: 10px;"></i> {{ session.pop("show_success_popup") }}';
+            document.body.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        {% endif %}
+    });
 </script>
 
 </body>

@@ -56,7 +56,7 @@
         .dropdown {
             position: relative;
         }
-        /* Main navigation dropdown (circular icons) */
+        /* Main navigation dropdown (circular icons) - HORIZONTAL */
         .dropdown-content {
             display: flex;
             flex-direction: row;
@@ -93,6 +93,7 @@
             padding: 12px 18px;
             border-radius: 12px;
             transition: 0.2s;
+            min-width: 100px;
         }
         .dropdown-content a .menu-icon {
             width: 50px;
@@ -111,25 +112,48 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Manage dropdown styling */
+
+        /* MANAGE DROPDOWN - HORIZONTAL (same as Book dropdown) */
         .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
             left: 50% !important;
             right: auto !important;
             transform: translateX(-50%) !important;
             margin-top: 10px !important;
+            gap: 15px !important;
         }
         .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
-        /* Settings dropdown (logged in) – horizontal, right-aligned */
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* SETTINGS DROPDOWN - VERTICAL (right-aligned) */
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 210px !important;
@@ -138,6 +162,10 @@
             right: 0 !important;
             transform: none !important;
             margin-top: 10px !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+            border: 1px solid #e5e7eb !important;
         }
         .settings-dropdown a {
             flex-direction: row !important;
@@ -146,6 +174,7 @@
             padding: 10px 20px !important;
             min-width: auto !important;
             border-radius: 0 !important;
+            text-align: left !important;
         }
         .settings-dropdown a .menu-icon {
             width: 28px !important;
@@ -162,7 +191,8 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
-        /* Account dropdown (not logged in) – horizontal, right-aligned */
+
+        /* ACCOUNT DROPDOWN - VERTICAL (right-aligned) */
         .account-dropdown {
             flex-direction: column !important;
             min-width: 160px !important;
@@ -171,6 +201,10 @@
             right: 0 !important;
             transform: none !important;
             margin-top: 10px !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important;
+            border: 1px solid #e5e7eb !important;
         }
         .account-dropdown a {
             flex-direction: row !important;
@@ -189,7 +223,9 @@
         }
         .account-dropdown a:hover {
             background: #f0f9ff !important;
+            transform: none !important;
         }
+
         .header-right {
             flex: 1;
             display: flex;
@@ -203,25 +239,176 @@
             cursor: pointer;
         }
         
-        /* Flash message styles */
+        /* Flash message styles - Enhanced */
         .flash-message {
-            background: #d4edda;
-            color: #155724;
             padding: 15px;
             text-align: center;
-            border-bottom: 1px solid #c3e6cb;
+            border-bottom: 1px solid;
             margin: 0;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border-bottom-color: #c3e6cb;
         }
         .flash-message.error {
             background: #f8d7da;
             color: #721c24;
-            border-bottom: 1px solid #f5c6cb;
+            border-bottom-color: #f5c6cb;
+        }
+        .flash-message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border-bottom-color: #ffeeba;
+        }
+        .flash-message i {
+            margin-right: 8px;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Original check-in styles */
+        .checkin-wrapper {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 0 20px;
+        }
+        .checkin-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .checkin-card h1 {
+            color: #2c8fbb;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4eb8e9;
+            box-shadow: 0 0 0 3px rgba(78,184,233,0.1);
+        }
+        .btn-primary {
+            width: 100%;
+            background: #4eb8e9;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover {
+            background: #2c8fbb;
+            transform: translateY(-2px);
+        }
+        .separator {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+        .separator::before,
+        .separator::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+        }
+        .separator::before {
+            left: 0;
+        }
+        .separator::after {
+            right: 0;
+        }
+        .btn-secondary {
+            width: 100%;
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .btn-secondary:disabled, .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Check-in info box */
+        .checkin-info {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #2c8fbb;
+            text-align: center;
+        }
+        .checkin-info i {
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<!-- ===== HEADER WITH HORIZONTAL MANAGE DROPDOWN ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -240,7 +427,7 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
+            <!-- MANAGE DROPDOWN - HORIZONTAL -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -248,14 +435,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -282,10 +467,12 @@
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -307,7 +494,7 @@
                 </div>
             </div>
             {% else %}
-            <!-- NOT LOGGED IN: Account dropdown + search icon -->
+            <!-- NOT LOGGED IN: Account dropdown -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
                 <div class="dropdown-content account-dropdown">
@@ -334,42 +521,127 @@
     }
 </script>
 
-<!-- Flash messages -->
+<!-- Flash messages with categories -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
-            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+            <div class="flash-message {% if category == 'error' %}error{% elif category == 'warning' %}warning{% else %}success{% endif %}">
+                <i class="fas {% if category == 'error' %}fa-exclamation-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 {% endwith %}
 
-<!-- ========== ORIGINAL CHECK-IN FORM (preserved) ========== -->
+<!-- ========== CHECK-IN FORM ========== -->
 <main class="checkin-wrapper">
     <div class="checkin-card">
-        <h1>Check-in</h1>
+        <h1><i class="fas fa-check-circle"></i> Check-in</h1>
         <p class="subtitle">Type in your details to check in for your flight</p>
 
-      <form class="checkin-form" method="POST" action="{{ url_for('check_in') }}">
+        <form class="checkin-form" method="POST" action="{{ url_for('check_in') }}" id="checkinForm">
             <div class="form-group">
-                <label for="booking-ref">Booking Reference Number</label>
-                <input type="text" id="booking-ref" name="booking_ref" placeholder="e.g 1AB234C or 012345678" required>
+                <label for="booking-ref"><i class="fas fa-ticket-alt"></i> Booking Reference Number</label>
+                <input type="text" id="booking-ref" name="booking_ref" placeholder="e.g AT1234" required autocomplete="off">
             </div>
 
             <div class="form-group">
-                <label for="last-name">Last name or email address</label>
-                <input type="text" id="last-name" name="identifier" placeholder="Enter last name or email address" required>
+                <label for="last-name">
+                    <i class="fas fa-user"></i>
+                    {% if session.get('user_id') %}
+                        Passenger Name <span style="font-weight: normal;">(or leave blank to use your account)</span>
+                    {% else %}
+                        Last name or email address
+                    {% endif %}
+                </label>
+                <input type="text" id="last-name" name="identifier" 
+                       placeholder="{% if session.get('user_id') %}Leave blank to check in with your account{% else %}Enter last name or email address{% endif %}"
+                       autocomplete="off">
             </div>
 
-            <button type="submit" class="btn-primary">Continue as guest</button>
+            <button type="submit" class="btn-primary" id="guestCheckinBtn">
+                <i class="fas fa-user"></i> Continue as guest
+            </button>
             
             <div class="separator">or</div>
 
-            <button type="button" class="btn-secondary" onclick="location.href='{{ url_for('login') }}'">Continue as AeroTicket member</button>
+            {% if session.get('user_id') %}
+                <button type="button" class="btn-secondary" id="memberCheckinBtn">
+                    <i class="fas fa-user-check"></i> Continue as AeroTicket member
+                </button>
+            {% else %}
+                <button type="button" class="btn-secondary" onclick="location.href='{{ url_for('login') }}'">
+                    <i class="fas fa-sign-in-alt"></i> Login to check in as member
+                </button>
+            {% endif %}
         </form>
+        
+        <div class="checkin-info">
+            <i class="fas fa-info-circle"></i> Check-in opens 24 hours before departure and closes 1 hour before departure.
+        </div>
     </div>
 </main>
+
+<script>
+    // Member check-in functionality for logged-in users
+    {% if session.get('user_id') %}
+    const memberBtn = document.getElementById('memberCheckinBtn');
+    const guestBtn = document.getElementById('guestCheckinBtn');
+    const bookingRefInput = document.getElementById('booking-ref');
+    const identifierInput = document.getElementById('last-name');
+    const checkinForm = document.getElementById('checkinForm');
+    
+    if (memberBtn) {
+        memberBtn.addEventListener('click', function() {
+            const bookingRef = bookingRefInput.value.trim();
+            
+            if (!bookingRef) {
+                alert('Please enter your booking reference number');
+                return;
+            }
+            
+            // Disable buttons to prevent double submission
+            memberBtn.disabled = true;
+            if (guestBtn) guestBtn.disabled = true;
+            memberBtn.innerHTML = '<span class="loading-spinner"></span> Checking in...';
+            
+            // Clear identifier field (will use logged-in user's info)
+            identifierInput.value = '';
+            
+            // Add hidden field to indicate this is a member check-in
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'check_in_as_member';
+            hiddenInput.value = 'true';
+            checkinForm.appendChild(hiddenInput);
+            
+            // Submit the form
+            checkinForm.submit();
+        });
+    }
+    {% endif %}
+    
+    // Guest check-in - validate at least identifier is provided
+    const guestCheckinBtn = document.getElementById('guestCheckinBtn');
+    if (guestCheckinBtn) {
+        guestCheckinBtn.addEventListener('click', function(e) {
+            const identifier = identifierInput.value.trim();
+            if (!identifier) {
+                e.preventDefault();
+                alert('Please enter your last name or email address to check in as guest');
+                return false;
+            }
+        });
+    }
+    
+    // Auto-format booking reference to uppercase
+    const bookingRefField = document.getElementById('booking-ref');
+    if (bookingRefField) {
+        bookingRefField.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+</script>
 
 </body>
 </html>

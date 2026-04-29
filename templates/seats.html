@@ -56,7 +56,6 @@
         .dropdown {
             position: relative;
         }
-        /* Main navigation dropdown (circular icons) */
         .dropdown-content {
             display: flex;
             flex-direction: row;
@@ -111,7 +110,6 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Manage dropdown styling */
         .manage-dropdown {
             flex-direction: column !important;
             min-width: 200px !important;
@@ -129,7 +127,6 @@
             min-width: auto !important;
             border-radius: 0 !important;
         }
-        /* Account dropdown (not logged in) – horizontal, right-aligned */
         .account-dropdown {
             flex-direction: column !important;
             min-width: 160px !important;
@@ -158,7 +155,6 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
-        /* Settings dropdown (logged in) – horizontal, right-aligned */
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 210px !important;
@@ -202,8 +198,6 @@
             font-size: 1.2rem;
             cursor: pointer;
         }
-
-        /* Preserve original seat page styles (flight info bar, etc.) */
         .flight-info-bar {
             background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
             color: white;
@@ -229,8 +223,6 @@
         .flight-info-item strong {
             margin-right: 5px;
         }
-        
-        /* Flash message styles */
         .flash-message {
             background: #d4edda;
             color: #155724;
@@ -248,7 +240,7 @@
 </head>
 <body>
 
-<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<!-- ===== HEADER WITH ADMIN MENU FIX ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -267,7 +259,6 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -275,14 +266,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -305,14 +294,16 @@
         </nav>
         <div class="header-right">
             {% if session.get('user_id') %}
-            <!-- LOGGED IN: Settings dropdown -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <!-- ADMIN MENU FIX: Only show My Dashboard for regular users -->
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -334,7 +325,6 @@
                 </div>
             </div>
             {% else %}
-            <!-- NOT LOGGED IN: Account dropdown + search icon -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
                 <div class="dropdown-content account-dropdown">
@@ -372,7 +362,7 @@
     {% endif %}
 {% endwith %}
 
-<!-- ===== ORIGINAL SEAT SELECTION CONTENT (unchanged) ===== -->
+<!-- ===== SEAT SELECTION CONTENT ===== -->
 <main class="content">
     <!-- Flight Information Bar -->
     <div class="flight-info-bar">
@@ -426,142 +416,175 @@
 </main>
 
 <script>
-    const seatMap = document.getElementById('seatMap');
-    const seatNumberDisplay = document.getElementById('seatNumber');
-    const selectionText = document.getElementById('selectionText');
-    const seatSearch = document.getElementById('seatSearch');
+const seatMap = document.getElementById('seatMap');
+const seatNumberDisplay = document.getElementById('seatNumber');
+const selectionText = document.getElementById('selectionText');
+const seatSearch = document.getElementById('seatSearch');
 
-    // Parse passenger count from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const adultCount = parseInt(urlParams.get('adults')) || 1;
-    const childCount = parseInt(urlParams.get('children')) || 0;
-    const totalPassengers = adultCount + childCount;
-    
-    // Capture flight data from Flask backend
-    const flightOrigin = "{{ origin }}";
-    const flightDestination = "{{ destination }}";
-    const flightDate = "{{ flight_date }}";
-    const flightTime = "{{ flight_time }}";
-    const flightNo = "{{ flight_no }}";
-    const flightPrice = "{{ price }}";
-    const flightCabin = "{{ passengers.cabin }}";
+// Parse passenger count from URL
+const urlParams = new URLSearchParams(window.location.search);
+const adultCount = parseInt(urlParams.get('adults')) || 1;
+const childCount = parseInt(urlParams.get('children')) || 0;
+const totalPassengers = adultCount + childCount;
 
-    document.getElementById('passengerLimitDisplay').innerText = totalPassengers;
+// Get flight data from URL
+let flightOrigin = urlParams.get('origin') || "";
+let flightDestination = urlParams.get('destination') || "";
+let flightNoFromUrl = urlParams.get('flight_no') || "";
 
-    let selectedSeats = [];
+if (!flightOrigin) {
+    flightOrigin = urlParams.get('from') || urlParams.get('departure') || "{{ origin }}";
+}
+if (!flightDestination) {
+    flightDestination = urlParams.get('to') || urlParams.get('arrival') || "{{ destination }}";
+}
 
-    const seatSvgContent = `
-    <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-        <rect x="34" y="2" width="32" height="14" rx="5" fill="currentColor"/>
-        <path d="M22,35 Q22,22 50,22 Q78,22 78,35 L78,75 Q78,85 70,85 L30,85 Q22,85 22,75 Z" fill="currentColor"/>
-        <rect x="22" y="88" width="56" height="8" rx="3" fill="currentColor"/>
-    </svg>`;
+flightOrigin = flightOrigin.toUpperCase();
+flightDestination = flightDestination.toUpperCase();
 
-    for (let i = 1; i <= 12; i++) {
-        const row = document.createElement('div');
-        row.className = 'seat-row';
-        row.innerHTML = `
-            <div class="seat-group">${generateSeats(i, ['A', 'B', 'C'])}</div>
-            <div class="seat-group">${generateSeats(i, ['D', 'E'])}</div>
+const flightDate = urlParams.get('date') || "{{ flight_date }}";
+const flightTime = urlParams.get('time') || "{{ flight_time }}";
+const flightNo = flightNoFromUrl || "{{ flight_no }}";
+const flightPrice = urlParams.get('price') || "{{ price }}";
+const flightCabin = urlParams.get('cabin') || "{{ passengers.cabin }}";
+
+document.getElementById('passengerLimitDisplay').innerText = totalPassengers;
+
+let selectedSeats = [];
+
+// DYNAMIC TAKEN SEATS - From database
+const takenSeats = {{ taken_seats|tojson|safe if taken_seats else [] }};
+
+console.log('Taken seats from database:', takenSeats);
+
+const seatSvgContent = `
+<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <rect x="34" y="2" width="32" height="14" rx="5" fill="currentColor"/>
+    <path d="M22,35 Q22,22 50,22 Q78,22 78,35 L78,75 Q78,85 70,85 L30,85 Q22,85 22,75 Z" fill="currentColor"/>
+    <rect x="22" y="88" width="56" height="8" rx="3" fill="currentColor"/>
+</svg>`;
+
+for (let i = 1; i <= 12; i++) {
+    const row = document.createElement('div');
+    row.className = 'seat-row';
+    row.innerHTML = `
+        <div class="seat-group">${generateSeats(i, ['A', 'B', 'C'])}</div>
+        <div class="seat-group">${generateSeats(i, ['D', 'E'])}</div>
+    `;
+    seatMap.appendChild(row);
+}
+
+function generateSeats(rowNum, labels) {
+    return labels.map(label => {
+        const seatId = `${rowNum}${label}`;
+        const isTaken = takenSeats.includes(seatId);
+        const takenClass = isTaken ? 'taken' : '';
+        const onClick = isTaken ? '' : `onclick="updateSelection('${seatId}', this)"`;
+        return `
+            <div class="seat ${takenClass}" data-id="${seatId}" ${onClick}>
+                ${seatSvgContent}
+            </div>
         `;
-        seatMap.appendChild(row);
+    }).join('');
+}
+
+function updateSelection(id, element) {
+    if (element.classList.contains('taken')) {
+        alert(`Seat ${id} is already taken. Please select another seat.`);
+        return;
     }
+    
+    const index = selectedSeats.indexOf(id);
 
-    function generateSeats(rowNum, labels) {
-        return labels.map(label => {
-            const seatId = `${rowNum}${label}`;
-            return `
-                <div class="seat" data-id="${seatId}" onclick="updateSelection('${seatId}', this)">
-                    ${seatSvgContent}
-                </div>
-            `;
-        }).join('');
-    }
-
-    function updateSelection(id, element) {
-        const index = selectedSeats.indexOf(id);
-
-        if (index > -1) {
-            // Already selected, so remove it
-            selectedSeats.splice(index, 1);
-            element.classList.remove('selected');
+    if (index > -1) {
+        selectedSeats.splice(index, 1);
+        element.classList.remove('selected');
+    } else {
+        if (selectedSeats.length < totalPassengers) {
+            selectedSeats.push(id);
+            element.classList.add('selected');
         } else {
-            // New selection - check if we hit the limit
-            if (selectedSeats.length < totalPassengers) {
-                selectedSeats.push(id);
-                element.classList.add('selected');
-            } else {
-                alert(`You can only select ${totalPassengers} seat(s).`);
-            }
-        }
-
-        // Update display text
-        if (selectedSeats.length > 0) {
-            seatNumberDisplay.innerText = selectedSeats.join(', ');
-            selectionText.innerText = `You selected: ${selectedSeats.join(', ')}`;
-        } else {
-            seatNumberDisplay.innerText = "--";
-            selectionText.innerText = `Please select seats for ${totalPassengers} passenger(s)`;
+            alert(`You can only select ${totalPassengers} seat(s).`);
         }
     }
 
-    seatSearch.addEventListener('input', (e) => {
-        const query = e.target.value.toUpperCase();
-        const allSeats = document.querySelectorAll('.seat');
-        
-        allSeats.forEach(seat => {
-            const seatId = seat.getAttribute('data-id');
-            if (query === "") {
-                seat.style.opacity = "1";
-                seat.style.transform = "scale(1)";
-            } else if (seatId.includes(query)) {
-                seat.style.opacity = "1";
-                seat.style.transform = "scale(1.1)";
-            } else {
-                seat.style.opacity = "0.3";
-                seat.style.transform = "scale(1)";
-            }
-        });
+    if (selectedSeats.length > 0) {
+        seatNumberDisplay.innerText = selectedSeats.join(', ');
+        selectionText.innerText = `You selected: ${selectedSeats.join(', ')}`;
+    } else {
+        seatNumberDisplay.innerText = "--";
+        selectionText.innerText = `Please select seats for ${totalPassengers} passenger(s)`;
+    }
+}
+
+seatSearch.addEventListener('input', (e) => {
+    const query = e.target.value.toUpperCase();
+    const allSeats = document.querySelectorAll('.seat');
+    
+    allSeats.forEach(seat => {
+        const seatId = seat.getAttribute('data-id');
+        if (query === "") {
+            seat.style.opacity = "1";
+            seat.style.transform = "scale(1)";
+        } else if (seatId.includes(query)) {
+            seat.style.opacity = "1";
+            seat.style.transform = "scale(1.1)";
+        } else {
+            seat.style.opacity = "0.3";
+            seat.style.transform = "scale(1)";
+        }
     });
+});
 
-    function confirmBooking() {
-        if (selectedSeats.length === 0) {
-            alert("Please select at least one seat.");
+function confirmBooking() {
+    if (selectedSeats.length === 0) {
+        alert("Please select at least one seat.");
+        return;
+    }
+
+    if (!flightOrigin || flightOrigin === "" || flightOrigin === "NOT SELECTED") {
+        alert("Error: Origin not found. Please go back and select a flight again.");
+        return;
+    }
+    
+    if (!flightDestination || flightDestination === "" || flightDestination === "NOT SELECTED") {
+        alert("Error: Destination not found. Please go back and select a flight again.");
+        return;
+    }
+
+    if (selectedSeats.length < totalPassengers) {
+        if (!confirm(`You have only selected ${selectedSeats.length} out of ${totalPassengers} seats. Proceed anyway?`)) {
             return;
         }
-
-        if (selectedSeats.length < totalPassengers) {
-            if (!confirm(`You have only selected ${selectedSeats.length} out of ${totalPassengers} seats. Proceed anyway?`)) {
-                return;
-            }
-        }
-
-        // Capture all existing parameters from URL
-        const currentParams = new URLSearchParams(window.location.search);
-        
-        // Add the selected seats
-        currentParams.set('seat', selectedSeats.join(','));
-        
-        // Make sure all flight data is included in the URL
-        currentParams.set('origin', flightOrigin);
-        currentParams.set('destination', flightDestination);
-        currentParams.set('date', flightDate);
-        currentParams.set('time', flightTime);
-        currentParams.set('flight_no', flightNo);
-        currentParams.set('price', flightPrice);
-        currentParams.set('cabin', flightCabin);
-        currentParams.set('adults', adultCount);
-        currentParams.set('children', childCount);
-        
-        // Also pass infant count if exists
-        const infantCount = parseInt(urlParams.get('infants')) || 0;
-        if (infantCount > 0) {
-            currentParams.set('infants', infantCount);
-        }
-
-        // Pass the baton to the booking page with all parameters
-        window.location.href = "{{ url_for('booking') }}?" + currentParams.toString();
     }
+
+    const currentParams = new URLSearchParams(window.location.search);
+    
+    currentParams.set('seat', selectedSeats.join(','));
+    currentParams.set('origin', flightOrigin);
+    currentParams.set('destination', flightDestination);
+    currentParams.set('date', flightDate);
+    currentParams.set('time', flightTime);
+    currentParams.set('flight_no', flightNo);
+    currentParams.set('price', flightPrice);
+    currentParams.set('cabin', flightCabin);
+    currentParams.set('adults', adultCount);
+    currentParams.set('children', childCount);
+    
+    const infantCount = parseInt(urlParams.get('infants')) || 0;
+    if (infantCount > 0) {
+        currentParams.set('infants', infantCount);
+    }
+
+    const promoCode = urlParams.get('promo');
+    if (promoCode) {
+        currentParams.set('promo', promoCode);
+        currentParams.set('discount_type', urlParams.get('discount_type'));
+        currentParams.set('discount_value', urlParams.get('discount_value'));
+    }
+
+    window.location.href = "{{ url_for('booking') }}?" + currentParams.toString();
+}
 </script>
 </body>
 </html>

@@ -77,7 +77,7 @@
             animation: flyForward 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
         }
 
-        /* DESCRIPTION PANEL - MOVED UP JUST A TINY BIT (top: 56%) */
+        /* DESCRIPTION PANEL */
         .slideshow-panel {
             position: absolute;
             right: 8%;
@@ -225,7 +225,7 @@
             font-size: 13px;
         }
 
-        /* Slider dots - ensure they're visible */
+        /* Slider dots */
         .slider-dots {
             position: absolute;
             bottom: 40px;
@@ -251,7 +251,7 @@
             transform: scale(1.3);
         }
 
-        /* extra styling for city grouping in search panel */
+        /* Search panel styles */
         .search-panel .region-header {
             font-size: 11px;
             font-weight: 700;
@@ -272,7 +272,7 @@
             background: #F0F7FF;
         }
 
-        /* LOADING ANIMATION STYLES */
+        /* Loading animation styles */
         .btn-loading {
             pointer-events: none;
             opacity: 0.7;
@@ -298,16 +298,48 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        /* For outline register buttons (white background) */
+        
         .btn-register.btn-loading::after {
             border: 2px solid #4CB9F0;
             border-top-color: transparent;
         }
-        .register-btn.btn-loading {
-            background: #3da0d0;
+
+        /* Toast notification */
+        .toast-popup {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: fadeInUp 0.3s ease;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .toast-popup.success {
+            background: #10b981;
+        }
+        .toast-popup.error {
+            background: #ef4444;
+        }
+        .toast-popup.info {
+            background: #4CB9F0;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
-        /* ===== RESPONSIVE STYLES FOR TABLET AND PHONE ===== */
+        /* Responsive styles */
         @media (max-width: 1600px) {
             .slideshow-panel {
                 right: 6%;
@@ -328,59 +360,21 @@
             .hero-section::after {
                 clip-path: polygon(100% 0, 100% 100%, 0 100%, 0 0);
             }
-            
-            .hero-section::before {
-                display: none;
-            }
-            
             .content {
                 width: 80%;
                 padding: 120px 5% 60px;
                 z-index: 10;
             }
-            
-            h1 {
-                font-size: 48px;
-            }
-            
-            h1 span {
-                font-size: 36px;
-            }
-            
-            .search-box {
-                max-width: 400px;
-            }
-            
-            .plane-img {
-                width: 350px;
-                left: 70%;
-                top: 60%;
-            }
-            
-            .slideshow-panel {
-                display: none;
-            }
-            
-            .social-sidebar {
-                padding: 25px 8px;
-            }
-            
-            .social-sidebar img {
-                width: 24px;
-            }
-            
-            .nav-links a {
-                font-size: 16px;
-                padding: 5px 12px;
-            }
-            
-            .logo img {
-                height: 80px;
-            }
-            
-            .slider-dots {
-                left: 50%;
-            }
+            h1 { font-size: 48px; }
+            h1 span { font-size: 36px; }
+            .search-box { max-width: 400px; }
+            .plane-img { width: 350px; left: 70%; top: 60%; }
+            .slideshow-panel { display: none; }
+            .social-sidebar { padding: 25px 8px; }
+            .social-sidebar img { width: 24px; }
+            .nav-links a { font-size: 16px; padding: 5px 12px; }
+            .logo img { height: 80px; }
+            .slider-dots { left: 50%; }
         }
 
         @media (max-width: 767px) {
@@ -390,110 +384,46 @@
                 background: rgba(76, 185, 240, 0.95);
                 position: relative;
             }
-            
-            .logo img {
-                height: 50px;
-                margin-bottom: 5px;
-            }
-            
+            .logo img { height: 50px; margin-bottom: 5px; }
             .nav-links {
                 gap: 10px;
                 justify-content: center;
                 flex-wrap: wrap;
             }
-            
             .nav-links a {
                 font-size: 12px;
                 padding: 4px 10px;
                 color: white;
             }
-            
-            .hero-section::after {
-                clip-path: none;
-            }
-            
-            .hero-section::before {
-                display: none;
-            }
-            
+            .hero-section::after { clip-path: none; }
             .content {
                 width: 100%;
                 padding: 100px 20px 50px;
                 text-align: center;
             }
-            
-            h1 {
-                font-size: 32px;
-            }
-            
-            h1 span {
-                font-size: 24px;
-            }
-            
-            .search-box {
-                max-width: 100%;
-                align-items: center;
-            }
-            
-            .search-box input {
-                font-size: 14px;
-                padding: 12px 15px;
-                width: 100%;
-            }
-            
+            h1 { font-size: 32px; }
+            h1 span { font-size: 24px; }
+            .search-box { max-width: 100%; align-items: center; }
+            .search-box input { font-size: 14px; padding: 12px 15px; width: 100%; }
             .register-btn {
                 font-size: 16px;
                 padding: 10px 20px;
                 width: 100%;
                 text-align: center;
             }
-            
-            .plane-img {
-                display: none;
-            }
-            
-            .social-sidebar {
-                display: none;
-            }
-            
-            .slider-dots {
-                bottom: 15px;
-                left: 50%;
-            }
-            
-            .dot {
-                height: 8px;
-                width: 8px;
-            }
-            
-            .input-group i {
-                right: 15px;
-                font-size: 16px;
-            }
+            .plane-img { display: none; }
+            .social-sidebar { display: none; }
+            .slider-dots { bottom: 15px; left: 50%; }
+            .dot { height: 8px; width: 8px; }
+            .input-group i { right: 15px; font-size: 16px; }
         }
 
         @media (max-width: 480px) {
-            .content {
-                padding: 80px 15px 40px;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
-            
-            h1 span {
-                font-size: 20px;
-            }
-            
-            .search-box input {
-                font-size: 12px;
-                padding: 10px 12px;
-            }
-            
-            .register-btn {
-                font-size: 14px;
-                padding: 8px 16px;
-            }
+            .content { padding: 80px 15px 40px; }
+            h1 { font-size: 28px; }
+            h1 span { font-size: 20px; }
+            .search-box input { font-size: 12px; padding: 10px 12px; }
+            .register-btn { font-size: 14px; padding: 8px 16px; }
         }
     </style>
 </head>
@@ -582,12 +512,13 @@
                         <a href="{{ url_for('signup') }}" id="mainRegisterBtn" class="register-btn">Register</a>
                     {% endif %}
                 </div>
-                <!-- Hidden fields to store actual origin/destination codes -->
                 <input type="hidden" id="origin-hidden" name="departure_code">
                 <input type="hidden" id="to-input" name="arrival">
                 <input type="hidden" name="adults" id="hidden-adults" value="1">
                 <input type="hidden" name="children" id="hidden-children" value="0">
                 <input type="hidden" name="infants" id="hidden-infants" value="0">
+                <input type="hidden" name="cabin" id="hidden-cabin" value="Economy">
+                <input type="hidden" name="trip_type" id="hidden-trip-type" value="One-way">
             </form>
         </div>
 
@@ -625,24 +556,38 @@
     </section>
 
     <script>
-        // Store Flask-generated URLs for use in JS slides
+        // Store Flask-generated URLs
         const bookingUrl = "{{ url_for('booking') }}";
         const signupUrl = "{{ url_for('signup') }}";
+        const flightUrl = "{{ url_for('flight') }}";
 
-        // ----- LOADING ANIMATION UTILITIES -----
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const existingToast = document.querySelector('.toast-popup');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-popup ${type}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle')}" style="margin-right: 10px;"></i> ${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeInUp 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Loading animation utilities
         function addLoadingEffect(button, originalText) {
             if (!button) return;
             if (button.classList.contains('btn-loading')) return;
-            // Store original text if not already stored
             if (!button.hasAttribute('data-original-text')) {
-                button.setAttribute('data-original-text', button.innerText);
+                button.setAttribute('data-original-text', button.innerText || button.textContent);
             }
             button.classList.add('btn-loading');
-            // Wrap text in a span to hide it
             const span = document.createElement('span');
             span.className = 'btn-text';
             span.innerText = button.getAttribute('data-original-text');
-            // Clear existing content and add span
             button.innerHTML = '';
             button.appendChild(span);
             button.disabled = true;
@@ -657,7 +602,29 @@
             button.disabled = false;
         }
 
-        // Function to handle register link clicks (with 1 sec loading)
+        // Validate search form before submission
+        function validateSearchForm() {
+            if (!selectedOriginCity) {
+                showToast('Please select a departure city', 'error');
+                return false;
+            }
+            if (!selectedDestCity) {
+                showToast('Please select a destination', 'error');
+                return false;
+            }
+            if (selectedOriginCity.name === selectedDestCity.name) {
+                showToast('Origin and destination cannot be the same', 'error');
+                return false;
+            }
+            const dateInput = document.getElementById('date-input');
+            if (!dateInput.value || dateInput.value === '') {
+                showToast('Please select a travel date', 'error');
+                return false;
+            }
+            return true;
+        }
+
+        // Handle register click
         function handleRegisterClick(e, targetButton) {
             e.preventDefault();
             if (targetButton.classList.contains('btn-loading')) return;
@@ -669,15 +636,17 @@
             }, 1000);
         }
 
-        // Function to handle search form submission (with 1 sec loading)
+        // Handle search form submission
         function handleSearchSubmit(e, form, submitBtn) {
             e.preventDefault();
             if (submitBtn.classList.contains('btn-loading')) return;
             
-            // Ensure hidden fields are set before submit
-            if (originHidden) originHidden.value = selectedOriginCity ? selectedOriginCity.name : "Cebu";
-            if (toHidden) toHidden.value = selectedDestCity ? selectedDestCity.name : "Dubai";
-            // Also set a visible departure name if needed
+            if (!validateSearchForm()) return;
+            
+            // Ensure hidden fields are set
+            if (originHidden) originHidden.value = selectedOriginCity.name;
+            if (toHidden) toHidden.value = selectedDestCity.name;
+            
             let depInput = document.querySelector('input[name="departure"]');
             if (!depInput) {
                 depInput = document.createElement('input');
@@ -685,7 +654,7 @@
                 depInput.name = 'departure';
                 form.appendChild(depInput);
             }
-            depInput.value = selectedOriginCity ? selectedOriginCity.name : "Cebu";
+            depInput.value = `${selectedOriginCity.name} → ${selectedDestCity.name}`;
             
             addLoadingEffect(submitBtn, submitBtn.innerText);
             setTimeout(() => {
@@ -693,14 +662,14 @@
             }, 1000);
         }
 
-        // ----- BOTH ORIGIN AND DESTINATION SUPPORT INTERNATIONAL & PHILIPPINES -----
+        // City selection data
         const allCities = [
-            { name: "Cebu", region: "PH", displayName: "Cebu (Philippines)" },
-            { name: "Manila", region: "PH", displayName: "Manila (Philippines)" },
-            { name: "Davao", region: "PH", displayName: "Davao (Philippines)" },
-            { name: "Dubai", region: "INT", displayName: "Dubai (UAE) 🌍" },
-            { name: "Hongkong", region: "INT", displayName: "Hong Kong 🌏" },
-            { name: "Singapore", region: "INT", displayName: "Singapore 🌏" }
+            { name: "Cebu", region: "PH", displayName: "Cebu (Philippines)", code: "CEB" },
+            { name: "Manila", region: "PH", displayName: "Manila (Philippines)", code: "MNL" },
+            { name: "Davao", region: "PH", displayName: "Davao (Philippines)", code: "DVO" },
+            { name: "Dubai", region: "INT", displayName: "Dubai (UAE) 🌍", code: "DXB" },
+            { name: "Hongkong", region: "INT", displayName: "Hong Kong 🌏", code: "HKG" },
+            { name: "Singapore", region: "INT", displayName: "Singapore 🌏", code: "SIN" }
         ];
         
         let selectedOriginCity = allCities.find(c => c.name === "Cebu");
@@ -768,6 +737,10 @@
         function startDestinationSelection() {
             selectionStep = 'destination';
             renderCityPanel("🌍 SELECT DESTINATION (TO)", allCities, (selectedCity) => {
+                if (selectedCity.name === selectedOriginCity.name) {
+                    showToast('Origin and destination cannot be the same', 'error');
+                    return;
+                }
                 selectedDestCity = selectedCity;
                 updateFromDisplay();
                 searchPanel.classList.remove('active');
@@ -780,14 +753,35 @@
             startOriginSelection();
         });
         
-        dateInput.addEventListener('click', (e) => { e.stopPropagation(); closeAllPanels(); datePanel.classList.add('active'); });
-        document.getElementById('calendar-picker').addEventListener('change', (e) => { 
-            const date = new Date(e.target.value); 
-            dateInput.value = date.toLocaleDateString('en-GB'); 
-            datePanel.classList.remove('active'); 
+        dateInput.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            closeAllPanels(); 
+            datePanel.classList.add('active'); 
         });
         
-        passengerInput.addEventListener('click', (e) => { e.stopPropagation(); closeAllPanels(); passengerPanel.classList.add('active'); });
+        const calendarPicker = document.getElementById('calendar-picker');
+        if (calendarPicker) {
+            // Set min date to today
+            const today = new Date().toISOString().split('T')[0];
+            calendarPicker.min = today;
+            // Set default date to 30 days from now
+            const defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 30);
+            calendarPicker.value = defaultDate.toISOString().split('T')[0];
+            
+            calendarPicker.addEventListener('change', (e) => { 
+                const date = new Date(e.target.value); 
+                const formattedDate = date.toLocaleDateString('en-GB').toUpperCase();
+                dateInput.value = formattedDate; 
+                datePanel.classList.remove('active'); 
+            });
+        }
+        
+        passengerInput.addEventListener('click', (e) => { 
+            e.stopPropagation(); 
+            closeAllPanels(); 
+            passengerPanel.classList.add('active'); 
+        });
         
         let counts = { adult: 1, child: 0, infant: 0 };
         
@@ -800,8 +794,16 @@
         }
         
         function changeCount(type, delta) {
-            if (type === 'adult' && counts.adult + delta < 1) return;
+            if (type === 'adult' && counts.adult + delta < 1) {
+                showToast('At least one adult is required', 'error');
+                return;
+            }
             if (counts[type] + delta < 0) return;
+            // Infant cannot exceed adults
+            if (type === 'infant' && counts[type] + delta > counts.adult) {
+                showToast('Number of infants cannot exceed number of adults', 'error');
+                return;
+            }
             counts[type] += delta;
             document.getElementById(`count-${type}`).innerText = counts[type];
             updatePassengerInput();
@@ -832,6 +834,7 @@
             datePanel.classList.remove('active');
             passengerPanel.classList.remove('active');
         }
+        
         document.addEventListener('click', (e) => {
             if (passengerPanel && passengerPanel.contains(e.target)) return;
             if (searchPanel && searchPanel.contains(e.target)) return;
@@ -843,33 +846,25 @@
         updatePassengerInput();
         initPassengerControls();
 
-        // ----- ATTACH LOADING TO REGISTER BUTTONS AND SEARCH BUTTON -----
-        // Main register button (if not logged in)
+        // Attach loading to register buttons
         const mainRegisterBtn = document.getElementById('mainRegisterBtn');
         if (mainRegisterBtn && mainRegisterBtn.tagName === 'A') {
             mainRegisterBtn.addEventListener('click', (e) => handleRegisterClick(e, mainRegisterBtn));
         }
         
-        // Panel register button (inside slideshow)
         const panelRegisterBtn = document.getElementById('panelRegisterBtn');
         if (panelRegisterBtn) {
             panelRegisterBtn.addEventListener('click', (e) => handleRegisterClick(e, panelRegisterBtn));
         }
         
-        // Search flights button (if logged in, it's a button)
+        // Attach search handler
         const searchFlightsBtn = document.getElementById('searchFlightsBtn');
         const flightForm = document.getElementById('flightSearchForm');
         if (searchFlightsBtn && searchFlightsBtn.tagName === 'BUTTON') {
             flightForm.addEventListener('submit', (e) => handleSearchSubmit(e, flightForm, searchFlightsBtn));
-        } else if (flightForm && !searchFlightsBtn) {
-            // Fallback if somehow the button is not found but form exists (just in case)
-            const anySubmitBtn = flightForm.querySelector('button[type="submit"]');
-            if (anySubmitBtn) {
-                flightForm.addEventListener('submit', (e) => handleSearchSubmit(e, flightForm, anySubmitBtn));
-            }
         }
 
-        // ----- SLIDESHOW (unchanged aside from register/book links already using Flask URLs) -----
+        // Slideshow functionality
         const slides = [
             { 
                 title: '<span>EXPLORE</span> THE WORLD', 
@@ -996,7 +991,6 @@
                 if (index === 0) {
                     planeContainer.style.opacity = '1';
                     planeContainer.style.visibility = 'visible';
-                    hideSlideshowPanel();
                 }
             }
             currentIndex = index;
@@ -1007,6 +1001,7 @@
         
         function nextSlide() { let nextIndex = (currentIndex + 1) % slides.length; goToSlide(nextIndex, true); }
         function prevSlide() { let prevIndex = (currentIndex - 1 + slides.length) % slides.length; goToSlide(prevIndex, true); }
+        
         function resetAutoSlide() {
             if (autoSlideInterval) clearInterval(autoSlideInterval);
             autoSlideInterval = setInterval(() => {
@@ -1024,7 +1019,8 @@
         
         document.addEventListener('keydown', (e) => {
             const activeElement = document.activeElement;
-            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.classList?.contains('counter-btn');
+            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || 
+                                  (activeElement.classList && activeElement.classList.contains('counter-btn'));
             if (!isInputFocused) {
                 if (e.key === 'ArrowRight') { e.preventDefault(); nextSlide(); }
                 else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
@@ -1036,6 +1032,21 @@
         
         hideSlideshowPanel();
         resetAutoSlide();
+        
+        // Preserve passenger counts if coming back from booking
+        const urlParams = new URLSearchParams(window.location.search);
+        const adultsParam = urlParams.get('adults');
+        const childrenParam = urlParams.get('children');
+        const infantsParam = urlParams.get('infants');
+        
+        if (adultsParam) counts.adult = parseInt(adultsParam);
+        if (childrenParam) counts.child = parseInt(childrenParam);
+        if (infantsParam) counts.infant = parseInt(infantsParam);
+        
+        document.getElementById('count-adult').innerText = counts.adult;
+        document.getElementById('count-child').innerText = counts.child;
+        document.getElementById('count-infant').innerText = counts.infant;
+        updatePassengerInput();
     </script>
 </body>
 </html>

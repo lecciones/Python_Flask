@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>AeroTicket | Explore Destinations</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='explore.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
     <style>
-        /* ===== HEADER & DROPDOWN STYLES (matching final Booking page) ===== */
+        /* ===== HEADER STYLES ===== */
         .main-header {
             background-color: #ffffff;
             padding: 5px 0;
@@ -55,7 +55,6 @@
         .dropdown {
             position: relative;
         }
-        /* Main navigation dropdown (circular icons) */
         .dropdown-content {
             display: flex;
             flex-direction: row;
@@ -92,6 +91,7 @@
             padding: 12px 18px;
             border-radius: 12px;
             transition: 0.2s;
+            min-width: 100px;
         }
         .dropdown-content a .menu-icon {
             width: 50px;
@@ -110,25 +110,46 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Manage dropdown styling */
+
         .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
             left: 50% !important;
             right: auto !important;
             transform: translateX(-50%) !important;
             margin-top: 10px !important;
+            gap: 15px !important;
         }
         .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
-        /* Settings dropdown (logged in) – horizontal, right-aligned */
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 210px !important;
@@ -145,6 +166,7 @@
             padding: 10px 20px !important;
             min-width: auto !important;
             border-radius: 0 !important;
+            text-align: left !important;
         }
         .settings-dropdown a .menu-icon {
             width: 28px !important;
@@ -161,7 +183,7 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
-        /* Account dropdown (not logged in) – horizontal, right-aligned */
+
         .account-dropdown {
             flex-direction: column !important;
             min-width: 160px !important;
@@ -189,6 +211,7 @@
         .account-dropdown a:hover {
             background: #f0f9ff !important;
         }
+
         .header-right {
             flex: 1;
             display: flex;
@@ -202,7 +225,6 @@
             cursor: pointer;
         }
         
-        /* Flash message styles */
         .flash-message {
             background: #d4edda;
             color: #155724;
@@ -216,11 +238,319 @@
             color: #721c24;
             border-bottom: 1px solid #f5c6cb;
         }
+
+        /* ===== EXPLORE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fafbfc;
+        }
+
+        /* Promo Banner - Changed to BLUE like About page */
+        .promo-banner {
+            background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .header-img-left, .header-img-right {
+            height: 60px;
+            width: auto;
+        }
+        .banner-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .destinations-container {
+            margin-bottom: 50px;
+        }
+
+        .dest-group {
+            margin-bottom: 40px;
+        }
+
+        .dest-group h2 {
+            font-size: 1.8rem;
+            color: #1a2a3a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4eb8e9;
+            display: inline-block;
+        }
+
+        .destinations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Destination Card */
+        .dest-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .dest-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .card-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .dest-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a2a3a;
+            margin-bottom: 8px;
+        }
+
+        .dest-short-desc {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .price-tag {
+            display: inline-block;
+            background: #e8f4f8;
+            color: #2c8fbb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .view-details-btn {
+            width: 100%;
+            background: #4eb8e9;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .view-details-btn:hover {
+            background: #2c8fbb;
+            transform: translateY(-2px);
+        }
+
+        /* Expanded Details Section */
+        .expanded-details {
+            display: none;
+            background: #f8f9fa;
+            border-top: 1px solid #e5e7eb;
+        }
+        .expanded-details.active {
+            display: block;
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .expanded-image {
+            width: 100%;
+            height: 280px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .expanded-content {
+            padding: 24px;
+        }
+
+        .expanded-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a2a3a;
+            margin-bottom: 12px;
+        }
+
+        .full-description {
+            color: #4a5568;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .attractions-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a2a3a;
+            margin-bottom: 12px;
+        }
+
+        .attractions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .attraction-tag {
+            background: white;
+            color: #4eb8e9;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .book-flight-btn {
+            width: 100%;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .book-flight-btn:hover {
+            background: #219a52;
+            transform: translateY(-2px);
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        .info-item {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .info-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .info-item h3 {
+            color: #2c8fbb;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .info-item p {
+            color: #6b7280;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .footer-action {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .home-btn {
+            display: inline-block;
+            background: #4eb8e9;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .home-btn:hover {
+            background: #2c8fbb;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background: #1a2a3a;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .banner-title {
+                font-size: 1.2rem;
+            }
+            .header-img-left, .header-img-right {
+                height: 40px;
+            }
+            .destinations-grid {
+                grid-template-columns: 1fr;
+            }
+            .expanded-image {
+                height: 200px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<!-- ===== HEADER ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -239,7 +569,6 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -247,14 +576,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -277,14 +604,15 @@
         </nav>
         <div class="header-right">
             {% if session.get('user_id') %}
-            <!-- LOGGED IN: Settings dropdown -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -306,7 +634,6 @@
                 </div>
             </div>
             {% else %}
-            <!-- NOT LOGGED IN: Account dropdown + search icon -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
                 <div class="dropdown-content account-dropdown">
@@ -333,7 +660,6 @@
     }
 </script>
 
-<!-- Flash messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -344,53 +670,235 @@
     {% endif %}
 {% endwith %}
 
-<!-- ========== ORIGINAL EXPLORE CONTENT (preserved) ========== -->
-<section class="explore-header">
-    <h1>Explore the World</h1>
-    <p>Discover amazing destinations and plan your next journey</p>
-</section>
+<!-- Promo Banner - Now BLUE like About page -->
+<header class="promo-banner">
+    <img src="{{ url_for('static', filename='images/sale.jpg') }}" alt="Sale Badge" class="header-img-left">
+    <h1 class="banner-title">Your Dream Trip Starts with 30% OFF!</h1>
+    <img src="{{ url_for('static', filename='images/airplane_header.png') }}" alt="Planes Decoration" class="header-img-right">
+</header>
 
-<section class="destinations">
-    <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e" alt="Boracay">
-        <div class="card-info">
-            <h3>Boracay</h3>
-            <p>Famous for its white sand beaches and crystal clear water.</p>
-            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
+<main class="main-content">
+    <div class="destinations-container">
+        <!-- Philippine Destinations -->
+        <section class="dest-group">
+            <h2>Philippines</h2>
+            <div class="destinations-grid" id="philippinesGrid"></div>
+        </section>
+
+        <!-- International Destinations -->
+        <section class="dest-group">
+            <h2>International</h2>
+            <div class="destinations-grid" id="internationalGrid"></div>
+        </section>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <h3>Discover with Smile</h3>
+            <p>Simple tips to make you a better and smarter traveler</p>
+        </div>
+        <div class="info-item">
+            <h3>Where We Fly</h3>
+            <p>See our full list of destinations and choose where to go for your next trip</p>
+        </div>
+        <div class="info-item">
+            <h3>Discover with Smile</h3>
+            <p>Know the basics and discover hidden gems in your next destination</p>
+        </div>
+        <div class="info-item">
+            <h3>Our Story</h3>
+            <p>See how we made moments happen for everyJuan from 1996 up to present</p>
+        </div>
+        <div class="info-item">
+            <h3>Media Center</h3>
+            <p>Be updated on the latest airline news through our press releases and media galleries</p>
+        </div>
+        <div class="info-item">
+            <h3>Talk to Us</h3>
+            <p>Get answers to your questions or send feedback to our customer support team</p>
+        </div>
+        <div class="info-item">
+            <h3>Campaigns & Partners</h3>
+            <p>Read up on our campaigns and partnership initiatives</p>
+        </div>
+        <div class="info-item">
+            <h3>Investor Relations</h3>
+            <p>Read more information about AeroTicket for shareholders, potential investors, and financial analysts</p>
         </div>
     </div>
 
-    <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1505761671935-60b3a7427bad" alt="Tokyo">
-        <div class="card-info">
-            <h3>Tokyo</h3>
-            <p>Experience modern technology mixed with rich culture.</p>
-            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
-        </div>
+    <div class="footer-action">
+        <a href="{{ url_for('home') }}" class="home-btn">Home</a>
     </div>
-
-    <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a" alt="Paris">
-        <div class="card-info">
-            <h3>Paris</h3>
-            <p>The city of love with iconic landmarks and cuisine.</p>
-            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
-        </div>
-    </div>
-
-    <div class="destination-card">
-        <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470" alt="Switzerland">
-        <div class="card-info">
-            <h3>Switzerland</h3>
-            <p>Explore breathtaking mountains and scenic landscapes.</p>
-            <button onclick="location.href='{{ url_for('flight') }}'">View Flights</button>
-        </div>
-    </div>
-</section>
+</main>
 
 <footer>
     <p>© 2026 AeroTicket Airlines | Explore New Horizons</p>
 </footer>
+
+<script>
+    // Destination data
+    const destinations = {
+        philippines: [
+            {
+                id: 'boracay',
+                name: 'Boracay',
+                shortDesc: 'Whether you\'re a budget backpacker or a luxury traveler, you can find a noteworthy getaway on Boracay\'s famed shores.',
+                fullDesc: 'Boracay is famous for its powdery white sand beaches and vibrant nightlife. The island offers something for everyone - from thrilling water sports like kite surfing and paddle boarding to relaxing spa treatments on the beach. Experience the stunning sunset at White Beach, hop on a boat to Puka Shell Beach, or explore the surrounding islands. Boracay consistently ranks among the best islands in the world!',
+                image: '{{ url_for('static', filename='images/boracay.png') }}',
+                price: 3200,
+                attractions: ['White Beach', 'Puka Shell Beach', 'Bulabog Beach', 'Mount Luho', 'Crystal Cove Island', 'D\'Mall']
+            },
+            {
+                id: 'siargao',
+                name: 'Siargao',
+                shortDesc: 'Surfing capital of the Philippines with breathtaking lagoons and coconut trees.',
+                fullDesc: 'Known as the Surfing Capital of the Philippines, Siargao offers world-class waves at Cloud 9, stunning lagoons like Sugba Lagoon, and the magical Magpupungko Rock Pools. Whether you\'re a seasoned surfer or a beginner, Siargao\'s laid-back island vibe and natural beauty will captivate you.',
+                image: '{{ url_for('static', filename='images/siargao.png') }}',
+                price: 3500,
+                attractions: ['Cloud 9', 'Sugba Lagoon', 'Magpupungko Rock Pools', 'Naked Island', 'Daku Island', 'Guyam Island']
+            },
+            {
+                id: 'cebu',
+                name: 'Cebu',
+                shortDesc: 'White sand beaches and crystal clear waters await you in this tropical paradise.',
+                fullDesc: 'Experience the Queen City of the South! Cebu offers pristine white sand beaches, historical landmarks like Magellan\'s Cross and Fort San Pedro, and exciting nightlife. Don\'t miss the Sinulog Festival, swimming with whale sharks in Oslob, and canyoneering at Kawasan Falls.',
+                image: '{{ url_for('static', filename='images/cebu.png') }}',
+                price: 2500,
+                attractions: ['Sinulog Festival', 'Magellan\'s Cross', 'Kawasan Falls', 'Oslob Whale Sharks', 'Moalboal Sardine Run', 'Temple of Leah']
+            }
+        ],
+        international: [
+            {
+                id: 'dubai',
+                name: 'Dubai',
+                shortDesc: 'Luxury city with stunning architecture and world-record attractions.',
+                fullDesc: 'Experience luxury in the desert! Dubai offers the tallest building in the world (Burj Khalifa), indoor skiing at Ski Dubai, amazing shopping malls, spectacular desert safaris with dune bashing, and beautiful beaches at JBR. A city of superlatives!',
+                image: '{{ url_for('static', filename='images/dubai.png') }}',
+                price: 18500,
+                attractions: ['Burj Khalifa', 'Dubai Mall', 'Palm Jumeirah', 'Desert Safari', 'Dubai Fountain', 'Ski Dubai']
+            },
+            {
+                id: 'hongkong',
+                name: 'Hong Kong',
+                shortDesc: 'Asia\'s World City with stunning skyline and vibrant culture.',
+                fullDesc: 'Discover Asia\'s World City! Hong Kong offers stunning skyline views from Victoria Harbour, amazing shopping at Causeway Bay, delicious dim sum, Hong Kong Disneyland, and beautiful hiking trails like Dragon\'s Back. A vibrant city where East meets West.',
+                image: '{{ url_for('static', filename='images/hong_kong.png') }}',
+                price: 6500,
+                attractions: ['Victoria Harbour', 'Hong Kong Disneyland', 'The Peak', 'Temple Street Market', 'Ngong Ping 360', 'Ocean Park']
+            },
+            {
+                id: 'singapore',
+                name: 'Singapore',
+                shortDesc: 'Clean, green, and futuristic city-state with world-class attractions.',
+                fullDesc: 'Experience the Lion City! Singapore offers futuristic architecture like Marina Bay Sands, world-class shopping on Orchard Road, amazing gardens at Gardens by the Bay, delicious street food at hawker centres, and Universal Studios Singapore. A clean, safe, and green metropolis.',
+                image: '{{ url_for('static', filename='images/singapore.png') }}',
+                price: 7900,
+                attractions: ['Marina Bay Sands', 'Gardens by the Bay', 'Sentosa Island', 'Universal Studios', 'Orchard Road', 'Chinatown']
+            }
+        ]
+    };
+
+    let currentlyExpanded = null;
+
+    function toggleExpand(destId, type) {
+        const expandedDiv = document.getElementById(`expanded-${destId}`);
+        const expandBtn = document.getElementById(`btn-${destId}`);
+        
+        // Close previously expanded
+        if (currentlyExpanded && currentlyExpanded !== destId) {
+            const prevExpanded = document.getElementById(`expanded-${currentlyExpanded}`);
+            const prevBtn = document.getElementById(`btn-${currentlyExpanded}`);
+            if (prevExpanded) prevExpanded.classList.remove('active');
+            if (prevBtn) prevBtn.innerHTML = '<i class="fas fa-chevron-down"></i> View Details';
+        }
+        
+        // Toggle current
+        if (expandedDiv) {
+            if (expandedDiv.classList.contains('active')) {
+                expandedDiv.classList.remove('active');
+                expandBtn.innerHTML = '<i class="fas fa-chevron-down"></i> View Details';
+                currentlyExpanded = null;
+            } else {
+                expandedDiv.classList.add('active');
+                expandBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Hide Details';
+                currentlyExpanded = destId;
+            }
+        }
+    }
+    
+    function searchFlights(destination) {
+        window.location.href = `{{ url_for('flight') }}?destination=${destination.toLowerCase()}`;
+    }
+    
+    function renderDestinations() {
+        // Render Philippine destinations
+        const phGrid = document.getElementById('philippinesGrid');
+        if (phGrid) {
+            phGrid.innerHTML = destinations.philippines.map(dest => `
+                <div class="dest-card">
+                    <div class="card-image" style="background-image: url('${dest.image}')"></div>
+                    <div class="card-content">
+                        <h3 class="dest-name">${dest.name}</h3>
+                        <span class="price-tag">✈️ From ₱${dest.price.toLocaleString()}</span>
+                        <p class="dest-short-desc">${dest.shortDesc}</p>
+                        <button class="view-details-btn" id="btn-${dest.id}" onclick="toggleExpand('${dest.id}', 'philippines')">
+                            <i class="fas fa-chevron-down"></i> View Details
+                        </button>
+                    </div>
+                    <div class="expanded-details" id="expanded-${dest.id}">
+                        <div class="expanded-image" style="background-image: url('${dest.image}')"></div>
+                        <div class="expanded-content">
+                            <h3 class="expanded-title">${dest.name}</h3>
+                            <p class="full-description">${dest.fullDesc}</p>
+                            <h4 class="attractions-title"><i class="fas fa-star"></i> Popular Attractions</h4>
+                            <div class="attractions-list">
+                                ${dest.attractions.map(att => `<span class="attraction-tag"><i class="fas fa-map-marker-alt"></i> ${att}</span>`).join('')}
+                            </div>
+                            <button class="book-flight-btn" onclick="searchFlights('${dest.name}')">
+                                <i class="fas fa-plane"></i> Book Flights to ${dest.name} - ₱${dest.price.toLocaleString()}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render International destinations
+        const intGrid = document.getElementById('internationalGrid');
+        if (intGrid) {
+            intGrid.innerHTML = destinations.international.map(dest => `
+                <div class="dest-card">
+                    <div class="card-image" style="background-image: url('${dest.image}')"></div>
+                    <div class="card-content">
+                        <h3 class="dest-name">${dest.name}</h3>
+                        <span class="price-tag">✈️ From ₱${dest.price.toLocaleString()}</span>
+                        <p class="dest-short-desc">${dest.shortDesc}</p>
+                        <button class="view-details-btn" id="btn-${dest.id}" onclick="toggleExpand('${dest.id}', 'international')">
+                            <i class="fas fa-chevron-down"></i> View Details
+                        </button>
+                    </div>
+                    <div class="expanded-details" id="expanded-${dest.id}">
+                        <div class="expanded-image" style="background-image: url('${dest.image}')"></div>
+                        <div class="expanded-content">
+                            <h3 class="expanded-title">${dest.name}</h3>
+                            <p class="full-description">${dest.fullDesc}</p>
+                            <h4 class="attractions-title"><i class="fas fa-star"></i> Popular Attractions</h4>
+                            <div class="attractions-list">
+                                ${dest.attractions.map(att => `<span class="attraction-tag"><i class="fas fa-map-marker-alt"></i> ${att}</span>`).join('')}
+                            </div>
+                            <button class="book-flight-btn" onclick="searchFlights('${dest.name}')">
+                                <i class="fas fa-plane"></i> Book Flights to ${dest.name} - ₱${dest.price.toLocaleString()}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', renderDestinations);
+</script>
 
 </body>
 </html>

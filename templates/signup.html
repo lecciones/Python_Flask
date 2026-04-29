@@ -6,222 +6,10 @@
     <title>AeroTicket - Create Account</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='signup.css') }}">
-    <style>
-        /* ===== HEADER & DROPDOWN STYLES ONLY (no background override) ===== */
-        .main-header {
-            background-color: #ffffff;
-            padding: 5px 0;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .logo {
-            flex: 1;
-        }
-        .logo img {
-            height: 140px;
-            width: auto;
-            margin-top: -25px;
-            margin-bottom: -25px;
-            display: block;
-        }
-        .nav-links {
-            display: flex;
-            gap: 35px;
-            flex: 1;
-            justify-content: center;
-        }
-        .nav-links a, .dropbtn {
-            text-decoration: none;
-            color: #4dbbee;
-            font-weight: 700;
-            font-size: 1.1rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-        .dropdown {
-            position: relative;
-        }
-        /* Main navigation dropdown (circular icons) */
-        .dropdown-content {
-            display: flex;
-            flex-direction: row;
-            position: absolute;
-            background: white;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 15px;
-            padding: 20px;
-            gap: 15px;
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.2s;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            margin-top: 10px;
-            z-index: 1001;
-        }
-        .dropdown:hover .dropdown-content,
-        .dropdown-content:hover {
-            opacity: 1;
-            visibility: visible;
-            margin-top: 0;
-        }
-        .dropdown-content a {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #333;
-            font-weight: 600;
-            font-size: 0.85rem;
-            gap: 10px;
-            padding: 12px 18px;
-            border-radius: 12px;
-            transition: 0.2s;
-        }
-        .dropdown-content a .menu-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #4eb8e9, #2c8fbb);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .dropdown-content a .menu-icon i {
-            color: white;
-            font-size: 24px;
-        }
-        .dropdown-content a:hover {
-            background: #f0f9ff;
-            transform: translateY(-3px);
-        }
-        /* Manage dropdown styling */
-        .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-            margin-top: 10px !important;
-        }
-        .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
-        }
-        /* Account dropdown (not logged in) – horizontal, right-aligned */
-        .account-dropdown {
-            flex-direction: column !important;
-            min-width: 160px !important;
-            padding: 8px 0 !important;
-            left: auto !important;
-            right: 0 !important;
-            transform: none !important;
-            margin-top: 10px !important;
-        }
-        .account-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
-            color: #4a4a4a;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .account-dropdown a i {
-            width: 20px;
-            color: #4eb8e9;
-        }
-        .account-dropdown a:hover {
-            background: #f0f9ff !important;
-            transform: none !important;
-        }
-        /* Settings dropdown (logged in) – horizontal, right-aligned */
-        .settings-dropdown {
-            flex-direction: column !important;
-            min-width: 210px !important;
-            padding: 8px 0 !important;
-            left: auto !important;
-            right: 0 !important;
-            transform: none !important;
-            margin-top: 10px !important;
-        }
-        .settings-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
-        }
-        .settings-dropdown a .menu-icon {
-            width: 28px !important;
-            height: 28px !important;
-            background: none !important;
-            box-shadow: none !important;
-        }
-        .settings-dropdown a .menu-icon i {
-            color: #4eb8e9 !important;
-            font-size: 18px !important;
-        }
-        .settings-dropdown a:hover {
-            background: #f0f9ff !important;
-            transform: none !important;
-        }
-        .header-right {
-            flex: 1;
-            display: flex;
-            justify-content: flex-end;
-            gap: 25px;
-            align-items: center;
-        }
-        .search-icon {
-            color: #4dbbee;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-        
-        /* Flash message styles */
-        .flash-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #c3e6cb;
-            margin: 0;
-        }
-        .flash-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border-bottom: 1px solid #f5c6cb;
-        }
-    </style>
 </head>
 <body>
 
-<!-- ===== HEADER (with Manage dropdown including View Ticket) ===== -->
+<!-- ===== HEADER ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -240,7 +28,6 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -248,14 +35,12 @@
                     <a href="{{ url_for('login') }}" class="dropbtn">Manage</a>
                 {% endif %}
                 <div class="dropdown-content manage-dropdown">
-                    <!-- View Ticket - ONLY shows if user is logged in AND has bookings -->
                     {% if session.get('user_id') and has_bookings and latest_booking_id %}
                     <a href="{{ url_for('view_ticket') }}?id={{ latest_booking_id }}">
                         <div class="menu-icon"><i class="fas fa-ticket-alt"></i></div>
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -277,37 +62,6 @@
             </div>
         </nav>
         <div class="header-right">
-            {% if session.get('user_id') %}
-            <!-- LOGGED IN: Settings dropdown -->
-            <div class="dropdown">
-                <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
-                <div class="dropdown-content settings-dropdown">
-                    <a href="{{ url_for('user_dashboard') }}">
-                        <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
-                        My Dashboard
-                    </a>
-                    <a href="{{ url_for('user_settings') }}">
-                        <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
-                        Account Settings
-                    </a>
-                    {% if session.get('is_admin') %}
-                    <a href="{{ url_for('admin_dashboard') }}">
-                        <div class="menu-icon"><i class="fas fa-chalkboard-user"></i></div>
-                        Admin Dashboard
-                    </a>
-                    <a href="{{ url_for('admin_settings') }}">
-                        <div class="menu-icon"><i class="fas fa-sliders-h"></i></div>
-                        Admin Settings
-                    </a>
-                    {% endif %}
-                    <a href="#" onclick="confirmLogout(event);">
-                        <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
-                        Logout
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <!-- NOT LOGGED IN: Account dropdown + search icon -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
                 <div class="dropdown-content account-dropdown">
@@ -320,7 +74,6 @@
                 </div>
             </div>
             <i class="fas fa-search search-icon"></i>
-            {% endif %}
         </div>
     </div>
 </header>
@@ -334,20 +87,20 @@
     }
 </script>
 
-<!-- Flash messages -->
+<!-- FLASH MESSAGES ARE HIDDEN - NO GREEN BACKGROUND -->
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
-            <div class="flash-message {% if category == 'error' %}error{% endif %}">
+            <div class="flash-message {% if category == 'error' %}error{% endif %}" style="display: none;">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 {% endwith %}
 
-<!-- ===== ORIGINAL SIGNUP FORM CONTENT (preserved) ===== -->
+<!-- ===== SIGNUP MODAL - MATCHING LOGIN FORM STRUCTURE ===== -->
 <div class="modal-overlay">
-    <div class="login-card">
+    <div class="signup-card">
         <span class="close-btn">&times;</span>
         <div class="card-logo-container">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Card Logo">
@@ -355,41 +108,50 @@
         <h1>Create Account</h1>
         <p class="signup-text">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
         
-        <form action="/register" method="POST">
+        <!-- VALIDATION ERROR DISPLAY -->
+        <div id="signupError" class="validation-error"></div>
+        
+        <form action="/register" method="POST" id="signupForm">
             <div class="input-group">
-                <input type="text" name="fullname" placeholder="Full Name" required>
+                <input type="text" name="fullname" id="fullname" placeholder="Full Name" value="{{ fullname if fullname else '' }}" required>
             </div>
             <div class="input-group">
-                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="email" name="email" id="email" placeholder="Email Address" value="{{ email if email else '' }}" required>
             </div>
             <div class="input-group">
                 <input type="password" name="password" id="password" placeholder="Password" required>
                 <i class="far fa-eye eye-icon" id="togglePassword" style="cursor: pointer;"></i>
             </div>
-            <button type="submit" class="login-btn">Sign Up</button>
+            <button type="submit" class="signup-btn" id="signupBtn">
+                <span id="btnText">Sign Up</span>
+                <div class="btn-loader" id="btnLoader"></div>
+            </button>
         </form>
         
         <div class="divider">or sign up with</div>
         
         <div class="social-container">
-            <a href="{{ url_for('google_login') }}" class="social-item">
+            <a href="{{ url_for('google_login', mode='signup') }}" class="social-item">
                 <i class="fab fa-google"></i>
                 <span>Google</span>
             </a>
-            <a href="{{ url_for('apple_login') }}" class="social-item">
+            <a href="{{ url_for('apple_login', mode='signup') }}" class="social-item">
                 <i class="fab fa-apple"></i>
                 <span>Apple</span>
             </a>
-            <a href="{{ url_for('wechat_login') }}" class="social-item">
+            <a href="{{ url_for('wechat_login', mode='signup') }}" class="social-item">
                 <i class="fab fa-weixin"></i>
                 <span>WeChat</span>
             </a>
         </div>
+        
+        <p style="text-align: center; margin-top: 20px; font-size: 0.7rem; color: #718096;">
+            By signing up, you agree to our <a href="#" style="color: #4dbbee; text-decoration: none;">Terms of Service</a> and <a href="#" style="color: #4dbbee; text-decoration: none;">Privacy Policy</a>
+        </p>
     </div>
 </div>
 
 <script>
-    // Password toggle
     const togglePassword = document.querySelector('#togglePassword');
     const passwordInput = document.querySelector('#password');
     
@@ -402,13 +164,106 @@
         });
     }
 
-    // Close button redirects to home
     const closeBtn = document.querySelector('.close-btn');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
             window.location.href = "{{ url_for('home') }}";
         });
     }
+    
+    const signupForm = document.getElementById('signupForm');
+    const errorDiv = document.getElementById('signupError');
+    const signupBtn = document.getElementById('signupBtn');
+    const btnLoader = document.getElementById('btnLoader');
+    const btnText = document.getElementById('btnText');
+    
+    function showError(message) {
+        if (errorDiv) {
+            errorDiv.innerHTML = message;
+            errorDiv.style.color = '#e53e3e';
+            errorDiv.style.background = 'transparent';
+        }
+    }
+    
+    function clearError() {
+        if (errorDiv) {
+            errorDiv.innerHTML = '';
+        }
+    }
+    
+    function showLoading() {
+        signupBtn.disabled = true;
+        btnLoader.style.display = 'block';
+        btnText.style.visibility = 'hidden';
+    }
+    
+    if (signupForm) {
+        signupForm.addEventListener('submit', function(e) {
+            const fullname = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            clearError();
+            
+            if (!fullname && !email && !password) {
+                e.preventDefault();
+                showError('Please fill in all fields.');
+            } else if (!fullname) {
+                e.preventDefault();
+                showError('Please enter your full name.');
+            } else if (!email) {
+                e.preventDefault();
+                showError('Please enter your email address.');
+            } else if (!password) {
+                e.preventDefault();
+                showError('Please enter a password.');
+            } else if (password.length < 6) {
+                e.preventDefault();
+                showError('Password must be at least 6 characters.');
+            } else if (!email.includes('@')) {
+                e.preventDefault();
+                showError('Please enter a valid email address.');
+            } else {
+                showLoading();
+                return true;
+            }
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        let serverError = null;
+        
+        flashMessages.forEach(function(msg) {
+            const text = msg.innerText;
+            if (text && text.trim().length > 0) {
+                if (text.toLowerCase().includes('already') || 
+                    text.toLowerCase().includes('exists') ||
+                    text.toLowerCase().includes('error') ||
+                    text.toLowerCase().includes('required')) {
+                    serverError = text.trim();
+                }
+            }
+        });
+        
+        if (serverError && errorDiv) {
+            showError(serverError);
+        }
+        
+        {% if session.get('show_success_popup') %}
+            const toast = document.createElement('div');
+            toast.className = 'toast-popup success';
+            toast.innerHTML = '<i class="fas fa-check-circle" style="margin-right: 10px;"></i> {{ session.pop("show_success_popup") }}';
+            document.body.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(function() {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        {% endif %}
+    });
 </script>
 
 </body>

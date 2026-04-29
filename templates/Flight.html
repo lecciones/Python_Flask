@@ -7,210 +7,110 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='flight.css') }}">
     <style>
-        /* ===== HEADER & DROPDOWN STYLES ===== */
-        .main-header {
-            background-color: #ffffff;
-            padding: 5px 0;
-            height: 90px;
-            display: flex;
-            overflow: visible;
-            align-items: center;
-            box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .logo { display: flex; justify-content: flex-start; flex: 1; }
-        .logo img {
-            height: 140px !important;
-            width: auto;
-            margin-top: -25px;
-            margin-bottom: -25px;
-            display: block;
-            position: relative;
-            z-index: 5;
-        }
-        .nav-links {
-            display: flex;
-            gap: 35px;
-            margin-bottom: 0;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-        }
-        .nav-links a, .dropbtn {
-            text-decoration: none;
-            color: #4dbbee;
-            font-weight: 700;
-            font-size: 1.1rem;
-            line-height: 1;
-            white-space: nowrap;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content {
-            display: flex;
-            flex-direction: row;
-            position: absolute;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            min-width: auto;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            z-index: 1001;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 15px;
-            padding: 20px;
-            gap: 15px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease-in-out;
-            margin-top: 10px;
-        }
-        .dropdown:hover .dropdown-content,
-        .dropdown-content:hover {
-            opacity: 1;
-            visibility: visible;
-            margin-top: 0;
-        }
-        .dropdown-content a {
-            color: #4a4a4a;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 15px 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border-radius: 12px;
-            gap: 10px;
-            min-width: 100px;
-        }
-        .dropdown-content a .menu-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(46, 143, 187, 0.3);
-        }
-        .dropdown-content a .menu-icon i { color: white; font-size: 24px; }
-        .dropdown-content a:hover { background: #f0f9ff; transform: translateY(-5px); }
-        .dropdown-content a:hover .menu-icon { transform: scale(1.1); box-shadow: 0 6px 16px rgba(46, 143, 187, 0.4); }
-
+        /* Additional styles for horizontal manage dropdown */
         .manage-dropdown {
-            flex-direction: column !important; min-width: 200px !important;
-            padding: 8px 0 !important; left: 50% !important;
-            right: auto !important; transform: translateX(-50%) !important;
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
             margin-top: 10px !important;
+            gap: 15px !important;
         }
         .manage-dropdown a {
-            flex-direction: row !important; justify-content: flex-start !important;
-            gap: 12px !important; padding: 10px 20px !important;
-            min-width: auto !important; border-radius: 0 !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* Settings dropdown - vertical */
         .settings-dropdown {
-            flex-direction: column !important; min-width: 210px !important;
-            padding: 8px 0 !important; left: auto !important;
-            right: 0 !important; transform: none !important; margin-top: 10px !important;
+            flex-direction: column !important;
+            min-width: 210px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
         }
         .settings-dropdown a {
-            flex-direction: row !important; justify-content: flex-start !important;
-            gap: 12px !important; padding: 10px 20px !important;
-            min-width: auto !important; border-radius: 0 !important;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            text-align: left !important;
         }
         .settings-dropdown a .menu-icon {
-            width: 28px !important; height: 28px !important;
-            background: none !important; box-shadow: none !important; margin-bottom: 0 !important;
+            width: 28px !important;
+            height: 28px !important;
+            background: none !important;
+            box-shadow: none !important;
+            margin-bottom: 0 !important;
         }
-        .settings-dropdown a .menu-icon i { color: #4eb8e9 !important; font-size: 18px !important; }
-        .settings-dropdown a:hover { background: #f0f9ff !important; transform: none !important; }
+        .settings-dropdown a .menu-icon i {
+            color: #4eb8e9 !important;
+            font-size: 18px !important;
+        }
+        .settings-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
 
+        /* Account dropdown - vertical */
         .account-dropdown {
-            flex-direction: column !important; min-width: 160px !important;
-            padding: 8px 0 !important; left: auto !important;
-            right: 0 !important; transform: none !important; margin-top: 10px !important;
+            flex-direction: column !important;
+            min-width: 160px !important;
+            padding: 8px 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            transform: none !important;
+            margin-top: 10px !important;
         }
         .account-dropdown a {
-            flex-direction: row !important; justify-content: flex-start !important;
-            gap: 12px !important; padding: 10px 20px !important;
-            min-width: auto !important; border-radius: 0 !important;
-            color: #4a4a4a; text-decoration: none; font-weight: 500;
-        }
-        .account-dropdown a i { width: 20px; color: #4eb8e9; }
-        .account-dropdown a:hover { background: #f0f9ff !important; }
-
-        .header-right {
-            display: flex; justify-content: flex-end;
-            gap: 25px; flex: 1; align-items: center;
-        }
-        .search-icon { color: #4dbbee; font-size: 1.1rem; cursor: pointer; }
-
-        /* Flash messages */
-        .flash-message {
-            background: #d4edda; color: #155724;
-            padding: 15px; text-align: center;
-            border-bottom: 1px solid #c3e6cb; margin: 0;
-        }
-        .flash-message.error {
-            background: #f8d7da; color: #721c24;
-            border-bottom: 1px solid #f5c6cb;
-        }
-
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            text-align: center;
-            color: #888;
-        }
-        .empty-state i {
-            font-size: 4rem;
-            color: #c8e8f8;
-            margin-bottom: 20px;
-        }
-        .empty-state h2 {
-            font-size: 1.4rem;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        .empty-state p {
-            font-size: 0.95rem;
-            margin-bottom: 25px;
-            max-width: 420px;
-            line-height: 1.6;
-        }
-        .empty-state a {
-            background: #4CB9F0;
-            color: white;
-            padding: 12px 28px;
-            border-radius: 20px;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 12px !important;
+            padding: 10px 20px !important;
+            min-width: auto !important;
+            border-radius: 0 !important;
+            color: #4a4a4a;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: background 0.2s;
+            font-weight: 500;
         }
-        .empty-state a:hover { background: #3da0d0; }
+        .account-dropdown a i {
+            width: 20px;
+            color: #4eb8e9;
+        }
+        .account-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: none !important;
+        }
     </style>
 </head>
 <body>
@@ -234,6 +134,7 @@
                     </a>
                 </div>
             </div>
+            <!-- MANAGE DROPDOWN - HORIZONTAL -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -271,11 +172,14 @@
             {% if session.get('user_id') %}
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
+                <!-- SETTINGS DROPDOWN - VERTICAL -->
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -316,6 +220,36 @@
         if (confirm("Are you sure you want to log out?")) {
             window.location.href = "{{ url_for('logout') }}";
         }
+    }
+    
+    function showLoading() {
+        const overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading flights...</div>
+        `;
+        document.body.appendChild(overlay);
+    }
+    
+    function hideLoading() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) overlay.remove();
+    }
+    
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-popup ' + type;
+        toast.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + '" style="margin-right: 10px;"></i> ' + message;
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(function() {
+                toast.remove();
+            }, 300);
+        }, 3000);
     }
 </script>
 
@@ -397,12 +331,10 @@
         </div>
     </div>
 
-    <div class="footer-item">
-        <input type="text" class="promo-input" placeholder="Promo Code">
-    </div>
-    <div class="footer-item checkbox-group">
-        <input type="checkbox" id="aero-only">
-        <label for="aero-only">AeroTicket Flights Only</label>
+    <!-- PROMO CODE INPUT -->
+    <div class="footer-item" style="position: relative;">
+        <input type="text" id="promoCodeInput" class="promo-input" placeholder="Promo Code" onkeypress="if(event.key === 'Enter') applyPromoCode()">
+        <span class="clear-promo" id="clearPromoBtn" onclick="clearPromoCode()" style="display: none;">✕</span>
     </div>
 </div>
 
@@ -419,7 +351,13 @@
     };
 
     let currentCabin = "{{ passengers.cabin if passengers else 'Economy' }}";
+    let activePromo = null;
+    let activeDiscountType = null;
+    let activeDiscountValue = 0;
+    let originalFlightPrices = new Map();
     const flightDate = "{{ flight_date }}";
+    const searchOrigin = "{{ search_origin | upper }}";
+    const searchDestination = "{{ search_destination | upper }}";
 
     const allFlights = [
         {% for flight in flights %}
@@ -430,22 +368,37 @@
             origin:      "{{ flight.origin | upper }}",
             destination: "{{ flight.destination | upper }}",
             price:       "{{ flight.price }}",
+            originalPrice: "{{ flight.price }}",
             duration:    "{{ flight.duration }}",
-            distance:    "{{ flight.distance }}"
+            distance:    "{{ flight.distance }}",
+            flight_number: "{{ flight.flight_number }}",
+            gate:        "{{ flight.gate }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
+    // Store original prices
+    allFlights.forEach((flight, index) => {
+        originalFlightPrices.set(index, flight.price);
+        flight.originalPrice = flight.price;
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
-        // Highlight the active cabin option
         document.querySelectorAll('.cabin-option').forEach(opt => {
             if (opt.getAttribute('data-class') === currentCabin) opt.classList.add('active');
         });
         updateDisplay();
         filterFlights(currentCabin);
+        
+        // Check for promo code in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const promoCode = urlParams.get('promo');
+        if (promoCode) {
+            document.getElementById('promoCodeInput').value = promoCode;
+            applyPromoCode();
+        }
     });
 
-    // ---- Toggle panels ----
     function setupToggle(toggleId, panelId) {
         const toggle = document.getElementById(toggleId);
         const panel  = document.getElementById(panelId);
@@ -464,6 +417,22 @@
     function selectTrip(type) {
         document.getElementById('trip-type-toggle').innerHTML = `${type} <i class="fas fa-caret-down"></i>`;
         document.getElementById('trip-panel').classList.remove('show');
+        reloadWithTripType(type);
+    }
+    
+    function reloadWithTripType(tripType) {
+        showLoading();
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('trip_type', tripType);
+        
+        if (activePromo) {
+            urlParams.set('promo', activePromo);
+        }
+        
+        const newUrl = window.location.pathname + '?' + urlParams.toString();
+        setTimeout(() => {
+            window.location.href = newUrl;
+        }, 300);
     }
 
     function updateCount(type, change) {
@@ -488,10 +457,120 @@
         if (summary) summary.innerText = `${total} ${guestText} ${currentCabin}`;
     }
 
-    // ---- Render flights ----
+    function applyDiscountToPrice(price, discountType, discountValue) {
+        const numericPrice = parseInt(price.replace(/,/g, ''));
+        let discountedPrice;
+        
+        if (discountType === 'percentage') {
+            discountedPrice = numericPrice * (1 - discountValue / 100);
+        } else if (discountType === 'fixed') {
+            discountedPrice = Math.max(0, numericPrice - discountValue);
+        } else {
+            discountedPrice = numericPrice;
+        }
+        
+        return Math.round(discountedPrice).toLocaleString();
+    }
+
+    function applyPromoCode() {
+        const promoInput = document.getElementById('promoCodeInput');
+        const promoCode = promoInput.value.trim().toUpperCase();
+        
+        if (!promoCode) {
+            showToast('Please enter a promo code.', 'error');
+            return;
+        }
+        
+        showLoading();
+        
+        fetch('/validate-promo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code: promoCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (data.valid) {
+                activePromo = promoCode;
+                activeDiscountType = data.discount_type;
+                activeDiscountValue = data.discount_value;
+                
+                let discountMessage = '';
+                if (data.discount_type === 'percentage') {
+                    discountMessage = `${data.discount_value}% OFF applied!`;
+                } else {
+                    discountMessage = `₱${data.discount_value.toLocaleString()} OFF applied!`;
+                }
+                showToast(discountMessage, 'success');
+                
+                promoInput.classList.add('promo-applied');
+                document.getElementById('clearPromoBtn').style.display = 'block';
+                
+                allFlights.forEach((flight, index) => {
+                    const originalPrice = originalFlightPrices.get(index);
+                    const discountedPrice = applyDiscountToPrice(originalPrice, data.discount_type, data.discount_value);
+                    flight.price = discountedPrice;
+                    flight.discountType = data.discount_type;
+                    flight.discountValue = data.discount_value;
+                });
+                
+                filterFlights(currentCabin);
+            } else {
+                activePromo = null;
+                activeDiscountType = null;
+                activeDiscountValue = 0;
+                showToast(data.message || 'Invalid promo code', 'error');
+                
+                promoInput.classList.remove('promo-applied');
+                document.getElementById('clearPromoBtn').style.display = 'none';
+                
+                allFlights.forEach((flight, index) => {
+                    flight.price = originalFlightPrices.get(index);
+                    flight.discountType = null;
+                    flight.discountValue = 0;
+                });
+                filterFlights(currentCabin);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error:', error);
+            showToast('Error applying promo code. Please try again.', 'error');
+        });
+    }
+    
+    function clearPromoCode() {
+        const promoInput = document.getElementById('promoCodeInput');
+        promoInput.value = '';
+        promoInput.classList.remove('promo-applied');
+        document.getElementById('clearPromoBtn').style.display = 'none';
+        
+        activePromo = null;
+        activeDiscountType = null;
+        activeDiscountValue = 0;
+        
+        allFlights.forEach((flight, index) => {
+            flight.price = originalFlightPrices.get(index);
+            flight.discountType = null;
+            flight.discountValue = 0;
+        });
+        
+        filterFlights(currentCabin);
+        showToast('Promo code removed', 'info');
+    }
+
     function filterFlights(cabinName) {
         const container = document.getElementById('flight-results-container');
-        const matched   = allFlights.filter(f => f.class.toLowerCase() === cabinName.toLowerCase());
+        
+        let matched = allFlights.filter(f => 
+            f.class.toLowerCase() === cabinName.toLowerCase() &&
+            f.origin === searchOrigin &&
+            f.destination === searchDestination
+        );
 
         if (matched.length === 0) {
             container.innerHTML = `
@@ -499,7 +578,7 @@
                     <i class="fas fa-plane-slash"></i>
                     <h2>No flights found</h2>
                     <p>
-                        We couldn't find any <strong>${cabinName}</strong> flights for your selected route.
+                        We couldn't find any <strong>${cabinName}</strong> flights from <strong>${searchOrigin}</strong> to <strong>${searchDestination}</strong>.
                         Try a different cabin class or search again from the home page.
                     </p>
                     <a href="{{ url_for('home') }}">← Back to Search</a>
@@ -520,9 +599,21 @@
     }
 
     function renderCard(flight, index) {
+        let discountBadge = '';
+        let originalPriceDisplay = '';
+        
+        if (flight.discountValue && flight.discountValue > 0) {
+            if (flight.discountType === 'percentage') {
+                discountBadge = `<span class="discount-badge">-${flight.discountValue}% OFF</span>`;
+            } else if (flight.discountType === 'fixed') {
+                discountBadge = `<span class="discount-badge fixed">-₱${flight.discountValue.toLocaleString()} OFF</span>`;
+            }
+            originalPriceDisplay = `<span class="original-price">₱${originalFlightPrices.get(index)}</span>`;
+        }
+        
         return `
         <div class="flight-card">
-            <div class="badge">${flight.class}</div>
+            <div class="badge">${flight.class} ${discountBadge}</div>
             <div class="card-body">
                 <div class="flight-info">
                     <div class="airline-logo">
@@ -550,6 +641,7 @@
                 <div class="price-section">
                     <div class="price-container">
                         <span class="currency">PHP</span>
+                        ${originalPriceDisplay}
                         <span class="amount">${flight.price}</span>
                     </div>
                     <span class="per-guest">/ 1 guest*</span>
@@ -557,7 +649,7 @@
                     <a href="#" class="view-details">View Details ↓</a>
                 </div>
             </div>
-            <div class="card-footer" style="display:flex; justify-content:space-between; padding-top:10px; border-top:1px solid #eee; margin-top:10px; font-size:0.8rem; color:#777;">
+            <div class="card-footer">
                 <span>7 kg per guest</span>
                 <span>Add Ons</span>
                 <span>58kg CO₂</span>
@@ -577,8 +669,16 @@
             infants:     counts.infant,
             date:        flightDate,
             time:        flight.departure,
-            flight_no:   'AT' + Math.floor(Math.random() * 9000 + 1000)
+            flight_no:   flight.flight_number
         });
+        
+        // Pass promo code information if active
+        if (activePromo) {
+            params.set('promo', activePromo);
+            params.set('discount_type', activeDiscountType || 'percentage');
+            params.set('discount_value', activeDiscountValue || 0);
+        }
+        
         window.location.href = `${baseUrl}?${params.toString()}`;
     }
 
@@ -588,5 +688,6 @@
         }
     };
 </script>
+
 </body>
 </html>

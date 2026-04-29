@@ -65,7 +65,7 @@
         .dropdown {
             position: relative;
         }
-        /* Main navigation dropdown (circular icons) */
+        /* Main navigation dropdown (circular icons) - HORIZONTAL */
         .dropdown-content {
             display: flex;
             flex-direction: row;
@@ -102,6 +102,7 @@
             padding: 12px 18px;
             border-radius: 12px;
             transition: 0.2s;
+            min-width: 100px;
         }
         .dropdown-content a .menu-icon {
             width: 50px;
@@ -120,7 +121,48 @@
             background: #f0f9ff;
             transform: translateY(-3px);
         }
-        /* Settings dropdown (logged in) – horizontal, right-aligned */
+
+        /* MANAGE DROPDOWN - HORIZONTAL (same as Book dropdown) */
+        .manage-dropdown {
+            flex-direction: row !important;
+            min-width: auto !important;
+            padding: 20px !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%) !important;
+            margin-top: 10px !important;
+            gap: 15px !important;
+        }
+        .manage-dropdown a {
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px 18px !important;
+            min-width: 100px !important;
+            border-radius: 12px !important;
+            text-align: center !important;
+        }
+        .manage-dropdown a .menu-icon {
+            width: 50px !important;
+            height: 50px !important;
+            background: linear-gradient(135deg, #4eb8e9, #2c8fbb) !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-bottom: 0 !important;
+        }
+        .manage-dropdown a .menu-icon i {
+            color: white !important;
+            font-size: 24px !important;
+        }
+        .manage-dropdown a:hover {
+            background: #f0f9ff !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* SETTINGS DROPDOWN - VERTICAL (right-aligned) */
         .settings-dropdown {
             flex-direction: column !important;
             min-width: 210px !important;
@@ -137,6 +179,7 @@
             padding: 10px 20px !important;
             min-width: auto !important;
             border-radius: 0 !important;
+            text-align: left !important;
         }
         .settings-dropdown a .menu-icon {
             width: 28px !important;
@@ -153,7 +196,8 @@
             background: #f0f9ff !important;
             transform: none !important;
         }
-        /* Account dropdown (not logged in) – horizontal, right-aligned */
+
+        /* ACCOUNT DROPDOWN - VERTICAL (right-aligned) */
         .account-dropdown {
             flex-direction: column !important;
             min-width: 160px !important;
@@ -181,24 +225,7 @@
         .account-dropdown a:hover {
             background: #f0f9ff !important;
         }
-        /* Manage dropdown styling */
-        .manage-dropdown {
-            flex-direction: column !important;
-            min-width: 200px !important;
-            padding: 8px 0 !important;
-            left: 50% !important;
-            right: auto !important;
-            transform: translateX(-50%) !important;
-            margin-top: 10px !important;
-        }
-        .manage-dropdown a {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 12px !important;
-            padding: 10px 20px !important;
-            min-width: auto !important;
-            border-radius: 0 !important;
-        }
+
         .header-right {
             flex: 1;
             display: flex;
@@ -226,11 +253,98 @@
             color: #721c24;
             border-bottom: 1px solid #f5c6cb;
         }
+        
+        /* Original travel info styles */
+        .hero {
+            background: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600') center/cover no-repeat;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+        }
+        .hero-text {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-text h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .hero-text p {
+            font-size: 18px;
+        }
+        .info-section {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        .info-card h2 {
+            color: #2c8fbb;
+            margin-bottom: 15px;
+        }
+        .tips {
+            background: #f0f9ff;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .tips h2 {
+            color: #2c8fbb;
+            margin-bottom: 40px;
+            font-size: 32px;
+        }
+        .tips-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .tip {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .tip h3 {
+            color: #4eb8e9;
+            margin-bottom: 10px;
+        }
+        footer {
+            background: #1a2a3a;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-<!-- ===== HEADER (same as final Booking page) ===== -->
+<!-- ===== HEADER WITH HORIZONTAL MANAGE DROPDOWN ===== -->
 <header class="main-header">
     <div class="header-container">
         <div class="logo">
@@ -249,7 +363,7 @@
                     </a>
                 </div>
             </div>
-            <!-- Manage dropdown - with View Ticket link -->
+            <!-- MANAGE DROPDOWN - HORIZONTAL (same as Book) -->
             <div class="dropdown">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('manage') }}" class="dropbtn">Manage</a>
@@ -264,7 +378,7 @@
                         View Ticket
                     </a>
                     {% endif %}
-                    <!-- Check-in - ALWAYS visible (even when not logged in) -->
+                    <!-- Check-in - ALWAYS visible -->
                     <a href="{{ url_for('check_in') }}">
                         <div class="menu-icon"><i class="fas fa-check-circle"></i></div>
                         Check-in
@@ -291,10 +405,12 @@
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-cog"></i> Settings</a>
                 <div class="dropdown-content settings-dropdown">
+                    {% if not session.get('is_admin') %}
                     <a href="{{ url_for('user_dashboard') }}">
                         <div class="menu-icon"><i class="fas fa-tachometer-alt"></i></div>
                         My Dashboard
                     </a>
+                    {% endif %}
                     <a href="{{ url_for('user_settings') }}">
                         <div class="menu-icon"><i class="fas fa-user-cog"></i></div>
                         Account Settings
@@ -316,7 +432,7 @@
                 </div>
             </div>
             {% else %}
-            <!-- NOT LOGGED IN: Account dropdown + search icon -->
+            <!-- NOT LOGGED IN: Account dropdown -->
             <div class="dropdown">
                 <a href="#" class="dropbtn"><i class="fas fa-user-circle"></i> Account</a>
                 <div class="dropdown-content account-dropdown">
@@ -354,7 +470,7 @@
     {% endif %}
 {% endwith %}
 
-<!-- ===== ORIGINAL TRAVEL INFORMATION CONTENT (unchanged) ===== -->
+<!-- ===== TRAVEL INFORMATION CONTENT ===== -->
 <section class="hero">
     <div class="hero-text">
         <h1>Travel Information</h1>

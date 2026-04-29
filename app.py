@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 import random
 import string
 import os
+import secrets
+from functools import wraps
+import json
 
 # ==================== APP CONFIGURATION ====================
 app = Flask(__name__)
@@ -21,6 +24,23 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 db = SQLAlchemy(app)
 
+# ==================== ADMIN DECORATOR ====================
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('is_admin'):
+            return jsonify({'error': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('user_id'):
+            return jsonify({'error': 'Login required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
 # ==================== DATABASE MODELS ====================
 
 class User(db.Model):
@@ -34,6 +54,7 @@ class User(db.Model):
     phone = db.Column(db.String(20), nullable=True)
     email_reminders = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
     profile_picture = db.Column(db.String(200), nullable=True)
 
     def __repr__(self):
@@ -96,6 +117,10 @@ class Booking(db.Model):
     payment_method = db.Column(db.String(30), nullable=True)
     payment_status = db.Column(db.String(20), default="Pending")
     
+    # ===== ADD THESE 2 LINES ONLY =====
+    checked_in = db.Column(db.Boolean, default=False)
+    check_in_time = db.Column(db.DateTime, nullable=True)
+    
     user = db.relationship('User', backref='bookings')
     flight = db.relationship('Flight', backref='bookings')
     passengers = db.relationship('Passenger', backref='booking', cascade='all, delete-orphan')
@@ -126,8 +151,10 @@ class PromoCode(db.Model):
     __tablename__ = 'promo_codes'
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(200), nullable=True)
     discount_type = db.Column(db.String(20), nullable=False)
     discount_value = db.Column(db.Float, nullable=False)
+    valid_from = db.Column(db.DateTime, default=datetime.utcnow)
     valid_until = db.Column(db.DateTime, nullable=False)
     max_uses = db.Column(db.Integer, nullable=True)
     min_amount = db.Column(db.Float, nullable=True)
@@ -177,6 +204,22 @@ def set_system_setting(key, value):
         db.session.add(setting)
     db.session.commit()
 
+def normalize_email_for_gmail(email):
+    """Normalize Gmail addresses to handle dots and googlemail.com"""
+    if not email:
+        return email
+    email = email.lower().strip()
+    
+    if '@googlemail.com' in email:
+        email = email.replace('@googlemail.com', '@gmail.com')
+    
+    if '@gmail.com' in email:
+        local_part, domain = email.split('@')
+        normalized_local = local_part.replace('.', '')
+        email = normalized_local + '@' + domain
+    
+    return email
+
 def create_sample_flights():
     if Flight.query.count() == 0:
         sample_flights = [
@@ -197,11 +240,12 @@ def create_sample_flights():
         db.session.commit()
         print("✅ Sample flights created!")
 
+password_reset_tokens = {}
+
 # ==================== MAIN ROUTES ====================
 
 @app.route("/")
 def home():
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
@@ -234,16 +278,15 @@ def login():
             return render_template("Login_form.html", step="password", email=email)
 
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
+        if user and user.is_active and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['is_admin'] = user.is_admin
-            flash("Login successful!")
+            session['show_success_popup'] = "Login successful! Welcome back!"
             return redirect(url_for("home"))
         
         flash("Invalid email or password.")
         return render_template("Login_form.html", step="password" if step == "password" else "email", email=email)
 
-    # GET request - pass empty values for header consistency
     return render_template("Login_form.html", step="email", has_bookings=False, latest_booking_id=None)
 
 @app.route("/register", methods=["POST"])
@@ -262,10 +305,10 @@ def register():
     if not user_exists:
         hashed_password = generate_password_hash(password)
         new_user = User(fullname=fullname if fullname else None, email=email, 
-                       password=hashed_password, provider=provider)
+                       password=hashed_password, provider=provider, is_active=True)
         db.session.add(new_user)
         db.session.commit()
-        flash("Registration successful! Please log in with your credentials.")
+        session['show_success_popup'] = "Account created successfully! Please log in."
         return redirect(url_for("login")) 
     
     flash("Account already exists. Try logging in.")
@@ -276,7 +319,6 @@ def signup():
     if 'user_id' in session:
         return redirect(url_for('home'))
     
-    # Get has_bookings and latest_booking_id for header (not logged in, so false)
     has_bookings = False
     latest_booking_id = None
     
@@ -284,107 +326,156 @@ def signup():
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
 
-# ==================== FIXED GOOGLE LOGIN ====================
+# ==================== GOOGLE LOGIN ====================
 @app.route('/login/google', methods=['GET', 'POST'])
 def google_login():
+    mode = request.args.get('mode', 'login')
+    
     if request.method == 'POST':
+        mode = request.form.get("mode", "login")
         step = request.form.get("step")
         email = request.form.get("email")
         password = request.form.get("password")
 
-        if step == "email":
-            # Check if email exists in SocialUser table for Google provider
-            user = SocialUser.query.filter_by(email=email, provider='google').first()
-            if not user:
-                flash("No account found with that email. Please sign up first.")
-                return render_template("google.html", email=email)
-            # Email found, go to password page
-            return render_template("google_log.html", email=email)
-            
-        elif step == "password":
-            user = SocialUser.query.filter_by(email=email, provider='google').first()
-            if user:
-                if check_password_hash(user.password, password):
+        if mode == "login":
+            if step == "email":
+                user = SocialUser.query.filter_by(email=email, provider='google').first()
+                if not user:
+                    flash("No account found with that email. Please sign up first.")
+                    return render_template("google.html", mode='login', email=email)
+                return render_template("google_log.html", mode='login', email=email)
+                
+            elif step == "password":
+                user = SocialUser.query.filter_by(email=email, provider='google').first()
+                if user and check_password_hash(user.password, password):
                     session['user_id'] = user.id
                     session['auth_type'] = 'google'
                     session['is_admin'] = False
-                    flash("Login successful!")
+                    session['show_success_popup'] = "Login successful! Welcome back!"
                     return redirect(url_for('home'))
                 else:
-                    # STAY ON google_log.html - show error below password
                     flash("Wrong password. Please try again.")
-                    return render_template("google_log.html", email=email)
-            else:
-                # Create new account
+                    return render_template("google_log.html", mode='login', email=email)
+        
+        else:
+            if step == "email":
+                user = SocialUser.query.filter_by(email=email, provider='google').first()
+                if user:
+                    flash("Account already exists. Please log in instead.")
+                    return render_template("google.html", mode='signup', email=email)
+                return render_template("google_log.html", mode='signup', email=email)
+                
+            elif step == "password":
+                user = SocialUser.query.filter_by(email=email, provider='google').first()
+                if user:
+                    flash("Account already exists. Please log in instead.")
+                    return render_template("google_log.html", mode='signup', email=email)
+                
                 hashed_pw = generate_password_hash(password)
-                new_google_user = SocialUser(email=email, fullname=email.split('@')[0],
-                                            password=hashed_pw, provider='google')
+                new_google_user = SocialUser(
+                    email=email, 
+                    fullname=email.split('@')[0],
+                    password=hashed_pw, 
+                    provider='google'
+                )
                 db.session.add(new_google_user)
                 db.session.commit()
-                flash("Google account registered! Please log in.")
+                session['show_success_popup'] = "Google account created successfully! Please log in."
                 return redirect(url_for('login'))
     
-    # GET request - show email page
-    return render_template('google.html')
+    return render_template('google.html', mode=mode)
 
-# ==================== FIXED APPLE LOGIN ====================
+# ==================== APPLE LOGIN ====================
 @app.route('/login/apple', methods=['GET', 'POST'])
 def apple_login():
+    mode = request.args.get('mode', 'login')
+    
     if request.method == 'POST':
+        mode = request.form.get("mode", "login")
         email = request.form.get("apple_email")
         password = request.form.get("apple_password")
-        user = SocialUser.query.filter_by(email=email, provider='apple').first()
-        if user:
-            if check_password_hash(user.password, password):
+        
+        if mode == "login":
+            user = SocialUser.query.filter_by(email=email, provider='apple').first()
+            if user and check_password_hash(user.password, password):
                 session['user_id'] = user.id
                 session['auth_type'] = 'apple'
                 session['is_admin'] = False
-                flash("Login successful!")
+                session['show_success_popup'] = "Login successful! Welcome back!"
                 return redirect(url_for('home'))
             else:
-                # STAY ON apple.html - show error below password
-                flash("Incorrect Apple ID password. Please try again.")
-                return render_template("apple.html", email=email)
+                flash("Incorrect Apple ID password or account not found.")
+                return render_template("apple.html", mode='login', email=email)
+        
         else:
-            # Create new account
+            existing_user = SocialUser.query.filter_by(email=email, provider='apple').first()
+            if existing_user:
+                flash("Account already exists. Please log in instead.")
+                return render_template("apple.html", mode='signup', email=email)
+            
+            existing_main_user = User.query.filter_by(email=email).first()
+            if existing_main_user:
+                flash("An account with this email already exists. Please log in.")
+                return render_template("apple.html", mode='signup', email=email)
+            
             hashed_pw = generate_password_hash(password)
-            new_user = SocialUser(email=email, password=hashed_pw, provider='apple')
+            new_user = SocialUser(
+                email=email, 
+                fullname=email.split('@')[0],
+                password=hashed_pw, 
+                provider='apple'
+            )
             db.session.add(new_user)
             db.session.commit()
-            flash("Apple account registered! Please log in.")
+            session['show_success_popup'] = "Apple account created successfully! Please log in."
             return redirect(url_for('login'))
-    return render_template("apple.html")
+    
+    return render_template("apple.html", mode=mode)
 
-# ==================== FIXED WECHAT LOGIN ====================
+# ==================== WECHAT LOGIN ====================
 @app.route('/login/wechat', methods=['GET', 'POST'])
 def wechat_login():
     mode = request.args.get('mode', 'login')
     
     if request.method == 'POST':
+        mode = request.form.get("mode", "login")
         email = request.form.get("wechat_email")
         password = request.form.get("password")
-        user = SocialUser.query.filter_by(email=email, provider='wechat').first()
         
-        if user:
-            if check_password_hash(user.password, password):
+        if mode == "login":
+            user = SocialUser.query.filter_by(email=email, provider='wechat').first()
+            if user and check_password_hash(user.password, password):
                 session['user_id'] = user.id
                 session['auth_type'] = 'wechat'
                 session['is_admin'] = False
-                flash("Welcome back!")
+                session['show_success_popup'] = "Welcome back!"
                 return redirect(url_for('home'))
             else:
-                # STAY ON wechat.html - show error below password
-                flash("Incorrect password for this WeChat account. Please try again.")
+                flash("Incorrect password or account not found.")
                 return render_template('wechat.html', mode='login', email=email)
+        
         else:
-            # Create new account
+            existing_user = SocialUser.query.filter_by(email=email, provider='wechat').first()
+            if existing_user:
+                flash("Account already exists. Please log in instead.")
+                return render_template('wechat.html', mode='signup', email=email)
+            
+            existing_main_user = User.query.filter_by(email=email).first()
+            if existing_main_user:
+                flash("An account with this email already exists. Please log in.")
+                return render_template('wechat.html', mode='signup', email=email)
+            
             hashed_pw = generate_password_hash(password)
-            new_wechat_user = SocialUser(email=email, fullname=email.split('@')[0],
-                                        password=hashed_pw, provider='wechat')
+            new_wechat_user = SocialUser(
+                email=email, 
+                fullname=email.split('@')[0],
+                password=hashed_pw, 
+                provider='wechat'
+            )
             try:
                 db.session.add(new_wechat_user)
                 db.session.commit()
-                flash("WeChat account registered successfully! Please sign in.")
+                session['show_success_popup'] = "WeChat account created successfully! Please log in."
                 return redirect(url_for('login'))
             except Exception as e:
                 db.session.rollback()
@@ -401,22 +492,159 @@ def wechat_signup():
 def logout():
     session.pop('user_id', None)
     session.pop('is_admin', None)
-    flash("Logged out successfully.")
+    session['show_success_popup'] = "Logged out successfully."
     return redirect(url_for("home"))
+
+# ==================== PASSWORD RESET ROUTES ====================
+
+@app.route('/request-password-reset', methods=['POST'])
+def request_password_reset():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required.'}), 400
+    
+    user = User.query.filter_by(email=email).first()
+    social_user = SocialUser.query.filter_by(email=email).first()
+    
+    if not user and not social_user:
+        return jsonify({'success': True, 'message': 'If an account exists, a reset link has been sent.'}), 200
+    
+    token = secrets.token_urlsafe(32)
+    expires = datetime.utcnow() + timedelta(hours=1)
+    
+    password_reset_tokens[email] = {
+        'token': token,
+        'expires': expires,
+        'user_type': 'email' if user else 'social',
+        'provider': user.provider if user else (social_user.provider if social_user else 'unknown')
+    }
+    
+    reset_link = url_for('reset_password_page', token=token, email=email, _external=True)
+    
+    print(f"\n🔐 PASSWORD RESET LINK FOR {email}:")
+    print(f"   {reset_link}")
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Password reset link sent! Check your console for the link.',
+        'reset_link': reset_link
+    }), 200
+
+@app.route('/reset-password/<token>')
+def reset_password_page(token):
+    email = request.args.get('email', '')
+    
+    if email not in password_reset_tokens:
+        flash("Invalid or expired reset link. Please request a new one.", "error")
+        return redirect(url_for('login'))
+    
+    token_data = password_reset_tokens[email]
+    if token_data['token'] != token or datetime.utcnow() > token_data['expires']:
+        flash("Invalid or expired reset link. Please request a new one.", "error")
+        return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', email=email, token=token)
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    email = request.form.get('email')
+    token = request.form.get('token')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    if email not in password_reset_tokens:
+        flash("Invalid or expired reset link. Please request a new one.", "error")
+        return redirect(url_for('login'))
+    
+    token_data = password_reset_tokens[email]
+    if token_data['token'] != token or datetime.utcnow() > token_data['expires']:
+        flash("Invalid or expired reset link. Please request a new one.", "error")
+        return redirect(url_for('login'))
+    
+    if not new_password or len(new_password) < 6:
+        flash("Password must be at least 6 characters.", "error")
+        return render_template('reset_password.html', email=email, token=token)
+    
+    if new_password != confirm_password:
+        flash("Passwords do not match.", "error")
+        return render_template('reset_password.html', email=email, token=token)
+    
+    hashed_pw = generate_password_hash(new_password)
+    
+    user = User.query.filter_by(email=email).first()
+    if user:
+        user.password = hashed_pw
+        db.session.commit()
+        del password_reset_tokens[email]
+        session['show_success_popup'] = "Password reset successfully! Please log in with your new password."
+        return redirect(url_for('login'))
+    
+    social_user = SocialUser.query.filter_by(email=email).first()
+    if social_user:
+        social_user.password = hashed_pw
+        db.session.commit()
+        del password_reset_tokens[email]
+        session['show_success_popup'] = "Password reset successfully! Please log in with your new password."
+        return redirect(url_for('login'))
+    
+    flash("User not found.", "error")
+    return redirect(url_for('login'))
+
+# ==================== PROMO CODE VALIDATION ====================
+
+@app.route('/validate-promo', methods=['POST'])
+def validate_promo():
+    """Validate promo code - optional feature, returns discount if valid"""
+    data = request.get_json()
+    code = data.get('code', '').upper().strip()
+    
+    if not code:
+        return jsonify({'valid': False, 'message': 'Please enter a promo code'})
+    
+    now = datetime.utcnow()
+    promo = PromoCode.query.filter(
+        PromoCode.code == code,
+        PromoCode.is_active == True,
+        PromoCode.valid_until >= now,
+        PromoCode.valid_from <= now
+    ).first()
+    
+    if not promo:
+        return jsonify({'valid': False, 'message': 'Invalid or expired promo code'})
+    
+    if promo.max_uses and promo.used_count >= promo.max_uses:
+        return jsonify({'valid': False, 'message': 'Promo code has reached maximum usage limit'})
+    
+    if promo.min_amount:
+        # Note: amount check would need to be implemented with actual booking amount
+        pass
+    
+    promo.used_count += 1
+    db.session.commit()
+    
+    discount_message = f'{promo.discount_value}% OFF applied!' if promo.discount_type == 'percentage' else f'₱{promo.discount_value:,.2f} OFF applied!'
+    
+    return jsonify({
+        'valid': True,
+        'discount_type': promo.discount_type,
+        'discount_value': promo.discount_value,
+        'message': discount_message,
+        'code': promo.code,
+        'id': promo.id
+    })
 
 # ==================== FLIGHT BOOKING ROUTES ====================
 
 @app.route("/flight")
 def flight():
-    # --- Read origin & destination from separate params (sent by home.html hidden fields) ---
-    # Support both "departure_code" (hidden field) and "departure" (fallback) for origin
     search_origin = request.args.get('departure_code', '').lower().strip()
     if not search_origin:
         search_origin = request.args.get('departure', '').lower().strip()
 
     search_destination = request.args.get('arrival', '').lower().strip()
 
-    # If origin still contains an arrow (old format: "cebu → dubai"), parse it
     if '→' in search_origin:
         parts = search_origin.split('→')
         search_origin = parts[0].strip()
@@ -435,97 +663,285 @@ def flight():
         "trip_type": selected_trip_type
     }
 
-    # --- Check if user has any bookings and get latest booking ID ---
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
         user_id = session.get('user_id')
         booking_count = Booking.query.filter_by(user_id=user_id).count()
         has_bookings = booking_count > 0
-
         latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
         if latest_booking:
             latest_booking_id = latest_booking.id
 
-    # --- Route data ---
+    def format_ph_time(time_24):
+        hour = int(time_24[:2])
+        minute = time_24[3:]
+        
+        if hour == 0:
+            hour_12 = 12
+            period = "AM"
+        elif hour < 12:
+            hour_12 = hour
+            period = "AM"
+        elif hour == 12:
+            hour_12 = 12
+            period = "PM"
+        else:
+            hour_12 = hour - 12
+            period = "PM"
+        
+        return f"{hour_12}:{minute} {period}"
+
+    def get_gate_for_destination(destination):
+        """Return gate based on destination"""
+        gate_map = {
+            "cebu": "A1",
+            "manila": "B2", 
+            "davao": "C3",
+            "dubai": "D4",
+            "hongkong": "E5",
+            "singapore": "F6"
+        }
+        return gate_map.get(destination.lower(), "A1")
+
+    # COMPLETE ROUTE DATA
     route_data = {
-        ("cebu", "manila"):    ("1h 25m", "566 km"),
-        ("manila", "cebu"):    ("1h 30m", "566 km"),
-        ("cebu", "davao"):     ("1h 05m", "410 km"),
-        ("davao", "cebu"):     ("1h 10m", "410 km"),
-        ("manila", "davao"):   ("1h 50m", "964 km"),
-        ("davao", "manila"):   ("1h 55m", "964 km"),
-        ("cebu", "dubai"):     ("9h 00m", "6,889 km"),
-        ("dubai", "cebu"):     ("9h 30m", "6,889 km"),
-        ("manila", "dubai"):   ("8h 45m", "6,521 km"),
-        ("dubai", "manila"):   ("9h 00m", "6,521 km"),
-        ("cebu", "hongkong"):  ("2h 10m", "1,145 km"),
-        ("hongkong", "cebu"):  ("2h 20m", "1,145 km"),
-        ("manila", "hongkong"):("1h 55m", "1,109 km"),
-        ("hongkong", "manila"):("2h 05m", "1,109 km"),
-        ("cebu", "singapore"): ("3h 30m", "2,380 km"),
-        ("singapore", "cebu"): ("3h 40m", "2,380 km"),
-        ("manila", "singapore"):("3h 20m", "2,400 km"),
-        ("singapore", "manila"):("3h 30m", "2,400 km"),
+        ("cebu", "manila"): {
+            "duration": "1h 25m", "distance": "566 km",
+            "economy_oneway": "2,500", "premium_economy_oneway": "4,500", 
+            "business_oneway": "7,500", "first_class_oneway": "12,000",
+            "economy_roundtrip": "4,500", "premium_economy_roundtrip": "8,000",
+            "business_roundtrip": "13,500", "first_class_roundtrip": "21,500"
+        },
+        ("manila", "cebu"): {
+            "duration": "1h 30m", "distance": "566 km",
+            "economy_oneway": "2,500", "premium_economy_oneway": "4,500",
+            "business_oneway": "7,500", "first_class_oneway": "12,000",
+            "economy_roundtrip": "4,500", "premium_economy_roundtrip": "8,000",
+            "business_roundtrip": "13,500", "first_class_roundtrip": "21,500"
+        },
+        ("cebu", "davao"): {
+            "duration": "1h 05m", "distance": "410 km",
+            "economy_oneway": "2,200", "premium_economy_oneway": "4,000",
+            "business_oneway": "6,500", "first_class_oneway": "10,000",
+            "economy_roundtrip": "4,000", "premium_economy_roundtrip": "7,200",
+            "business_roundtrip": "11,700", "first_class_roundtrip": "18,000"
+        },
+        ("davao", "cebu"): {
+            "duration": "1h 10m", "distance": "410 km",
+            "economy_oneway": "2,200", "premium_economy_oneway": "4,000",
+            "business_oneway": "6,500", "first_class_oneway": "10,000",
+            "economy_roundtrip": "4,000", "premium_economy_roundtrip": "7,200",
+            "business_roundtrip": "11,700", "first_class_roundtrip": "18,000"
+        },
+        ("manila", "davao"): {
+            "duration": "1h 50m", "distance": "964 km",
+            "economy_oneway": "3,800", "premium_economy_oneway": "6,500",
+            "business_oneway": "11,000", "first_class_oneway": "18,000",
+            "economy_roundtrip": "6,800", "premium_economy_roundtrip": "11,700",
+            "business_roundtrip": "19,800", "first_class_roundtrip": "32,400"
+        },
+        ("davao", "manila"): {
+            "duration": "1h 55m", "distance": "964 km",
+            "economy_oneway": "3,800", "premium_economy_oneway": "6,500",
+            "business_oneway": "11,000", "first_class_oneway": "18,000",
+            "economy_roundtrip": "6,800", "premium_economy_roundtrip": "11,700",
+            "business_roundtrip": "19,800", "first_class_roundtrip": "32,400"
+        },
+        ("cebu", "dubai"): {
+            "duration": "9h 00m", "distance": "6,889 km",
+            "economy_oneway": "18,500", "premium_economy_oneway": "32,000",
+            "business_oneway": "55,000", "first_class_oneway": "85,000",
+            "economy_roundtrip": "33,300", "premium_economy_roundtrip": "57,600",
+            "business_roundtrip": "99,000", "first_class_roundtrip": "153,000"
+        },
+        ("dubai", "cebu"): {
+            "duration": "9h 30m", "distance": "6,889 km",
+            "economy_oneway": "18,500", "premium_economy_oneway": "32,000",
+            "business_oneway": "55,000", "first_class_oneway": "85,000",
+            "economy_roundtrip": "33,300", "premium_economy_roundtrip": "57,600",
+            "business_roundtrip": "99,000", "first_class_roundtrip": "153,000"
+        },
+        ("manila", "dubai"): {
+            "duration": "8h 45m", "distance": "6,521 km",
+            "economy_oneway": "17,500", "premium_economy_oneway": "30,000",
+            "business_oneway": "52,000", "first_class_oneway": "80,000",
+            "economy_roundtrip": "31,500", "premium_economy_roundtrip": "54,000",
+            "business_roundtrip": "93,600", "first_class_roundtrip": "144,000"
+        },
+        ("dubai", "manila"): {
+            "duration": "9h 00m", "distance": "6,521 km",
+            "economy_oneway": "17,500", "premium_economy_oneway": "30,000",
+            "business_oneway": "52,000", "first_class_oneway": "80,000",
+            "economy_roundtrip": "31,500", "premium_economy_roundtrip": "54,000",
+            "business_roundtrip": "93,600", "first_class_roundtrip": "144,000"
+        },
+        ("davao", "dubai"): {
+            "duration": "9h 30m", "distance": "7,200 km",
+            "economy_oneway": "19,500", "premium_economy_oneway": "34,000",
+            "business_oneway": "58,000", "first_class_oneway": "90,000",
+            "economy_roundtrip": "35,100", "premium_economy_roundtrip": "61,200",
+            "business_roundtrip": "104,400", "first_class_roundtrip": "162,000"
+        },
+        ("dubai", "davao"): {
+            "duration": "10h 00m", "distance": "7,200 km",
+            "economy_oneway": "19,500", "premium_economy_oneway": "34,000",
+            "business_oneway": "58,000", "first_class_oneway": "90,000",
+            "economy_roundtrip": "35,100", "premium_economy_roundtrip": "61,200",
+            "business_roundtrip": "104,400", "first_class_roundtrip": "162,000"
+        },
+        ("cebu", "hongkong"): {
+            "duration": "2h 10m", "distance": "1,145 km",
+            "economy_oneway": "6,500", "premium_economy_oneway": "11,000",
+            "business_oneway": "18,000", "first_class_oneway": "28,000",
+            "economy_roundtrip": "11,700", "premium_economy_roundtrip": "19,800",
+            "business_roundtrip": "32,400", "first_class_roundtrip": "50,400"
+        },
+        ("hongkong", "cebu"): {
+            "duration": "2h 20m", "distance": "1,145 km",
+            "economy_oneway": "6,500", "premium_economy_oneway": "11,000",
+            "business_oneway": "18,000", "first_class_oneway": "28,000",
+            "economy_roundtrip": "11,700", "premium_economy_roundtrip": "19,800",
+            "business_roundtrip": "32,400", "first_class_roundtrip": "50,400"
+        },
+        ("manila", "hongkong"): {
+            "duration": "1h 55m", "distance": "1,109 km",
+            "economy_oneway": "5,800", "premium_economy_oneway": "10,000",
+            "business_oneway": "16,000", "first_class_oneway": "25,000",
+            "economy_roundtrip": "10,440", "premium_economy_roundtrip": "18,000",
+            "business_roundtrip": "28,800", "first_class_roundtrip": "45,000"
+        },
+        ("hongkong", "manila"): {
+            "duration": "2h 05m", "distance": "1,109 km",
+            "economy_oneway": "5,800", "premium_economy_oneway": "10,000",
+            "business_oneway": "16,000", "first_class_oneway": "25,000",
+            "economy_roundtrip": "10,440", "premium_economy_roundtrip": "18,000",
+            "business_roundtrip": "28,800", "first_class_roundtrip": "45,000"
+        },
+        ("davao", "hongkong"): {
+            "duration": "3h 00m", "distance": "1,850 km",
+            "economy_oneway": "7,900", "premium_economy_oneway": "13,500",
+            "business_oneway": "22,000", "first_class_oneway": "35,000",
+            "economy_roundtrip": "14,220", "premium_economy_roundtrip": "24,300",
+            "business_roundtrip": "39,600", "first_class_roundtrip": "63,000"
+        },
+        ("hongkong", "davao"): {
+            "duration": "3h 15m", "distance": "1,850 km",
+            "economy_oneway": "7,900", "premium_economy_oneway": "13,500",
+            "business_oneway": "22,000", "first_class_oneway": "35,000",
+            "economy_roundtrip": "14,220", "premium_economy_roundtrip": "24,300",
+            "business_roundtrip": "39,600", "first_class_roundtrip": "63,000"
+        },
+        ("cebu", "singapore"): {
+            "duration": "3h 30m", "distance": "2,380 km",
+            "economy_oneway": "8,200", "premium_economy_oneway": "14,000",
+            "business_oneway": "24,000", "first_class_oneway": "38,000",
+            "economy_roundtrip": "14,760", "premium_economy_roundtrip": "25,200",
+            "business_roundtrip": "43,200", "first_class_roundtrip": "68,400"
+        },
+        ("singapore", "cebu"): {
+            "duration": "3h 40m", "distance": "2,380 km",
+            "economy_oneway": "8,200", "premium_economy_oneway": "14,000",
+            "business_oneway": "24,000", "first_class_oneway": "38,000",
+            "economy_roundtrip": "14,760", "premium_economy_roundtrip": "25,200",
+            "business_roundtrip": "43,200", "first_class_roundtrip": "68,400"
+        },
+        ("manila", "singapore"): {
+            "duration": "3h 20m", "distance": "2,400 km",
+            "economy_oneway": "7,900", "premium_economy_oneway": "13,500",
+            "business_oneway": "23,000", "first_class_oneway": "36,000",
+            "economy_roundtrip": "14,220", "premium_economy_roundtrip": "24,300",
+            "business_roundtrip": "41,400", "first_class_roundtrip": "64,800"
+        },
+        ("singapore", "manila"): {
+            "duration": "3h 30m", "distance": "2,400 km",
+            "economy_oneway": "7,900", "premium_economy_oneway": "13,500",
+            "business_oneway": "23,000", "first_class_oneway": "36,000",
+            "economy_roundtrip": "14,220", "premium_economy_roundtrip": "24,300",
+            "business_roundtrip": "41,400", "first_class_roundtrip": "64,800"
+        },
+        ("davao", "singapore"): {
+            "duration": "3h 50m", "distance": "2,550 km",
+            "economy_oneway": "8,900", "premium_economy_oneway": "15,000",
+            "business_oneway": "26,000", "first_class_oneway": "42,000",
+            "economy_roundtrip": "16,020", "premium_economy_roundtrip": "27,000",
+            "business_roundtrip": "46,800", "first_class_roundtrip": "75,600"
+        },
+        ("singapore", "davao"): {
+            "duration": "4h 00m", "distance": "2,550 km",
+            "economy_oneway": "8,900", "premium_economy_oneway": "15,000",
+            "business_oneway": "26,000", "first_class_oneway": "42,000",
+            "economy_roundtrip": "16,020", "premium_economy_roundtrip": "27,000",
+            "business_roundtrip": "46,800", "first_class_roundtrip": "75,600"
+        },
     }
 
-    # --- Build flight list ---
-    all_flights = []
+    cabin_mapping = {
+        "Economy": "economy",
+        "Premium Economy": "premium_economy",
+        "Business/Premium Flatbed": "business",
+        "First Class": "first_class"
+    }
+
     times = [
-        ("06:00", "07:30"), ("09:00", "10:30"), ("12:00", "13:30"),
-        ("15:00", "16:30"), ("18:00", "19:30"), ("21:00", "22:30")
+        ("00:00", "01:30"), ("00:30", "02:00"), ("01:00", "02:30"), ("01:30", "03:00"),
+        ("02:00", "03:30"), ("02:30", "04:00"), ("03:00", "04:30"), ("03:30", "05:00"),
+        ("04:00", "05:30"), ("04:30", "06:00"),
+        ("05:00", "06:30"), ("05:30", "07:00"), ("06:00", "07:30"), ("06:30", "08:00"),
+        ("07:00", "08:30"), ("07:30", "09:00"), ("08:00", "09:30"), ("08:30", "10:00"),
+        ("09:00", "10:30"), ("09:30", "11:00"), ("10:00", "11:30"), ("10:30", "12:00"),
+        ("11:00", "12:30"), ("11:30", "13:00"), ("12:00", "13:30"), ("12:30", "14:00"),
+        ("13:00", "14:30"), ("13:30", "15:00"), ("14:00", "15:30"), ("14:30", "16:00"),
+        ("15:00", "16:30"), ("15:30", "17:00"), ("16:00", "17:30"), ("16:30", "18:00"),
+        ("17:00", "18:30"), ("17:30", "19:00"), ("18:00", "19:30"), ("18:30", "20:00"),
+        ("19:00", "20:30"), ("19:30", "21:00"), ("20:00", "21:30"), ("20:30", "22:00"),
+        ("21:00", "22:30"), ("21:30", "23:00"), ("22:00", "23:30"), ("22:30", "00:00"),
+        ("23:00", "00:30"), ("23:30", "01:00")
     ]
 
-    economy_prices = {
-        ("cebu", "manila"): "2,100",    ("manila", "cebu"): "2,100",
-        ("cebu", "davao"): "1,900",     ("davao", "cebu"): "1,900",
-        ("manila", "davao"): "2,300",   ("davao", "manila"): "2,300",
-        ("cebu", "dubai"): "18,500",    ("dubai", "cebu"): "18,500",
-        ("manila", "dubai"): "17,500",  ("dubai", "manila"): "17,500",
-        ("cebu", "hongkong"): "6,500",  ("hongkong", "cebu"): "6,500",
-        ("manila", "hongkong"): "5,800",("hongkong", "manila"): "5,800",
-        ("cebu", "singapore"): "8,200", ("singapore", "cebu"): "8,200",
-        ("manila", "singapore"): "7,900",("singapore", "manila"): "7,900",
-    }
-
-    premium_multipliers = {
-        "Premium Economy": 2.0,
-        "Business/Premium Flatbed": 4.0,
-        "First Class": 7.0
-    }
-
-    for (origin, dest), (duration, distance) in route_data.items():
-        base_eco = int(economy_prices.get((origin, dest), "2100").replace(",", ""))
-
+    all_flights = []
+    flight_counter = 1000  # Counter for unique flight numbers
+    
+    random.seed(f"{search_origin}{search_destination}{flight_date}")
+    
+    for (origin, dest), route in route_data.items():
         for t_type in ["One-way", "Round-trip"]:
-            # Economy — 3 time slots
-            for i in range(3):
-                dep, arr = times[i]
-                all_flights.append({
-                    "origin": origin, "destination": dest,
-                    "class": "Economy",
-                    "departure": dep, "arrival": arr,
-                    "price": f"{base_eco:,}",
-                    "type": t_type,
-                    "duration": duration, "distance": distance
-                })
-
-            # Premium cabins — 1-3 time slots each
-            for cabin, multiplier in premium_multipliers.items():
-                cabin_price = int(base_eco * multiplier)
-                num_flights = random.randint(1, 3)
-                for i in range(num_flights):
-                    dep, arr = times[i + 3]
+            price_suffix = "oneway" if t_type == "One-way" else "roundtrip"
+            
+            for display_name, db_key in cabin_mapping.items():
+                price_key = f"{db_key}_{price_suffix}"
+                price = route[price_key]
+                
+                if display_name == "Economy":
+                    num_flights = 5
+                elif display_name == "Premium Economy":
+                    num_flights = 4
+                else:
+                    num_flights = 3
+                
+                selected_times = random.sample(times, num_flights)
+                
+                for dep_24, arr_24 in selected_times:
+                    flight_counter += 1
+                    flight_number = f"AT{flight_counter}"
+                    gate = get_gate_for_destination(dest)
+                    
                     all_flights.append({
-                        "origin": origin, "destination": dest,
-                        "class": cabin,
-                        "departure": dep, "arrival": arr,
-                        "price": f"{cabin_price:,}",
+                        "origin": origin,
+                        "destination": dest,
+                        "class": display_name,
+                        "departure": format_ph_time(dep_24),
+                        "arrival": format_ph_time(arr_24),
+                        "price": price,
                         "type": t_type,
-                        "duration": duration, "distance": distance
+                        "duration": route["duration"],
+                        "distance": route["distance"],
+                        "flight_number": flight_number,  # ADDED
+                        "gate": gate  # ADDED
                     })
-
-    # --- Filter flights based on search ---
+    
+    random.seed()
+    
     filtered_flights = []
     if search_origin and search_destination:
         for f in all_flights:
@@ -539,7 +955,7 @@ def flight():
         flights=filtered_flights,
         passengers=passenger_data,
         flight_date=flight_date,
-        flight_time=flight_time,
+        flight_time=format_ph_time(flight_time),
         has_bookings=has_bookings,
         latest_booking_id=latest_booking_id,
         search_origin=search_origin.title(),
@@ -563,7 +979,28 @@ def seats():
         "cabin": cabin
     }
     
-    # Check if user has any bookings and get latest booking ID
+    # QUERY TAKEN SEATS FROM DATABASE for this specific flight
+    taken_seats = []
+    
+    # Find the flight
+    flight = Flight.query.filter_by(flight_number=flight_no).first()
+    
+    if flight:
+        # Get all bookings for this flight
+        bookings = Booking.query.filter_by(flight_id=flight.id, status='Confirmed').all()
+        
+        # Get all taken seats from confirmed bookings
+        for booking in bookings:
+            passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+            for passenger in passengers:
+                if passenger.seat_number and passenger.seat_number != '---':
+                    taken_seats.append(passenger.seat_number)
+    
+    # Remove duplicates
+    taken_seats = list(set(taken_seats))
+    
+    print(f"Taken seats for flight {flight_no}: {taken_seats}")
+    
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
@@ -571,7 +1008,6 @@ def seats():
         booking_count = Booking.query.filter_by(user_id=user_id).count()
         has_bookings = booking_count > 0
         
-        # Get the most recent booking ID for the View Ticket link
         latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
         if latest_booking:
             latest_booking_id = latest_booking.id
@@ -584,6 +1020,7 @@ def seats():
                           flight_date=flight_date,
                           flight_time=flight_time, 
                           flight_no=flight_no,
+                          taken_seats=taken_seats,  # ADD THIS
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
 
@@ -598,6 +1035,78 @@ def booking():
     flight_no = request.args.get('flight_no', 'AT')
     cabin_class = request.args.get('cabin', 'Economy')
     
+    # Get duration and distance from route_data
+    route_data = {
+        ("cebu", "manila"): {"duration": "1h 25m", "distance": "566 km"},
+        ("manila", "cebu"): {"duration": "1h 30m", "distance": "566 km"},
+        ("cebu", "davao"): {"duration": "1h 05m", "distance": "410 km"},
+        ("davao", "cebu"): {"duration": "1h 10m", "distance": "410 km"},
+        ("manila", "davao"): {"duration": "1h 50m", "distance": "964 km"},
+        ("davao", "manila"): {"duration": "1h 55m", "distance": "964 km"},
+        ("cebu", "dubai"): {"duration": "9h 00m", "distance": "6,889 km"},
+        ("dubai", "cebu"): {"duration": "9h 30m", "distance": "6,889 km"},
+        ("manila", "dubai"): {"duration": "8h 45m", "distance": "6,521 km"},
+        ("dubai", "manila"): {"duration": "9h 00m", "distance": "6,521 km"},
+        ("cebu", "hongkong"): {"duration": "2h 10m", "distance": "1,145 km"},
+        ("hongkong", "cebu"): {"duration": "2h 20m", "distance": "1,145 km"},
+        ("manila", "hongkong"): {"duration": "1h 55m", "distance": "1,109 km"},
+        ("hongkong", "manila"): {"duration": "2h 05m", "distance": "1,109 km"},  # FIXED: was using ) instead of }
+        ("cebu", "singapore"): {"duration": "3h 30m", "distance": "2,380 km"},
+        ("singapore", "cebu"): {"duration": "3h 40m", "distance": "2,380 km"},
+        ("manila", "singapore"): {"duration": "3h 20m", "distance": "2,400 km"},
+        ("singapore", "manila"): {"duration": "3h 30m", "distance": "2,400 km"},  # FIXED: was using ) instead of }
+    }
+    
+    key = (origin.lower(), destination.lower())
+    route_info = route_data.get(key, {"duration": "N/A", "distance": "N/A"})
+    duration = route_info["duration"]
+    distance = route_info["distance"]
+    
+    # Calculate arrival time
+    def calculate_arrival(dep_time, dur):
+        try:
+            dep_clean = dep_time.replace('AM', '').replace('PM', '').strip()
+            if ':' in dep_clean:
+                hour = int(dep_clean.split(':')[0])
+                minute = int(dep_clean.split(':')[1].split()[0] if ' ' in dep_clean.split(':')[1] else dep_clean.split(':')[1])
+            else:
+                hour, minute = 6, 30
+            
+            if 'PM' in dep_time and hour != 12:
+                hour += 12
+            elif 'AM' in dep_time and hour == 12:
+                hour = 0
+            
+            hours = 0
+            minutes = 0
+            if 'h' in dur:
+                hours = int(dur.split('h')[0].strip())
+                if 'm' in dur:
+                    minutes_part = dur.split('h')[1].strip()
+                    minutes = int(minutes_part.replace('m', '').strip())
+            
+            total_minutes = hour * 60 + minute + hours * 60 + minutes
+            arr_hour = (total_minutes // 60) % 24
+            arr_minute = total_minutes % 60
+            
+            arr_period = "AM" if arr_hour < 12 else "PM"
+            arr_hour_12 = arr_hour if arr_hour <= 12 else arr_hour - 12
+            if arr_hour_12 == 0:
+                arr_hour_12 = 12
+            
+            return f"{arr_hour_12}:{arr_minute:02d} {arr_period}"
+        except:
+            return dep_time
+    
+    arrival_time = calculate_arrival(flight_time, duration)
+    
+    # Determine gate
+    gate_map = {
+        "cebu": "A1", "manila": "B2", "davao": "C3",
+        "dubai": "D4", "hongkong": "E5", "singapore": "F6"
+    }
+    gate = gate_map.get(destination.lower(), "A1")
+    
     passenger_data = {
         "adults": request.args.get('adults', 1),
         "children": request.args.get('children', 0),
@@ -605,15 +1114,12 @@ def booking():
         "cabin": cabin_class
     }
     
-    # Check if user has any bookings and get latest booking ID
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
         user_id = session.get('user_id')
         booking_count = Booking.query.filter_by(user_id=user_id).count()
         has_bookings = booking_count > 0
-        
-        # Get the most recent booking ID
         latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
         if latest_booking:
             latest_booking_id = latest_booking.id
@@ -625,12 +1131,17 @@ def booking():
                           price=price, 
                           passengers=passenger_data,
                           flight_date=flight_date, 
-                          flight_time=flight_time, 
+                          flight_time=flight_time,
+                          arrival_time=arrival_time,
                           flight_no=flight_no,
+                          duration=duration,
+                          distance=distance,
+                          gate=gate,
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
 
 # ==================== PAYMENT ROUTES ====================
+
 @app.route('/payment', methods=['GET', 'POST']) 
 def payment():
     amount = request.args.get('price', request.args.get('amount', '0.00'))
@@ -638,7 +1149,6 @@ def payment():
     if amount == '0.00' and session.get('total_price'):
         amount = session.get('total_price')
     
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
@@ -761,24 +1271,38 @@ def payment():
                           latest_booking_id=latest_booking_id)
 
 # ==================== PAYMENT GATEWAY HANDLERS ====================
+
+
 @app.route('/gcash', methods=['GET', 'POST'])
 def gcash_payment():
     amount = request.args.get('amount', '0.00')
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
         data = request.get_json()
         if data and data.get('status') == 'success':
-            booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            # Create ONE booking reference
+            booking_ref = generate_booking_reference()
+            
+            # Store flight details in session
+            store_flight_details_in_session()
+            
             session['booking_reference'] = booking_ref
             session['payment_status'] = 'Completed'
             session['payment_method'] = 'GCash'
             session['paid_amount'] = clean_amount
-            save_booking_to_database(booking_ref, clean_amount, 'GCash')
-            return jsonify({'success': True, 'booking_ref': booking_ref})
+            
+            booking = save_booking_to_database(booking_ref, clean_amount, 'GCash')
+            
+            if booking:
+                session['booking_id'] = booking.id
+                return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+            return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
         return jsonify({'success': False}), 400
     return render_template('gcash.html', amount=clean_amount)
+
 
 @app.route('/paytm', methods=['GET', 'POST'])
 def paytm_payment():
@@ -786,15 +1310,24 @@ def paytm_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'PayTM'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'PayTM')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'PayTM')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('paytm.html', amount=clean_amount)
+
 
 @app.route('/paypal', methods=['GET', 'POST'])
 def paypal_payment():
@@ -802,15 +1335,24 @@ def paypal_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'PayPal'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'PayPal')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'PayPal')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('paypal.html', amount=clean_amount)
+
 
 @app.route('/grabpay', methods=['GET', 'POST'])
 def grabpay_payment():
@@ -818,15 +1360,24 @@ def grabpay_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'GrabPay'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'GrabPay')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'GrabPay')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('grabpay.html', amount=clean_amount)
+
 
 @app.route('/atome', methods=['GET', 'POST'])
 def atome_payment():
@@ -834,15 +1385,24 @@ def atome_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'Atome'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'Atome')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'Atome')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('atome.html', amount=clean_amount)
+
 
 @app.route('/alipay', methods=['GET', 'POST'])
 def alipay_payment():
@@ -850,15 +1410,24 @@ def alipay_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'Alipay'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'Alipay')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'Alipay')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('alipay.html', amount=clean_amount)
+
 
 @app.route('/apple', methods=['GET', 'POST'])
 def apple_payment():
@@ -866,15 +1435,24 @@ def apple_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'Apple Pay'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'Apple Pay')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'Apple Pay')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('apple_pay.html', amount=clean_amount)
+
 
 @app.route('/hoolah', methods=['GET', 'POST'])
 def hoolah_payment():
@@ -882,15 +1460,24 @@ def hoolah_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'Hoolah'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'Hoolah')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'Hoolah')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('hoolah.html', amount=clean_amount)
+
 
 @app.route('/ovo', methods=['GET', 'POST'])
 def ovo_payment():
@@ -898,15 +1485,126 @@ def ovo_payment():
     if amount == '0.00':
         amount = session.get('payment_amount', session.get('total_price', '0.00'))
     clean_amount = amount.replace('₱', '').replace(',', '').strip()
+    
     if request.method == 'POST':
-        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        booking_ref = generate_booking_reference()
+        store_flight_details_in_session()
+        
         session['booking_reference'] = booking_ref
         session['payment_status'] = 'Completed'
         session['payment_method'] = 'OVO'
         session['paid_amount'] = clean_amount
-        save_booking_to_database(booking_ref, clean_amount, 'OVO')
-        return jsonify({'success': True, 'booking_ref': booking_ref})
+        
+        booking = save_booking_to_database(booking_ref, clean_amount, 'OVO')
+        
+        if booking:
+            session['booking_id'] = booking.id
+            return jsonify({'success': True, 'booking_ref': booking_ref, 'booking_id': booking.id})
+        return jsonify({'success': False, 'error': 'Failed to save booking'}), 500
     return render_template('ovo.html', amount=clean_amount)
+
+
+def generate_booking_reference():
+    """Generate a booking reference using the flight number"""
+    flight_no = session.get('flight_no', 'AT0000')  # Gets whatever flight number was booked
+    
+    # Check if this flight number is already used as a booking reference
+    existing = Booking.query.filter_by(booking_reference=flight_no).first()
+    
+    if not existing:
+        return flight_no  # Returns AT1001, AT1002, AT3068, AT4866, etc.
+    else:
+        # If already taken, append a number (e.g., AT4866-2)
+        counter = 2
+        while True:
+            new_ref = f"{flight_no}-{counter}"
+            if not Booking.query.filter_by(booking_reference=new_ref).first():
+                return new_ref
+            counter += 1
+
+
+# HELPER FUNCTION to store flight details in session
+def store_flight_details_in_session():
+    """Calculate and store all flight details in session"""
+    origin = session.get('origin', '')
+    destination = session.get('destination', '')
+    departure_time = session.get('time', '')
+    
+    route_data = {
+        ("cebu", "manila"): {"duration": "1h 25m", "distance": "566 km"},
+        ("manila", "cebu"): {"duration": "1h 30m", "distance": "566 km"},
+        ("cebu", "davao"): {"duration": "1h 05m", "distance": "410 km"},
+        ("davao", "cebu"): {"duration": "1h 10m", "distance": "410 km"},
+        ("manila", "davao"): {"duration": "1h 50m", "distance": "964 km"},
+        ("davao", "manila"): {"duration": "1h 55m", "distance": "964 km"},
+        ("cebu", "dubai"): {"duration": "9h 00m", "distance": "6,889 km"},
+        ("dubai", "cebu"): {"duration": "9h 30m", "distance": "6,889 km"},
+        ("manila", "dubai"): {"duration": "8h 45m", "distance": "6,521 km"},
+        ("dubai", "manila"): {"duration": "9h 00m", "distance": "6,521 km"},
+        ("cebu", "hongkong"): {"duration": "2h 10m", "distance": "1,145 km"},
+        ("hongkong", "cebu"): {"duration": "2h 20m", "distance": "1,145 km"},
+        ("manila", "hongkong"): {"duration": "1h 55m", "distance": "1,109 km"},
+        ("hongkong", "manila"): {"duration": "2h 05m", "distance": "1,109 km"},
+        ("cebu", "singapore"): {"duration": "3h 30m", "distance": "2,380 km"},
+        ("singapore", "cebu"): {"duration": "3h 40m", "distance": "2,380 km"},
+        ("manila", "singapore"): {"duration": "3h 20m", "distance": "2,400 km"},
+        ("singapore", "manila"): {"duration": "3h 30m", "distance": "2,400 km"},
+    }
+    
+    key = (origin.lower(), destination.lower())
+    route_info = route_data.get(key, {"duration": "N/A", "distance": "N/A"})
+    duration = route_info["duration"]
+    distance = route_info["distance"]
+    
+    # Calculate arrival time
+    def calc_arrival(dep_time, dur):
+        try:
+            dep_clean = dep_time.replace('AM', '').replace('PM', '').strip()
+            if ':' in dep_clean:
+                hour = int(dep_clean.split(':')[0])
+                minute = int(dep_clean.split(':')[1].split()[0] if ' ' in dep_clean.split(':')[1] else dep_clean.split(':')[1])
+            else:
+                hour, minute = 6, 30
+            
+            if 'PM' in dep_time and hour != 12:
+                hour += 12
+            elif 'AM' in dep_time and hour == 12:
+                hour = 0
+            
+            hours = 0
+            minutes = 0
+            if 'h' in dur:
+                hours = int(dur.split('h')[0].strip())
+                if 'm' in dur:
+                    minutes_part = dur.split('h')[1].strip()
+                    minutes = int(minutes_part.replace('m', '').strip())
+            
+            total_minutes = hour * 60 + minute + hours * 60 + minutes
+            arr_hour = (total_minutes // 60) % 24
+            arr_minute = total_minutes % 60
+            
+            arr_period = "AM" if arr_hour < 12 else "PM"
+            arr_hour_12 = arr_hour if arr_hour <= 12 else arr_hour - 12
+            if arr_hour_12 == 0:
+                arr_hour_12 = 12
+            
+            return f"{arr_hour_12}:{arr_minute:02d} {arr_period}"
+        except:
+            return dep_time
+    
+    arrival_time = calc_arrival(departure_time, duration)
+    
+    # Determine gate
+    gate_map = {
+        "cebu": "A1", "manila": "B2", "davao": "C3",
+        "dubai": "D4", "hongkong": "E5", "singapore": "F6"
+    }
+    gate = gate_map.get(destination.lower(), "A1")
+    
+    session['duration'] = duration
+    session['distance'] = distance
+    session['arrival_time'] = arrival_time
+    session['gate'] = gate
 
 def save_booking_to_database(booking_ref, amount, payment_method):
     try:
@@ -914,24 +1612,120 @@ def save_booking_to_database(booking_ref, amount, payment_method):
         origin = session.get('origin', '')
         destination = session.get('destination', '')
         flight_date = session.get('date', '')
-        flight_time = session.get('time', '')
+        departure_time = session.get('time', '')
         cabin_class = session.get('flight_class', 'Economy')
         passengers = session.get('all_passengers', [])
         
+        if not passengers:
+            print("❌ ERROR: No passengers in session!")
+            return None
+        
+        # Calculate arrival time from duration
+        def calculate_arrival_time(dep_time, duration):
+            try:
+                # Parse departure time (e.g., "6:30 AM" or "06:30")
+                dep_clean = dep_time.replace('AM', '').replace('PM', '').strip()
+                if ':' in dep_clean:
+                    hour = int(dep_clean.split(':')[0])
+                    minute = int(dep_clean.split(':')[1].split()[0] if ' ' in dep_clean.split(':')[1] else dep_clean.split(':')[1])
+                else:
+                    hour, minute = 6, 30
+                
+                # Convert to 24-hour
+                if 'PM' in dep_time and hour != 12:
+                    hour += 12
+                elif 'AM' in dep_time and hour == 12:
+                    hour = 0
+                
+                # Parse duration (e.g., "1h 30m")
+                hours = 0
+                minutes = 0
+                if 'h' in duration:
+                    hours = int(duration.split('h')[0].strip())
+                    if 'm' in duration:
+                        minutes_part = duration.split('h')[1].strip()
+                        minutes = int(minutes_part.replace('m', '').strip())
+                
+                # Calculate arrival
+                total_minutes = hour * 60 + minute + hours * 60 + minutes
+                arr_hour = (total_minutes // 60) % 24
+                arr_minute = total_minutes % 60
+                
+                # Convert back to 12-hour format
+                arr_period = "AM" if arr_hour < 12 else "PM"
+                arr_hour_12 = arr_hour if arr_hour <= 12 else arr_hour - 12
+                if arr_hour_12 == 0:
+                    arr_hour_12 = 12
+                
+                return f"{arr_hour_12}:{arr_minute:02d} {arr_period}"
+            except:
+                return departure_time  # fallback
+        
+        # Get duration and distance from route_data
+        route_data = {
+            ("cebu", "manila"): {"duration": "1h 25m", "distance": "566 km"},
+            ("manila", "cebu"): {"duration": "1h 30m", "distance": "566 km"},
+            ("cebu", "davao"): {"duration": "1h 05m", "distance": "410 km"},
+            ("davao", "cebu"): {"duration": "1h 10m", "distance": "410 km"},
+            ("manila", "davao"): {"duration": "1h 50m", "distance": "964 km"},
+            ("davao", "manila"): {"duration": "1h 55m", "distance": "964 km"},
+            ("cebu", "dubai"): {"duration": "9h 00m", "distance": "6,889 km"},
+            ("dubai", "cebu"): {"duration": "9h 30m", "distance": "6,889 km"},
+            ("manila", "dubai"): {"duration": "8h 45m", "distance": "6,521 km"},
+            ("dubai", "manila"): {"duration": "9h 00m", "distance": "6,521 km"},
+            ("cebu", "hongkong"): {"duration": "2h 10m", "distance": "1,145 km"},
+            ("hongkong", "cebu"): {"duration": "2h 20m", "distance": "1,145 km"},
+            ("manila", "hongkong"): {"duration": "1h 55m", "distance": "1,109 km"},
+            ("hongkong", "manila"): {"duration": "2h 05m", "distance": "1,109 km"},
+            ("cebu", "singapore"): {"duration": "3h 30m", "distance": "2,380 km"},
+            ("singapore", "cebu"): {"duration": "3h 40m", "distance": "2,380 km"},
+            ("manila", "singapore"): {"duration": "3h 20m", "distance": "2,400 km"},
+            ("singapore", "manila"): {"duration": "3h 30m", "distance": "2,400 km"},
+        }
+        
+        key = (origin.lower(), destination.lower())
+        route_info = route_data.get(key, {"duration": "N/A", "distance": "N/A"})
+        duration = route_info["duration"]
+        distance = route_info["distance"]
+        
+        # Calculate arrival time
+        arrival_time = calculate_arrival_time(departure_time, duration) if duration != "N/A" else departure_time
+        
+        # Determine gate
+        gate_map = {
+            "cebu": "A1", "manila": "B2", "davao": "C3",
+            "dubai": "D4", "hongkong": "E5", "singapore": "F6"
+        }
+        gate = gate_map.get(destination.lower(), "A1")
+        
+        # Check if flight already exists
         flight = Flight.query.filter_by(flight_number=flight_no).first()
+        
         if not flight:
+            # Create flight with REAL data
             flight = Flight(
                 flight_number=flight_no,
-                origin=origin,
-                destination=destination,
+                origin=origin.upper(),
+                destination=destination.upper(),
                 departure_date=flight_date,
-                departure_time=flight_time,
-                arrival_time=flight_time,
-                duration="N/A",
-                distance="N/A",
-                gate="A1"
+                departure_time=departure_time,
+                arrival_time=arrival_time,  # NOW REAL
+                duration=duration,           # NOW REAL
+                distance=distance,           # NOW REAL
+                gate=gate,                   # NOW REAL
+                status="Scheduled"
             )
             db.session.add(flight)
+            db.session.commit()
+            print(f"✅ Created new flight: {flight_no} - {origin}→{destination}")
+        else:
+            # Update existing flight if it has N/A values
+            if flight.duration == "N/A" and duration != "N/A":
+                flight.duration = duration
+            if flight.distance == "N/A" and distance != "N/A":
+                flight.distance = distance
+            if flight.arrival_time == flight.departure_time and arrival_time != departure_time:
+                flight.arrival_time = arrival_time
             db.session.commit()
         
         user_id = session.get('user_id')
@@ -959,58 +1753,114 @@ def save_booking_to_database(booking_ref, amount, payment_method):
             db.session.add(passenger_record)
         
         db.session.commit()
-        print(f"\n✅ BOOKING SAVED TO DATABASE: {booking_ref}")
-        return True
+        
+        session['booking_id'] = booking.id
+        session['booking_reference'] = booking_ref
+        
+        print(f"\n✅ BOOKING SAVED: {booking_ref}")
+        print(f"   Flight: {flight_no} | Duration: {duration} | Distance: {distance} | Gate: {gate}")
+        
+        return booking
     except Exception as e:
-        print(f"\n ERROR SAVING BOOKING: {str(e)}")
+        print(f"\n❌ ERROR SAVING BOOKING: {str(e)}")
         db.session.rollback()
-        return False
-
+        return None
 # ==================== TICKET ROUTES ====================
 
 @app.route("/ticket")
 def ticket():
+    # First try to get booking from database using booking_id in session
+    booking_id = session.get('booking_id')
+    booking_ref = session.get('booking_reference')
+    
+    passengers_data = None
+    flight_data = None
+    
+    # Try to get from database first
+    if booking_id:
+        booking = Booking.query.get(booking_id)
+        if booking:
+            # Get passengers from database
+            passengers_from_db = Passenger.query.filter_by(booking_id=booking.id).all()
+            if passengers_from_db:
+                passengers_data = [{'name': p.full_name, 'seat': p.seat_number} for p in passengers_from_db]
+            
+            # Get flight from database
+            flight = Flight.query.get(booking.flight_id)
+            if flight:
+                flight_data = {
+                    "flight": flight.flight_number,
+                    "gate": flight.gate,
+                    "origin": flight.origin,
+                    "destination": flight.destination,
+                    "date": flight.departure_date,
+                    "time": flight.departure_time,
+                    "arrival": flight.arrival_time,
+                    "duration": flight.duration,
+                    "distance": flight.distance,
+                    "class": booking.cabin_class.upper()
+                }
+                # Update session with database values
+                session['flight_no'] = flight.flight_number
+                session['origin'] = flight.origin
+                session['destination'] = flight.destination
+                session['date'] = flight.departure_date
+                session['time'] = flight.departure_time
+                session['flight_class'] = booking.cabin_class
+                session['gate'] = flight.gate
+                session['booking_reference'] = booking.booking_reference
+    
+    # Fallback to session data if database failed
+    if not passengers_data:
+        passengers_data = session.get('all_passengers')
+        if not passengers_data:
+            passengers_data = [{'name': 'NO DATA', 'seat': '---'}]
+            flash("No booking data found. Please complete your booking first.")
+    
+    if not flight_data:
+        flight_data = {
+            "flight": session.get('flight_no', 'AT0000'),
+            "gate": session.get('gate', '01'),
+            "origin": session.get('origin', '---'),
+            "destination": session.get('destination', '---'),
+            "date": session.get('date', '---'),
+            "time": session.get('time', '---'),
+            "arrival": session.get('arrival_time', '---'),
+            "duration": session.get('duration', '---'),
+            "distance": session.get('distance', '---'),
+            "class": session.get('flight_class', 'ECONOMY').upper()
+        }
+    
+    # If user is logged in but no booking in session, find their latest booking
+    if session.get('user_id') and not booking_id:
+        latest_booking = Booking.query.filter_by(user_id=session.get('user_id')).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            session['booking_id'] = latest_booking.id
+            session['booking_reference'] = latest_booking.booking_reference
+            return redirect(url_for('ticket'))
+    
     print("=" * 60)
-    print("TICKET ROUTE - Reading from session:")
-    print(f"  session.get('all_passengers'): {session.get('all_passengers')}")
-    print(f"  session.get('origin'): {session.get('origin')}")
-    print(f"  session.get('destination'): {session.get('destination')}")
-    print(f"  session.get('flight_class'): {session.get('flight_class')}")
-    print(f"  session.get('flight_no'): {session.get('flight_no')}")
-    print(f"  session.get('date'): {session.get('date')}")
-    print(f"  session.get('time'): {session.get('time')}")
-    print(f"  session.get('gate'): {session.get('gate')}")
+    print("TICKET DATA:")
+    print(f"  Booking Ref: {session.get('booking_reference')}")
+    print(f"  Flight: {flight_data.get('flight')}")
+    print(f"  Origin: {flight_data.get('origin')} → Destination: {flight_data.get('destination')}")
+    print(f"  Date: {flight_data.get('date')} Time: {flight_data.get('time')}")
+    print(f"  Duration: {flight_data.get('duration')} Distance: {flight_data.get('distance')}")
+    print(f"  Gate: {flight_data.get('gate')} Arrival: {flight_data.get('arrival')}")
     print("=" * 60)
     
-    passengers = session.get('all_passengers')
-    if not passengers:
-        passengers = [{'name': 'NO DATA', 'seat': '---'}]
-        flash("No booking data found. Please complete your booking first.")
-    
-    flight_data = {
-        "flight": session.get('flight_no', 'AT0000'),
-        "gate": session.get('gate', '01'),
-        "origin": session.get('origin', '---'),
-        "destination": session.get('destination', '---'),
-        "date": session.get('date', '---'),
-        "time": session.get('time', '---'),
-        "class": session.get('flight_class', 'ECONOMY').upper()
-    }
-    
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
         user_id = session.get('user_id')
         booking_count = Booking.query.filter_by(user_id=user_id).count()
         has_bookings = booking_count > 0
-        
         latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
         if latest_booking:
             latest_booking_id = latest_booking.id
     
     return render_template("ticket.html", 
-                          passengers=passengers, 
+                          passengers=passengers_data, 
                           flight=flight_data,
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
@@ -1049,7 +1899,8 @@ def upload_profile_picture():
         
         user.profile_picture = filename
         db.session.commit()
-        flash("Profile picture updated!")
+        session['show_success_popup'] = "Profile picture updated successfully!"
+        return redirect(url_for('user_settings'))
     else:
         flash("Invalid file type. Use PNG, JPG, JPEG, or GIF.")
     
@@ -1090,7 +1941,6 @@ def user_dashboard():
             'status': booking.status
         })
     
-    # Get has_bookings and latest_booking_id for header
     has_bookings = len(booking_list) > 0
     latest_booking_id = booking_list[0]['id'] if booking_list else None
     
@@ -1101,7 +1951,6 @@ def user_dashboard():
                           all_bookings=booking_list,
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
-
 
 @app.route('/settings', methods=['GET', 'POST'])
 def user_settings():
@@ -1115,7 +1964,6 @@ def user_settings():
         flash("User not found.")
         return redirect(url_for('login'))
     
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     booking_count = Booking.query.filter_by(user_id=user.id).count()
@@ -1141,7 +1989,7 @@ def user_settings():
                     user.email = email
             user.phone = phone if phone else None
             db.session.commit()
-            flash("Profile updated successfully.")
+            session['show_success_popup'] = "Profile updated successfully!"
             return redirect(url_for('user_settings'))
         
         elif action == 'change_password':
@@ -1157,13 +2005,13 @@ def user_settings():
             else:
                 user.password = generate_password_hash(new)
                 db.session.commit()
-                flash("Password changed successfully.")
+                session['show_success_popup'] = "Password changed successfully!"
             return redirect(url_for('user_settings'))
         
         elif action == 'update_notifications':
             user.email_reminders = 'email_reminders' in request.form
             db.session.commit()
-            flash("Notification preferences updated.")
+            session['show_success_popup'] = "Notification preferences updated!"
             return redirect(url_for('user_settings'))
         
         elif action == 'delete_account':
@@ -1171,7 +2019,7 @@ def user_settings():
             db.session.delete(user)
             db.session.commit()
             session.clear()
-            flash("Your account has been permanently deleted.")
+            session['show_success_popup'] = "Your account has been permanently deleted."
             return redirect(url_for('home'))
     
     return render_template('user_settings.html', 
@@ -1181,7 +2029,963 @@ def user_settings():
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
 
-# ==================== ADMIN DASHBOARD ====================
+# ==================== USER DASHBOARD API ROUTES (ADDED) ====================
+
+@app.route('/api/user/dashboard')
+@login_required
+def api_user_dashboard():
+    """Get user dashboard data with fetched totals and upcoming flights"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Get user's provider info from SocialUser if exists
+    provider = 'email'
+    social_user = SocialUser.query.filter_by(email=user.email).first()
+    if social_user:
+        provider = social_user.provider
+    
+    # Get user bookings with flight details
+    bookings = db.session.query(Booking, Flight).join(Flight, Booking.flight_id == Flight.id)\
+        .filter(Booking.user_id == user.id)\
+        .order_by(Booking.booking_date.desc()).all()
+    
+    booking_list = []
+    total_spent = 0
+    upcoming_count = 0
+    today = datetime.utcnow().date()
+    
+    for booking, flight in bookings:
+        # Calculate total spent
+        try:
+            price_str = booking.total_price.replace('₱', '').replace(',', '').strip()
+            price = float(price_str)
+            total_spent += price
+        except:
+            pass
+        
+        # Check if flight is upcoming
+        try:
+            flight_date = datetime.strptime(flight.departure_date, '%d %b %Y').date()
+            if flight_date >= today and booking.status != 'cancelled':
+                upcoming_count += 1
+        except:
+            pass
+        
+        booking_list.append({
+            'id': booking.id,
+            'booking_reference': booking.booking_reference,
+            'flight_number': flight.flight_number,
+            'origin': flight.origin,
+            'destination': flight.destination,
+            'departure_date': flight.departure_date,
+            'departure_time': flight.departure_time,
+            'total_passengers': booking.total_passengers,
+            'total_price': booking.total_price,
+            'cabin_class': booking.cabin_class,
+            'status': booking.status,
+            'payment_method': booking.payment_method,
+            'booking_date': booking.booking_date.isoformat() if booking.booking_date else None
+        })
+    
+    # Get profile picture URL
+    profile_pic_url = None
+    if user.profile_picture:
+        profile_pic_url = url_for('static', filename=f'uploads/{user.profile_picture}', _external=True)
+    
+    return jsonify({
+        'user': {
+            'id': user.id,
+            'fullname': user.fullname,
+            'email': user.email,
+            'profile_picture': profile_pic_url,
+            'is_admin': user.is_admin,
+            'provider': provider,
+            'created_at': user.created_at.isoformat() if user.created_at else None
+        },
+        'total_bookings': len(booking_list),
+        'total_spent': total_spent,
+        'upcoming_count': upcoming_count,
+        'bookings': booking_list
+    })
+
+@app.route('/api/update_profile', methods=['POST'])
+@login_required
+def api_update_profile_settings():
+    """Update user profile via API"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    data = request.json
+    fullname = data.get('fullname', '').strip()
+    email = data.get('email', '').strip()
+    phone = data.get('phone', '').strip()
+    
+    if fullname:
+        user.fullname = fullname
+    
+    if email and email != user.email:
+        # Check if email is already taken
+        existing = User.query.filter(User.email == email, User.id != user.id).first()
+        if existing:
+            return jsonify({'error': 'Email already taken'}), 400
+        user.email = email
+    
+    if phone:
+        user.phone = phone
+    else:
+        user.phone = None
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'user': {
+            'fullname': user.fullname,
+            'email': user.email,
+            'phone': user.phone
+        }
+    })
+
+@app.route('/api/upload_avatar', methods=['POST'])
+@login_required
+def api_upload_avatar_settings():
+    """Upload profile picture via API"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if 'avatar' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    if file and allowed_file(file.filename):
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        filename = secure_filename(f"user_{user.id}_{int(datetime.utcnow().timestamp())}.{ext}")
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        file.save(filepath)
+        
+        # Delete old profile picture
+        if user.profile_picture:
+            old_path = os.path.join(app.config['UPLOAD_FOLDER'], user.profile_picture)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        
+        user.profile_picture = filename
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'avatar_url': url_for('static', filename=f'uploads/{filename}', _external=True)
+        })
+    
+    return jsonify({'error': 'Invalid file type. Use PNG, JPG, JPEG, or GIF'}), 400
+
+@app.route('/api/change_password', methods=['POST'])
+@login_required
+def api_change_password_settings():
+    """Change user password via API"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    data = request.json
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    
+    if not old_password or not new_password:
+        return jsonify({'error': 'All fields are required'}), 400
+    
+    if not check_password_hash(user.password, old_password):
+        return jsonify({'error': 'Current password is incorrect'}), 400
+    
+    if len(new_password) < 6:
+        return jsonify({'error': 'New password must be at least 6 characters'}), 400
+    
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/update_notifications', methods=['POST'])
+@login_required
+def api_update_notifications():
+    """Update notification preferences"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    data = request.json
+    user.email_reminders = data.get('email_reminders', False)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/delete_account', methods=['DELETE'])
+@login_required
+def api_delete_account():
+    """Delete user account permanently"""
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Delete all user's bookings and passengers
+    bookings = Booking.query.filter_by(user_id=user.id).all()
+    for booking in bookings:
+        Passenger.query.filter_by(booking_id=booking.id).delete()
+        db.session.delete(booking)
+    
+    # Delete user
+    db.session.delete(user)
+    db.session.commit()
+    
+    # Clear session
+    session.clear()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/cancel_booking/<int:booking_id>', methods=['DELETE'])
+@login_required
+def api_cancel_booking(booking_id):
+    """Cancel a booking"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Check if booking belongs to user
+    if booking.user_id != session.get('user_id'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    # Check if flight hasn't departed yet
+    flight = Flight.query.get(booking.flight_id)
+    try:
+        flight_date = datetime.strptime(flight.departure_date, '%d %b %Y')
+        if flight_date < datetime.now():
+            return jsonify({'error': 'Cannot cancel past flights'}), 400
+    except:
+        pass
+    
+    booking.status = 'cancelled'
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Booking cancelled successfully'})
+
+# ==================== COMPLETE ADMIN API ROUTES ====================
+
+# ----- USER MANAGEMENT API -----
+
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def api_get_all_users():
+    search = request.args.get('search', '')
+    
+    query = User.query
+    if search:
+        query = query.filter(
+            db.or_(
+                User.email.ilike(f'%{search}%'),
+                User.fullname.ilike(f'%{search}%')
+            )
+        )
+    
+    users = query.order_by(User.created_at.desc()).all()
+    
+    return jsonify({
+        'users': [{
+            'id': u.id,
+            'fullname': u.fullname,
+            'email': u.email,
+            'is_admin': u.is_admin,
+            'is_active': u.is_active,
+            'created_at': u.created_at.isoformat() if u.created_at else None,
+            'phone': u.phone,
+            'profile_picture': u.profile_picture
+        } for u in users]
+    })
+
+@app.route('/api/admin/user/<int:user_id>', methods=['GET'])
+@admin_required
+def api_get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify({
+        'id': user.id,
+        'fullname': user.fullname,
+        'email': user.email,
+        'is_admin': user.is_admin,
+        'is_active': user.is_active,
+        'phone': user.phone,
+        'created_at': user.created_at.isoformat() if user.created_at else None,
+        'profile_picture': user.profile_picture
+    })
+
+@app.route('/api/admin/user', methods=['POST'])
+@admin_required
+def api_create_user():
+    data = request.json
+    email = data.get('email', '').strip()
+    
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already exists'}), 400
+    
+    if not data.get('password') or len(data.get('password')) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+    
+    new_user = User(
+        fullname=data.get('fullname'),
+        email=email,
+        password=generate_password_hash(data['password']),
+        is_admin=data.get('is_admin', False),
+        is_active=True
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'user_id': new_user.id})
+
+@app.route('/api/admin/user/<int:user_id>', methods=['PUT'])
+@admin_required
+def api_update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.json
+    
+    if 'fullname' in data:
+        user.fullname = data['fullname']
+    if 'email' in data and data['email'] != user.email:
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({'error': 'Email already exists'}), 400
+        user.email = data['email']
+    if 'is_admin' in data:
+        if user.id == session.get('user_id') and not data['is_admin']:
+            return jsonify({'error': 'Cannot remove your own admin role'}), 400
+        user.is_admin = data['is_admin']
+    if 'phone' in data:
+        user.phone = data['phone']
+    if 'password' in data and data['password']:
+        if len(data['password']) < 6:
+            return jsonify({'error': 'Password must be at least 6 characters'}), 400
+        user.password = generate_password_hash(data['password'])
+    
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/admin/user/<int:user_id>', methods=['DELETE'])
+@admin_required
+def api_delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    if user.id == session.get('user_id'):
+        return jsonify({'error': 'Cannot delete your own account'}), 400
+    
+    Booking.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/user/<int:user_id>/role', methods=['PUT'])
+@admin_required
+def api_update_user_role(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.json
+    
+    if user.id == session.get('user_id') and not data.get('is_admin', False):
+        return jsonify({'error': 'Cannot remove your own admin role'}), 400
+    
+    user.is_admin = data.get('is_admin', False)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/user/<int:user_id>/reset-password', methods=['POST'])
+@admin_required
+def api_reset_user_password(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.json
+    new_password = data.get('password', '')
+    
+    if len(new_password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+    
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/user/<int:user_id>/toggle-status', methods=['POST'])
+@admin_required
+def api_toggle_user_status(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    if user.id == session.get('user_id'):
+        return jsonify({'error': 'Cannot disable your own account'}), 400
+    
+    user.is_active = not user.is_active
+    db.session.commit()
+    
+    return jsonify({'success': True, 'is_active': user.is_active})
+
+# ----- BOOKING MANAGEMENT API -----
+
+@app.route('/api/admin/bookings', methods=['GET'])
+@admin_required
+def api_get_all_bookings():
+    search = request.args.get('search', '')
+    
+    query = db.session.query(Booking, Flight, User).join(Flight, Booking.flight_id == Flight.id)\
+        .outerjoin(User, Booking.user_id == User.id)
+    
+    if search:
+        query = query.filter(
+            db.or_(
+                Booking.booking_reference.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%')
+            )
+        )
+    
+    results = query.order_by(Booking.booking_date.desc()).all()
+    
+    bookings_list = []
+    for booking, flight, user in results:
+        passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+        bookings_list.append({
+            'id': booking.id,
+            'booking_reference': booking.booking_reference,
+            'user_email': user.email if user else 'Guest',
+            'flight_number': flight.flight_number,
+            'origin': flight.origin,
+            'destination': flight.destination,
+            'departure_date': flight.departure_date,
+            'total_price': booking.total_price,
+            'total_passengers': booking.total_passengers,
+            'cabin_class': booking.cabin_class,
+            'status': booking.status,
+            'payment_method': booking.payment_method,
+            'payment_status': booking.payment_status,
+            'booking_date': booking.booking_date.isoformat() if booking.booking_date else None,
+            'passengers': [{'name': p.full_name, 'seat': p.seat_number} for p in passengers]
+        })
+    
+    return jsonify({'bookings': bookings_list})
+
+@app.route('/api/admin/booking/<int:booking_id>', methods=['GET'])
+@admin_required
+def api_get_booking_details(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    flight = Flight.query.get(booking.flight_id)
+    user = User.query.get(booking.user_id) if booking.user_id else None
+    passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+    
+    return jsonify({
+        'id': booking.id,
+        'booking_reference': booking.booking_reference,
+        'user_email': user.email if user else 'Guest',
+        'user_name': user.fullname if user else 'Guest',
+        'flight_number': flight.flight_number,
+        'origin': flight.origin,
+        'destination': flight.destination,
+        'departure_date': flight.departure_date,
+        'departure_time': flight.departure_time,
+        'arrival_time': flight.arrival_time,
+        'gate': flight.gate,
+        'total_price': booking.total_price,
+        'total_passengers': booking.total_passengers,
+        'cabin_class': booking.cabin_class,
+        'status': booking.status,
+        'payment_method': booking.payment_method,
+        'payment_status': booking.payment_status,
+        'booking_date': booking.booking_date.isoformat() if booking.booking_date else None,
+        'passengers': [{'id': p.id, 'name': p.full_name, 'seat': p.seat_number, 'type': p.passenger_type} for p in passengers]
+    })
+
+@app.route('/api/admin/booking/<int:booking_id>/status', methods=['PUT'])
+@admin_required
+def api_update_booking_status(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    data = request.json
+    new_status = data.get('status')
+    
+    valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
+    if new_status not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+    
+    booking.status = new_status
+    db.session.commit()
+    
+    return jsonify({'success': True, 'status': booking.status})
+
+@app.route('/api/admin/booking/<int:booking_id>', methods=['DELETE'])
+@admin_required
+def api_delete_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    
+    Passenger.query.filter_by(booking_id=booking.id).delete()
+    db.session.delete(booking)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/bookings/export', methods=['GET'])
+@admin_required
+def api_export_bookings():
+    import csv
+    from io import StringIO
+    from flask import Response
+    
+    bookings = db.session.query(Booking, Flight, User).join(Flight, Booking.flight_id == Flight.id)\
+        .outerjoin(User, Booking.user_id == User.id).order_by(Booking.booking_date.desc()).all()
+    
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Booking Reference', 'User Email', 'Flight Number', 'Origin', 'Destination', 
+                 'Departure Date', 'Total Price', 'Passengers', 'Cabin Class', 'Status', 
+                 'Payment Method', 'Booking Date'])
+    
+    for booking, flight, user in bookings:
+        passenger_count = Passenger.query.filter_by(booking_id=booking.id).count()
+        cw.writerow([
+            booking.booking_reference,
+            user.email if user else 'Guest',
+            flight.flight_number,
+            flight.origin,
+            flight.destination,
+            flight.departure_date,
+            booking.total_price,
+            passenger_count,
+            booking.cabin_class,
+            booking.status,
+            booking.payment_method,
+            booking.booking_date.strftime('%Y-%m-%d %H:%M') if booking.booking_date else ''
+        ])
+    
+    output = si.getvalue()
+    return Response(output, mimetype='text/csv', 
+                   headers={"Content-Disposition": "attachment;filename=bookings_export.csv"})
+
+# ----- FLIGHT MANAGEMENT API -----
+
+@app.route('/api/admin/flights', methods=['GET'])
+@admin_required
+def api_get_all_flights():
+    flights = Flight.query.order_by(Flight.departure_date).all()
+    
+    return jsonify({
+        'flights': [{
+            'id': f.id,
+            'flight_number': f.flight_number,
+            'origin': f.origin,
+            'destination': f.destination,
+            'departure_date': f.departure_date,
+            'departure_time': f.departure_time,
+            'arrival_time': f.arrival_time,
+            'duration': f.duration,
+            'distance': f.distance,
+            'economy_price': f.economy_price,
+            'premium_economy_price': f.premium_economy_price,
+            'business_price': f.business_price,
+            'first_class_price': f.first_class_price,
+            'total_seats': f.total_seats,
+            'available_seats': f.available_seats,
+            'gate': f.gate,
+            'status': f.status
+        } for f in flights]
+    })
+
+@app.route('/api/admin/flight/<int:flight_id>', methods=['GET'])
+@admin_required
+def api_get_flight(flight_id):
+    flight = Flight.query.get_or_404(flight_id)
+    return jsonify({
+        'id': flight.id,
+        'flight_number': flight.flight_number,
+        'origin': flight.origin,
+        'destination': flight.destination,
+        'departure_date': flight.departure_date,
+        'departure_time': flight.departure_time,
+        'arrival_time': flight.arrival_time,
+        'duration': flight.duration,
+        'distance': flight.distance,
+        'economy_price': flight.economy_price,
+        'premium_economy_price': flight.premium_economy_price,
+        'business_price': flight.business_price,
+        'first_class_price': flight.first_class_price,
+        'total_seats': flight.total_seats,
+        'available_seats': flight.available_seats,
+        'gate': flight.gate,
+        'status': flight.status
+    })
+
+@app.route('/api/admin/flight', methods=['POST'])
+@admin_required
+def api_create_flight():
+    data = request.json
+    
+    if Flight.query.filter_by(flight_number=data.get('flight_number')).first():
+        return jsonify({'error': 'Flight number already exists'}), 400
+    
+    new_flight = Flight(
+        flight_number=data.get('flight_number'),
+        origin=data.get('origin', '').upper(),
+        destination=data.get('destination', '').upper(),
+        departure_date=data.get('departure_date'),
+        departure_time=data.get('departure_time'),
+        arrival_time=data.get('arrival_time'),
+        duration=data.get('duration', 'N/A'),
+        distance=data.get('distance', 'N/A'),
+        economy_price=data.get('economy_price', '2,100'),
+        premium_economy_price=data.get('premium_economy_price', '4,500'),
+        business_price=data.get('business_price', '8,500'),
+        first_class_price=data.get('first_class_price', '15,000'),
+        total_seats=data.get('total_seats', 60),
+        available_seats=data.get('total_seats', 60),
+        gate=data.get('gate', 'A1'),
+        status=data.get('status', 'Scheduled')
+    )
+    
+    db.session.add(new_flight)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'flight_id': new_flight.id})
+
+@app.route('/api/admin/flight/<int:flight_id>', methods=['PUT'])
+@admin_required
+def api_update_flight(flight_id):
+    flight = Flight.query.get_or_404(flight_id)
+    data = request.json
+    
+    flight.flight_number = data.get('flight_number', flight.flight_number)
+    flight.origin = data.get('origin', flight.origin).upper()
+    flight.destination = data.get('destination', flight.destination).upper()
+    flight.departure_date = data.get('departure_date', flight.departure_date)
+    flight.departure_time = data.get('departure_time', flight.departure_time)
+    flight.arrival_time = data.get('arrival_time', flight.arrival_time)
+    flight.duration = data.get('duration', flight.duration)
+    flight.distance = data.get('distance', flight.distance)
+    flight.economy_price = data.get('economy_price', flight.economy_price)
+    flight.premium_economy_price = data.get('premium_economy_price', flight.premium_economy_price)
+    flight.business_price = data.get('business_price', flight.business_price)
+    flight.first_class_price = data.get('first_class_price', flight.first_class_price)
+    flight.total_seats = data.get('total_seats', flight.total_seats)
+    flight.gate = data.get('gate', flight.gate)
+    flight.status = data.get('status', flight.status)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/flight/<int:flight_id>', methods=['DELETE'])
+@admin_required
+def api_delete_flight(flight_id):
+    flight = Flight.query.get_or_404(flight_id)
+    
+    bookings = Booking.query.filter_by(flight_id=flight.id).count()
+    if bookings > 0:
+        return jsonify({'error': f'Cannot delete flight with {bookings} existing bookings'}), 400
+    
+    db.session.delete(flight)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/flight/<int:flight_id>/status', methods=['PUT'])
+@admin_required
+def api_update_flight_status(flight_id):
+    flight = Flight.query.get_or_404(flight_id)
+    data = request.json
+    new_status = data.get('status')
+    
+    valid_statuses = ['Scheduled', 'Delayed', 'Cancelled', 'Departed', 'Arrived']
+    if new_status not in valid_statuses:
+        return jsonify({'error': 'Invalid status'}), 400
+    
+    flight.status = new_status
+    db.session.commit()
+    
+    return jsonify({'success': True, 'status': flight.status})
+
+# ----- PROMO CODE MANAGEMENT API -----
+
+@app.route('/api/admin/promos', methods=['GET'])
+@admin_required
+def api_get_all_promos():
+    promos = PromoCode.query.order_by(PromoCode.created_at.desc()).all()
+    
+    return jsonify({
+        'promos': [{
+            'id': p.id,
+            'code': p.code,
+            'description': p.description,
+            'discount_type': p.discount_type,
+            'discount_value': p.discount_value,
+            'valid_from': p.valid_from.isoformat() if p.valid_from else None,
+            'valid_until': p.valid_until.isoformat() if p.valid_until else None,
+            'max_uses': p.max_uses,
+            'min_amount': p.min_amount,
+            'used_count': p.used_count,
+            'is_active': p.is_active,
+            'created_at': p.created_at.isoformat() if p.created_at else None
+        } for p in promos]
+    })
+
+@app.route('/api/admin/promo/<int:promo_id>', methods=['GET'])
+@admin_required
+def api_get_promo(promo_id):
+    promo = PromoCode.query.get_or_404(promo_id)
+    return jsonify({
+        'id': promo.id,
+        'code': promo.code,
+        'description': promo.description,
+        'discount_type': promo.discount_type,
+        'discount_value': promo.discount_value,
+        'valid_from': promo.valid_from.isoformat() if promo.valid_from else None,
+        'valid_until': promo.valid_until.isoformat() if promo.valid_until else None,
+        'max_uses': promo.max_uses,
+        'min_amount': promo.min_amount,
+        'used_count': promo.used_count,
+        'is_active': promo.is_active
+    })
+
+@app.route('/api/admin/promo', methods=['POST'])
+@admin_required
+def api_create_promo():
+    data = request.json
+    
+    if PromoCode.query.filter_by(code=data.get('code').upper()).first():
+        return jsonify({'error': 'Promo code already exists'}), 400
+    
+    new_promo = PromoCode(
+        code=data.get('code').upper(),
+        description=data.get('description'),
+        discount_type=data.get('discount_type', 'percentage'),
+        discount_value=float(data.get('discount_value')),
+        valid_from=datetime.fromisoformat(data.get('valid_from')) if data.get('valid_from') else datetime.utcnow(),
+        valid_until=datetime.fromisoformat(data.get('valid_until')) if data.get('valid_until') else datetime.utcnow() + timedelta(days=30),
+        max_uses=int(data.get('max_uses')) if data.get('max_uses') else None,
+        min_amount=float(data.get('min_amount')) if data.get('min_amount') else None,
+        is_active=True
+    )
+    
+    db.session.add(new_promo)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'promo_id': new_promo.id})
+
+@app.route('/api/admin/promo/<int:promo_id>', methods=['PUT'])
+@admin_required
+def api_update_promo(promo_id):
+    promo = PromoCode.query.get_or_404(promo_id)
+    data = request.json
+    
+    if 'code' in data and data['code'] != promo.code:
+        if PromoCode.query.filter_by(code=data['code'].upper()).first():
+            return jsonify({'error': 'Promo code already exists'}), 400
+        promo.code = data['code'].upper()
+    if 'description' in data:
+        promo.description = data['description']
+    if 'discount_type' in data:
+        promo.discount_type = data['discount_type']
+    if 'discount_value' in data:
+        promo.discount_value = float(data['discount_value'])
+    if 'valid_from' in data:
+        promo.valid_from = datetime.fromisoformat(data['valid_from'])
+    if 'valid_until' in data:
+        promo.valid_until = datetime.fromisoformat(data['valid_until'])
+    if 'max_uses' in data:
+        promo.max_uses = int(data['max_uses']) if data['max_uses'] else None
+    if 'min_amount' in data:
+        promo.min_amount = float(data['min_amount']) if data['min_amount'] else None
+    if 'is_active' in data:
+        promo.is_active = data['is_active']
+    
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/promo/<int:promo_id>', methods=['DELETE'])
+@admin_required
+def api_delete_promo(promo_id):
+    promo = PromoCode.query.get_or_404(promo_id)
+    db.session.delete(promo)
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/promo/<int:promo_id>/status', methods=['PUT'])
+@admin_required
+def api_update_promo_status(promo_id):
+    promo = PromoCode.query.get_or_404(promo_id)
+    data = request.json
+    promo.is_active = data.get('is_active', False)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'is_active': promo.is_active})
+
+# ----- ANALYTICS API -----
+
+@app.route('/api/admin/analytics', methods=['GET'])
+@admin_required
+def api_get_analytics():
+    days = request.args.get('days', 30, type=int)
+    
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    
+    daily_data = {}
+    for i in range(days):
+        date = start_date + timedelta(days=i)
+        date_str = date.strftime('%Y-%m-%d')
+        daily_data[date_str] = {'revenue': 0, 'bookings': 0}
+    
+    bookings = Booking.query.filter(Booking.booking_date >= start_date).all()
+    
+    for booking in bookings:
+        date_str = booking.booking_date.strftime('%Y-%m-%d')
+        if date_str in daily_data:
+            price_str = booking.total_price.replace('₱', '').replace(',', '')
+            try:
+                price = float(price_str)
+                daily_data[date_str]['revenue'] += price
+            except:
+                pass
+            daily_data[date_str]['bookings'] += 1
+    
+    dates = list(daily_data.keys())
+    revenue_data = [daily_data[d]['revenue'] for d in dates]
+    bookings_data = [daily_data[d]['bookings'] for d in dates]
+    
+    route_stats = {}
+    bookings_with_flight = db.session.query(Booking, Flight).join(Flight, Booking.flight_id == Flight.id).all()
+    
+    for booking, flight in bookings_with_flight:
+        route = f"{flight.origin} → {flight.destination}"
+        if route not in route_stats:
+            route_stats[route] = {'bookings': 0, 'revenue': 0}
+        route_stats[route]['bookings'] += 1
+        price_str = booking.total_price.replace('₱', '').replace(',', '')
+        try:
+            price = float(price_str)
+            route_stats[route]['revenue'] += price
+        except:
+            pass
+    
+    top_routes = sorted(route_stats.items(), key=lambda x: x[1]['revenue'], reverse=True)[:5]
+    top_routes_list = [{'route': r[0], 'bookings': r[1]['bookings'], 'revenue': f"{r[1]['revenue']:,.2f}"} for r in top_routes]
+    
+    total_revenue = sum(daily_data[d]['revenue'] for d in daily_data)
+    total_bookings = sum(daily_data[d]['bookings'] for d in daily_data)
+    
+    return jsonify({
+        'dates': dates,
+        'revenue': revenue_data,
+        'bookings': bookings_data,
+        'top_routes': top_routes_list,
+        'total_revenue': f"{total_revenue:,.2f}",
+        'total_bookings': total_bookings
+    })
+
+# ----- SYSTEM SETTINGS API -----
+
+@app.route('/api/admin/settings', methods=['GET'])
+@admin_required
+def api_get_settings():
+    settings = {
+        'site_name': get_system_setting('site_name', 'AeroTicket'),
+        'contact_email': get_system_setting('contact_email', 'support@aeroticket.com'),
+        'contact_phone': get_system_setting('contact_phone', '+1 (555) 123-4567'),
+        'address': get_system_setting('address', '123 Aviation Blvd, Airport City'),
+        'booking_fee': float(get_system_setting('booking_fee', 0)),
+        'tax_rate': float(get_system_setting('tax_rate', 0)),
+        'maintenance': get_system_setting('maintenance', 'false') == 'true'
+    }
+    return jsonify(settings)
+
+@app.route('/api/admin/settings', methods=['PUT'])
+@admin_required
+def api_update_settings():
+    data = request.json
+    
+    for key, value in data.items():
+        set_system_setting(key, value)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/maintenance', methods=['POST'])
+@admin_required
+def api_toggle_maintenance():
+    data = request.json
+    enabled = data.get('enabled', False)
+    set_system_setting('maintenance', 'true' if enabled else 'false')
+    
+    return jsonify({'success': True, 'maintenance': enabled})
+
+@app.route('/api/admin/clear-cache', methods=['POST'])
+@admin_required
+def api_clear_cache():
+    return jsonify({'success': True, 'message': 'Cache cleared successfully'})
+
+@app.route('/api/admin/backup', methods=['GET'])
+@admin_required
+def api_backup_database():
+    import shutil
+    backup_filename = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    backup_path = os.path.join('backups', backup_filename)
+    os.makedirs('backups', exist_ok=True)
+    if os.path.exists('instance/aeroticket.db'):
+        shutil.copy2('instance/aeroticket.db', backup_path)
+    else:
+        shutil.copy2('aeroticket.db', backup_path)
+    
+    return jsonify({'success': True, 'backup_file': backup_filename})
+
+@app.route('/api/admin/export-all', methods=['GET'])
+@admin_required
+def api_export_all():
+    import csv
+    from io import StringIO
+    from flask import Response
+    
+    output = StringIO()
+    
+    cw = csv.writer(output)
+    cw.writerow(['=== USERS ==='])
+    cw.writerow(['ID', 'Name', 'Email', 'Role', 'Status', 'Created At'])
+    users = User.query.all()
+    for u in users:
+        cw.writerow([u.id, u.fullname or '', u.email, 'Admin' if u.is_admin else 'User', 
+                    'Active' if u.is_active else 'Inactive', u.created_at])
+    
+    cw.writerow([])
+    cw.writerow(['=== FLIGHTS ==='])
+    cw.writerow(['ID', 'Flight #', 'Origin', 'Destination', 'Departure', 'Status'])
+    flights = Flight.query.all()
+    for f in flights:
+        cw.writerow([f.id, f.flight_number, f.origin, f.destination, f.departure_date, f.status])
+    
+    cw.writerow([])
+    cw.writerow(['=== BOOKINGS ==='])
+    cw.writerow(['ID', 'Reference', 'User', 'Flight', 'Total', 'Status', 'Date'])
+    bookings = Booking.query.all()
+    for b in bookings:
+        user = User.query.get(b.user_id) if b.user_id else None
+        flight = Flight.query.get(b.flight_id)
+        cw.writerow([b.id, b.booking_reference, user.email if user else 'Guest',
+                    flight.flight_number if flight else 'N/A', b.total_price, b.status, b.booking_date])
+    
+    cw.writerow([])
+    cw.writerow(['=== PROMO CODES ==='])
+    cw.writerow(['ID', 'Code', 'Discount', 'Valid Until', 'Uses', 'Active'])
+    promos = PromoCode.query.all()
+    for p in promos:
+        cw.writerow([p.id, p.code, f"{p.discount_value}%", p.valid_until, p.used_count, 'Yes' if p.is_active else 'No'])
+    
+    output.seek(0)
+    return Response(output.getvalue(), mimetype='text/csv',
+                   headers={"Content-Disposition": "attachment;filename=full_export.csv"})
+
+# ==================== ADMIN DASHBOARD ROUTE ====================
 
 @app.route('/admin')
 def admin_dashboard():
@@ -1189,7 +2993,6 @@ def admin_dashboard():
         flash("Access denied. Admin privileges required.")
         return redirect(url_for('home'))
     
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
@@ -1204,95 +3007,524 @@ def admin_dashboard():
     total_users = User.query.count()
     total_bookings = Booking.query.count()
     total_flights = Flight.query.count()
+    total_promos = PromoCode.query.filter_by(is_active=True).count()
     recent_bookings = Booking.query.order_by(Booking.booking_date.desc()).limit(10).all()
     
-    thirty_days_ago = datetime.utcnow().replace(day=1)
-    sales = db.session.query(db.func.sum(Booking.total_price)).filter(Booking.booking_date >= thirty_days_ago).scalar()
+    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    sales = db.session.query(db.func.sum(db.cast(Booking.total_price, db.Float))).filter(Booking.booking_date >= thirty_days_ago).scalar()
     sales_total = float(sales) if sales else 0
     
-    users = User.query.all()
-    events = Flight.query.all()
+    all_users = User.query.all()
+    all_flights = Flight.query.all()
+    all_bookings = Booking.query.all()
+    all_promos = PromoCode.query.all()
+    active_promos = PromoCode.query.filter_by(is_active=True).count()
+    total_promo_uses = db.session.query(db.func.sum(PromoCode.used_count)).scalar() or 0
+    total_discount_given = 0
     
     settings = {
-        'site_name': 'AeroTicket',
-        'contact_email': 'support@aeroticket.com',
-        'timezone': 'Asia/Manila',
-        'global_max_tickets': 6,
-        'waitlist_enabled': False,
-        'tax_rate': 0,
-        'maintenance': False
+        'site_name': get_system_setting('site_name', 'AeroTicket'),
+        'contact_email': get_system_setting('contact_email', 'support@aeroticket.com'),
+        'contact_phone': get_system_setting('contact_phone', ''),
+        'address': get_system_setting('address', ''),
+        'booking_fee': get_system_setting('booking_fee', '0'),
+        'tax_rate': get_system_setting('tax_rate', '0'),
+        'maintenance': get_system_setting('maintenance', 'false') == 'true'
     }
     
     return render_template('admin_dashboard.html',
-                          users=users,
-                          events=events,
+                          users=all_users,
+                          events=all_flights,
+                          all_users=all_users,
+                          all_flights=all_flights,
+                          all_bookings=all_bookings,
+                          all_promos=all_promos,
+                          active_promos=active_promos,
+                          total_promo_uses=total_promo_uses,
+                          total_discount_given=total_discount_given,
                           settings=settings,
                           total_users=total_users,
                           total_bookings=total_bookings,
                           total_flights=total_flights,
+                          total_promos=total_promos,
                           sales_summary={'total': f"₱{sales_total:,.2f}"},
                           recent_bookings=recent_bookings,
                           has_bookings=has_bookings,
                           latest_booking_id=latest_booking_id)
 
-@app.route('/admin/ban_user/<int:user_id>')
-def admin_ban_user(user_id):
-    if not session.get('is_admin'):
-        flash("Unauthorized.")
-        return redirect(url_for('home'))
-    user = User.query.get(user_id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        flash(f"User {user.email} has been deleted.")
-    return redirect(url_for('admin_dashboard'))
+# ==================== INFORMATION PAGES ====================
+@app.route("/check_in", methods=['GET', 'POST'])
+def check_in():
+    has_bookings = False
+    latest_booking_id = None
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    if request.method == 'POST':
+        booking_ref = request.form.get('booking_ref')
+        identifier = request.form.get('identifier', '').strip()
+        check_in_as_member = request.form.get('check_in_as_member') == 'true'
+        
+        booking = Booking.query.filter_by(booking_reference=booking_ref).first()
+        
+        if not booking:
+            flash("Booking not found. Please check your reference number.", "error")
+            return redirect(url_for('check_in'))
+        
+        # ===== CHECK-IN TIME VALIDATIONS =====
+        if booking.flight_id:
+            flight = Flight.query.get(booking.flight_id)
+            if flight:
+                try:
+                    # Parse departure date/time
+                    dep_datetime_str = f"{flight.departure_date} {flight.departure_time}"
+                    dep_time = None
+                    try:
+                        dep_time = datetime.strptime(dep_datetime_str, "%d %b %Y %I:%M %p")
+                    except:
+                        try:
+                            dep_time = datetime.strptime(dep_datetime_str, "%d %b %Y %H:%M")
+                        except:
+                            dep_time = datetime.now() + timedelta(days=1)
+                    
+                    # Check-in closes 1 hour before departure
+                    if datetime.now() > dep_time - timedelta(hours=1):
+                        flash("Check-in is closed. Please proceed to the airport counter.", "error")
+                        return redirect(url_for('check_in'))
+                    
+                    # Check-in opens 24 hours before departure
+                    if datetime.now() < dep_time - timedelta(hours=24):
+                        open_time = dep_time - timedelta(hours=24)
+                        flash(f"Check-in opens 24 hours before departure. Please come back after {open_time.strftime('%Y-%m-%d %H:%M')}", "error")
+                        return redirect(url_for('check_in'))
+                        
+                except Exception as e:
+                    print(f"Check-in time validation error: {e}")
+                    pass
+        
+        # Check if already checked in
+        if booking.checked_in:
+            flash("You have already checked in for this flight!", "warning")
+            return redirect(url_for('view_ticket', id=booking.id))
+        
+        # ===== MEMBER CHECK-IN =====
+        if check_in_as_member and session.get('user_id'):
+            user = User.query.get(session.get('user_id'))
+            
+            # Check if this booking belongs to the logged-in user
+            if booking.user_id == session.get('user_id'):
+                booking.checked_in = True
+                booking.check_in_time = datetime.utcnow()
+                db.session.commit()
+                session['show_success_popup'] = f"✓ Check-in successful! Welcome aboard, {user.fullname or user.email}!"
+                return redirect(url_for('view_ticket', id=booking.id))
+            
+            # Check if user's name matches any passenger
+            passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+            for passenger in passengers:
+                if user.fullname and user.fullname.lower() in passenger.full_name.lower():
+                    booking.checked_in = True
+                    booking.check_in_time = datetime.utcnow()
+                    db.session.commit()
+                    session['show_success_popup'] = f"✓ Check-in successful for {passenger.full_name}!"
+                    return redirect(url_for('view_ticket', id=booking.id))
+            
+            flash("This booking is not associated with your account.", "error")
+            return redirect(url_for('check_in'))
+        
+        # ===== GUEST CHECK-IN =====
+        if not identifier:
+            flash("Please enter a passenger name or email to check in.", "error")
+            return redirect(url_for('check_in'))
+        
+        # Check email match
+        if booking.user_id:
+            user = User.query.get(booking.user_id)
+            if user and user.email.lower() == identifier.lower():
+                booking.checked_in = True
+                booking.check_in_time = datetime.utcnow()
+                db.session.commit()
+                session['show_success_popup'] = "Check-in successful! Welcome aboard!"
+                return redirect(url_for('view_ticket', id=booking.id))
+        
+        # Check passenger name match
+        passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+        for passenger in passengers:
+            if identifier.lower() in passenger.full_name.lower():
+                booking.checked_in = True
+                booking.check_in_time = datetime.utcnow()
+                db.session.commit()
+                session['show_success_popup'] = f"Check-in successful for {passenger.full_name}!"
+                return redirect(url_for('view_ticket', id=booking.id))
+        
+        flash("Booking found but identifier doesn't match. Please try again.", "error")
+        return redirect(url_for('check_in'))
+    
+    return render_template("check_in.html", 
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id)
+@app.route("/about")
+def about():
+    has_bookings = False
+    latest_booking_id = None
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    return render_template("About.html", 
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id)
 
-@app.route('/admin/reset_password/<int:user_id>')
-def admin_reset_password(user_id):
-    if not session.get('is_admin'):
-        flash("Unauthorized.")
-        return redirect(url_for('home'))
-    user = User.query.get(user_id)
-    if user:
-        new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-        user.password = generate_password_hash(new_password)
-        db.session.commit()
-        flash(f"Password for {user.email} reset to: {new_password} (user must change after login)")
-    return redirect(url_for('admin_dashboard'))
+# ==================== MANAGE ROUTE ====================
 
-@app.route('/admin/clear_cache')
-def admin_clear_cache():
-    if not session.get('is_admin'):
-        flash("Unauthorized.")
-        return redirect(url_for('home'))
-    flash("Cache cleared (simulated).")
-    return redirect(url_for('admin_dashboard'))
+@app.route("/manage", methods=['GET', 'POST'])
+def manage():
+    has_bookings = False
+    latest_booking_id = None
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    if request.method == 'POST':
+        booking_ref = request.form.get('booking_ref', '').strip().upper()
+        identifier = request.form.get('identifier', '').strip()  # Can be email OR passenger name
+        
+        print(f"🔍 Searching for booking: {booking_ref}")
+        print(f"   Identifier: {identifier}")
+        
+        # Search by booking reference
+        booking = Booking.query.filter_by(booking_reference=booking_ref).first()
+        
+        if booking:
+            print(f"   ✅ Booking found! ID: {booking.id}")
+            
+            # Check if identifier matches (email OR passenger name)
+            match_found = False
+            
+            # Check if user is logged in and matches
+            if session.get('user_id') and booking.user_id == session.get('user_id'):
+                match_found = True
+                print(f"   ✅ Match: Logged in user matches")
+            
+            # Check email match (if booking has user)
+            if not match_found and booking.user_id:
+                user = User.query.get(booking.user_id)
+                if user and user.email.lower() == identifier.lower():
+                    match_found = True
+                    print(f"   ✅ Match: Email matches user: {user.email}")
+            
+            # Check passenger name match
+            if not match_found:
+                passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+                for passenger in passengers:
+                    if identifier.lower() in passenger.full_name.lower():
+                        match_found = True
+                        print(f"   ✅ Match: Name matches passenger: {passenger.full_name}")
+                        break
+            
+            if match_found:
+                passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+                flight = Flight.query.get(booking.flight_id)
+                
+                return render_template('Manage.html', 
+                                      booking_found=True,
+                                      booking=booking,
+                                      passengers=passengers,
+                                      flight=flight,
+                                      has_bookings=has_bookings,
+                                      latest_booking_id=latest_booking_id)
+            else:
+                flash("Booking found but identifier doesn't match. Please use the passenger name or email used when booking.", "error")
+                print(f"No match found!")
+        else:
+            flash("Booking not found. Please check your reference number.", "error")
+            print(f"Booking not found for reference: {booking_ref}")
+        
+        return redirect(url_for('manage'))
+    
+    return render_template("Manage.html", 
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id)
 
-@app.route('/admin/maintenance', methods=['POST'])
-def admin_maintenance():
-    if not session.get('is_admin'):
-        flash("Unauthorized.")
-        return redirect(url_for('home'))
-    session['maintenance_mode'] = not session.get('maintenance_mode', False)
-    flash(f"Maintenance mode {'enabled' if session['maintenance_mode'] else 'disabled'}.")
-    return redirect(url_for('admin_dashboard'))
+@app.route("/travel")
+def travel():
+    has_bookings = False
+    latest_booking_id = None
+    
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    return render_template("travel_info.html", 
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id)
 
-@app.route('/admin/export_sales')
-def admin_export_sales():
-    if not session.get('is_admin'):
-        flash("Unauthorized.")
-        return redirect(url_for('home'))
-    import csv
-    from io import StringIO
-    from flask import Response
-    bookings = Booking.query.all()
-    si = StringIO()
-    cw = csv.writer(si)
-    cw.writerow(['Booking Ref', 'User ID', 'Flight ID', 'Passengers', 'Total', 'Date', 'Status'])
-    for b in bookings:
-        cw.writerow([b.booking_reference, b.user_id, b.flight_id, b.total_passengers, b.total_price, b.booking_date, b.status])
-    output = si.getvalue()
-    return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=sales.csv"})
+@app.route("/explore")
+def explore():
+    has_bookings = False
+    latest_booking_id = None
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    # Get unique destinations from flights
+    flights = Flight.query.all()
+    flight_destinations = list(set([flight.destination.upper() for flight in flights if flight.destination]))
+    
+    return render_template("Explore.html", 
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id,
+                          flight_destinations=flight_destinations)
+
+# ==================== VIEW TICKET ROUTES ====================
+
+@app.route('/view_ticket')
+def view_ticket():
+    booking_id = request.args.get('id')
+    if not booking_id:
+        flash('No ticket ID provided')
+        return redirect(url_for('user_dashboard'))
+    
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        flash('Ticket not found')
+        return redirect(url_for('user_dashboard'))
+    
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        flash('Access denied')
+        return redirect(url_for('user_dashboard'))
+    
+    # Get flight details
+    flight = Flight.query.get(booking.flight_id)
+    if not flight:
+        flash('Flight information not found')
+        return redirect(url_for('user_dashboard'))
+    
+    # Get passengers
+    passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+    
+    # Prepare passenger data for template (matching what JS expects)
+    passenger_list = []
+    for passenger in passengers:
+        passenger_list.append({
+            'id': passenger.id,
+            'full_name': passenger.full_name,
+            'name': passenger.full_name,
+            'seat_number': passenger.seat_number,
+            'seat': passenger.seat_number,
+            'passenger_type': passenger.passenger_type
+        })
+    
+    # Prepare flight data (matching what JS expects)
+    flight_data = {
+        'flight_number': flight.flight_number,
+        'flight_no': flight.flight_number,
+        'code': flight.flight_number,
+        'gate': flight.gate,
+        'gate_number': flight.gate,
+        'origin': flight.origin,
+        'from': flight.origin,
+        'departure_airport': flight.origin,
+        'destination': flight.destination,
+        'to': flight.destination,
+        'arrival_airport': flight.destination,
+        'departure_date': flight.departure_date,
+        'date': flight.departure_date,
+        'departure_time': flight.departure_time,
+        'time': flight.departure_time,
+        'depart_time': flight.departure_time,
+        'arrival_time': flight.arrival_time,
+        'duration': flight.duration,
+        'distance': flight.distance,
+        'status': flight.status
+    }
+    
+    # Prepare booking data
+    booking_data = {
+        'booking_reference': booking.booking_reference,
+        'reference': booking.booking_reference,
+        'pnr': booking.booking_reference,
+        'cabin_class': booking.cabin_class,
+        'class': booking.cabin_class,
+        'total_price': booking.total_price,
+        'total_passengers': booking.total_passengers,
+        'booking_date': booking.booking_date.isoformat() if booking.booking_date else None,
+        'status': booking.status,
+        'payment_method': booking.payment_method,
+        'payment_status': booking.payment_status
+    }
+    
+    has_bookings = False
+    latest_booking_id = None
+    if session.get('user_id'):
+        user_id = session.get('user_id')
+        booking_count = Booking.query.filter_by(user_id=user_id).count()
+        has_bookings = booking_count > 0
+        
+        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
+        if latest_booking:
+            latest_booking_id = latest_booking.id
+    
+    # Pass data as JSON to template for JavaScript to parse
+    import json
+    return render_template('view_ticket.html', 
+                          booking=booking_data,
+                          booking_json=json.dumps(booking_data),
+                          flight=flight_data,
+                          flight_json=json.dumps(flight_data),
+                          passengers=passenger_list,
+                          passengers_json=json.dumps(passenger_list),
+                          booking_reference=booking.booking_reference,
+                          has_bookings=has_bookings,
+                          latest_booking_id=latest_booking_id)
+
+@app.route('/api/booking/<int:booking_id>')
+def api_get_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    flight = Flight.query.get(booking.flight_id)
+    passengers = Passenger.query.filter_by(booking_id=booking.id).all()
+    
+    return jsonify({
+        'booking': {
+            'id': booking.id,
+            'booking_reference': booking.booking_reference,
+            'cabin_class': booking.cabin_class,
+            'total_price': booking.total_price,
+            'total_passengers': booking.total_passengers,
+            'status': booking.status
+        },
+        'flight': {
+            'id': flight.id,
+            'flight_number': flight.flight_number,
+            'origin': flight.origin,
+            'destination': flight.destination,
+            'departure_date': flight.departure_date,
+            'departure_time': flight.departure_time,
+            'arrival_time': flight.arrival_time,
+            'duration': flight.duration,
+            'distance': flight.distance,
+            'gate': flight.gate,
+            'status': flight.status
+        },
+        'passengers': [{
+            'id': p.id,
+            'full_name': p.full_name,
+            'seat_number': p.seat_number,
+            'passenger_type': p.passenger_type
+        } for p in passengers],
+        # ===== ADD THIS SECTION =====
+        'check_in': {
+            'checked_in': booking.checked_in,
+            'check_in_time': booking.check_in_time.isoformat() if booking.check_in_time else None
+        }
+    })
+@app.route('/api/passenger/<int:passenger_id>', methods=['PUT'])
+def api_update_passenger(passenger_id):
+    data = request.get_json()
+    new_name = data.get('name')
+    if not new_name:
+        return jsonify({'error': 'Name required'}), 400
+    passenger = Passenger.query.get_or_404(passenger_id)
+    booking = Booking.query.get(passenger.booking_id)
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    passenger.full_name = new_name.upper()
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Passenger updated'})
+
+@app.route('/api/passenger/<int:passenger_id>/seat', methods=['PUT'])
+def api_update_passenger_seat(passenger_id):
+    data = request.get_json()
+    new_seat = data.get('seat')
+    if not new_seat:
+        return jsonify({'error': 'Seat required'}), 400
+    passenger = Passenger.query.get_or_404(passenger_id)
+    booking = Booking.query.get(passenger.booking_id)
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    passenger.seat_number = new_seat
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Seat updated'})
+
+@app.route('/api/passenger/<int:passenger_id>', methods=['DELETE'])
+def api_delete_passenger(passenger_id):
+    passenger = Passenger.query.get_or_404(passenger_id)
+    booking = Booking.query.get(passenger.booking_id)
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    db.session.delete(passenger)
+    if Passenger.query.filter_by(booking_id=booking.id).count() == 0:
+        booking.status = 'Cancelled'
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Passenger ticket cancelled'})
+
+@app.route('/api/ticket/<int:booking_id>')
+def api_get_ticket(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    passenger = Passenger.query.filter_by(booking_id=booking.id).first()
+    if not passenger:
+        return jsonify({'error': 'Passenger not found'}), 404
+    
+    flight = Flight.query.get(booking.flight_id)
+    return jsonify({
+        'booking': {
+            'id': booking.id,
+            'booking_reference': booking.booking_reference,
+            'cabin_class': booking.cabin_class,
+            'status': booking.status,
+            'total_price': booking.total_price
+        },
+        'passenger': {
+            'id': passenger.id,
+            'full_name': passenger.full_name,
+            'seat_number': passenger.seat_number,
+            'passenger_type': passenger.passenger_type
+        },
+        'flight': {
+            'id': flight.id,
+            'flight_number': flight.flight_number,
+            'origin': flight.origin,
+            'destination': flight.destination,
+            'departure_date': flight.departure_date,
+            'departure_time': flight.departure_time,
+            'arrival_time': flight.arrival_time,
+            'gate': flight.gate,
+            'status': flight.status
+        }
+    })
 
 # ==================== ADMIN SETTINGS ROUTES ====================
 
@@ -1302,7 +3534,6 @@ def admin_settings():
         flash("Access denied. Admin privileges required.")
         return redirect(url_for('home'))
     
-    # Get has_bookings and latest_booking_id for header
     has_bookings = False
     latest_booking_id = None
     if session.get('user_id'):
@@ -1360,7 +3591,6 @@ def admin_settings():
 
 @app.route('/admin/add_flight', methods=['POST'])
 def add_flight():
-    """Add a new flight - CREATE operation"""
     if not session.get('is_admin'):
         flash("Access denied. Admin privileges required.")
         return redirect(url_for('home'))
@@ -1396,7 +3626,8 @@ def add_flight():
         
         db.session.add(new_flight)
         db.session.commit()
-        flash(f"Flight {flight_number} added successfully!", "success")
+        session['show_success_popup'] = f"Flight {flight_number} added successfully!"
+        return redirect(url_for('admin_settings'))
     except Exception as e:
         db.session.rollback()
         flash(f"Error adding flight: {str(e)}", "error")
@@ -1406,7 +3637,7 @@ def add_flight():
 @app.route('/admin/flight/status', methods=['POST'])
 def update_flight_status():
     if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'})
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
     data = request.get_json()
     flight_id = data.get('flight_id')
@@ -1417,19 +3648,19 @@ def update_flight_status():
         flight.status = status
         db.session.commit()
         return jsonify({'success': True})
-    return jsonify({'success': False, 'message': 'Flight not found'})
+    return jsonify({'success': False, 'message': 'Flight not found'}), 404
 
 @app.route('/admin/flight/delete/<int:flight_id>', methods=['POST'])
 def delete_flight(flight_id):
     if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'})
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
     flight = Flight.query.get(flight_id)
     if flight:
         db.session.delete(flight)
         db.session.commit()
         return jsonify({'success': True})
-    return jsonify({'success': False, 'message': 'Flight not found'})
+    return jsonify({'success': False, 'message': 'Flight not found'}), 404
 
 @app.route('/admin/promo/add', methods=['POST'])
 def add_promo_code():
@@ -1455,20 +3686,20 @@ def add_promo_code():
     
     db.session.add(promo)
     db.session.commit()
-    flash(f"Promo code {code} added successfully!", "success")
+    session['show_success_popup'] = f"Promo code {code} added successfully!"
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/promo/delete/<int:promo_id>', methods=['POST'])
 def delete_promo_code(promo_id):
     if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'})
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
     
     promo = PromoCode.query.get(promo_id)
     if promo:
         db.session.delete(promo)
         db.session.commit()
         return jsonify({'success': True})
-    return jsonify({'success': False, 'message': 'Promo code not found'})
+    return jsonify({'success': False, 'message': 'Promo code not found'}), 404
 
 @app.route('/admin/update_taxes', methods=['POST'])
 def update_taxes():
@@ -1481,7 +3712,7 @@ def update_taxes():
     set_system_setting('airport_fee', request.form.get('airport_fee'))
     set_system_setting('security_fee', request.form.get('security_fee'))
     
-    flash("Tax settings updated successfully!", "success")
+    session['show_success_popup'] = "Tax settings updated successfully!"
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/update_refund_settings', methods=['POST'])
@@ -1495,7 +3726,7 @@ def update_refund_settings():
     set_system_setting('cancellation_window_hours', request.form.get('cancellation_window_hours'))
     set_system_setting('refund_processing_fee', request.form.get('refund_processing_fee'))
     
-    flash("Refund settings updated successfully!", "success")
+    session['show_success_popup'] = "Refund settings updated successfully!"
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/update_class_settings', methods=['POST'])
@@ -1510,7 +3741,7 @@ def update_class_settings():
     set_system_setting('business_class_surcharge', request.form.get('business_class_surcharge'))
     set_system_setting('first_class_surcharge', request.form.get('first_class_surcharge'))
     
-    flash("Class settings updated successfully!", "success")
+    session['show_success_popup'] = "Class settings updated successfully!"
     return redirect(url_for('admin_settings'))
 
 @app.route('/admin/update_system_settings', methods=['POST'])
@@ -1526,10 +3757,67 @@ def update_system_settings():
     set_system_setting('enable_hotels', 'true' if request.form.get('enable_hotels') == 'yes' else 'false')
     set_system_setting('enable_cars', 'true' if request.form.get('enable_cars') == 'yes' else 'false')
     
-    flash("System settings updated successfully!", "success")
+    session['show_success_popup'] = "System settings updated successfully!"
     return redirect(url_for('admin_settings'))
 
-# ==================== PAYMENT INTEGRATION ROUTES ====================
+@app.route('/admin/ban_user/<int:user_id>')
+def admin_ban_user(user_id):
+    if not session.get('is_admin'):
+        flash("Unauthorized.")
+        return redirect(url_for('home'))
+    user = User.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        session['show_success_popup'] = f"User {user.email} has been deleted."
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/reset_password/<int:user_id>')
+def admin_reset_password(user_id):
+    if not session.get('is_admin'):
+        flash("Unauthorized.")
+        return redirect(url_for('home'))
+    user = User.query.get(user_id)
+    if user:
+        new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+        session['show_success_popup'] = f"Password for {user.email} reset to: {new_password}"
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/clear_cache')
+def admin_clear_cache():
+    if not session.get('is_admin'):
+        flash("Unauthorized.")
+        return redirect(url_for('home'))
+    session['show_success_popup'] = "Cache cleared successfully!"
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/maintenance', methods=['POST'])
+def admin_maintenance():
+    if not session.get('is_admin'):
+        flash("Unauthorized.")
+        return redirect(url_for('home'))
+    session['maintenance_mode'] = not session.get('maintenance_mode', False)
+    session['show_success_popup'] = f"Maintenance mode {'enabled' if session['maintenance_mode'] else 'disabled'}."
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/export_sales')
+def admin_export_sales():
+    if not session.get('is_admin'):
+        flash("Unauthorized.")
+        return redirect(url_for('home'))
+    import csv
+    from io import StringIO
+    from flask import Response
+    bookings = Booking.query.all()
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Booking Ref', 'User ID', 'Flight ID', 'Passengers', 'Total', 'Date', 'Status'])
+    for b in bookings:
+        cw.writerow([b.booking_reference, b.user_id, b.flight_id, b.total_passengers, b.total_price, b.booking_date, b.status])
+    output = si.getvalue()
+    return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=sales.csv"})
 
 @app.route('/add_integration', methods=['POST'])
 def add_integration():
@@ -1537,366 +3825,100 @@ def add_integration():
     logo = request.form.get('logo')
     if name and logo:
         payment_methods.append({"name": name, "logo": logo})
-        flash(f"Success! {name} has been integrated.")
+        session['show_success_popup'] = f"Success! {name} has been integrated."
     return redirect(url_for('payment'))
 
 @app.route('/delete_integration/<int:index>', methods=['POST'])
 def delete_integration(index):
     try:
         removed_item = payment_methods.pop(index)
-        flash(f"Removed {removed_item['name']} integration.")
+        session['show_success_popup'] = f"Removed {removed_item['name']} integration."
     except IndexError:
         flash("Error: Integration not found.")
     return redirect(url_for('payment'))
 
-# ==================== INFORMATION PAGES ====================
-
-@app.route("/check_in", methods=['GET', 'POST'])
-def check_in():
-    # Get has_bookings and latest_booking_id for header
-    has_bookings = False
-    latest_booking_id = None
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    # Handle POST request (form submission)
-    if request.method == 'POST':
-        booking_ref = request.form.get('booking_ref')
-        identifier = request.form.get('identifier')
-        
-        # Find booking by reference
-        booking = Booking.query.filter_by(booking_reference=booking_ref).first()
-        
-        if booking:
-            # Check if user is logged in and owns the booking
-            if session.get('user_id') and booking.user_id == session.get('user_id'):
-                flash(f"Check-in successful! Welcome aboard!", "success")
-                return redirect(url_for('view_ticket', id=booking.id))
-            
-            # Check by email if booking has a user
-            if booking.user_id:
-                user = User.query.get(booking.user_id)
-                if user and user.email == identifier:
-                    flash(f"Check-in successful! Welcome aboard!", "success")
-                    return redirect(url_for('view_ticket', id=booking.id))
-            
-            # Check by passenger name (for guest bookings)
-            passengers = Passenger.query.filter_by(booking_id=booking.id).all()
-            for passenger in passengers:
-                if identifier.lower() in passenger.full_name.lower():
-                    flash(f"Check-in successful for {passenger.full_name}!", "success")
-                    return redirect(url_for('view_ticket', id=booking.id))
-            
-            flash("Booking found but identifier doesn't match. Please try again.", "error")
-        else:
-            flash("Booking not found. Please check your reference number.", "error")
-        
-        return redirect(url_for('check_in'))
-    
-    # GET request - show the form
-    return render_template("check_in.html", 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-@app.route("/about")
-def about():
-    # About page - no header changes needed, but pass empty values for consistency
-    has_bookings = False
-    latest_booking_id = None
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    return render_template("About.html", 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-@app.route("/manage", methods=['GET', 'POST'])
-def manage():
-    # Check if user has any bookings (for Manage dropdown visibility)
-    has_bookings = False
-    latest_booking_id = None
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    # Handle POST request (form submission)
-    if request.method == 'POST':
-        booking_ref = request.form.get('booking_ref')
-        email = request.form.get('email')
-        
-        # Find booking by reference
-        booking = Booking.query.filter_by(booking_reference=booking_ref).first()
-        
-        if booking:
-            # Check if the email matches the user's email
-            if booking.user_id:
-                user = User.query.get(booking.user_id)
-                if user and user.email == email:
-                    passengers = Passenger.query.filter_by(booking_id=booking.id).all()
-                    flight = Flight.query.get(booking.flight_id)
-                    
-                    return render_template('Manage.html', 
-                                          booking_found=True,
-                                          booking=booking,
-                                          passengers=passengers,
-                                          flight=flight,
-                                          has_bookings=has_bookings,
-                                          latest_booking_id=latest_booking_id)
-            
-            # Also check if email matches any passenger's name (for guest bookings)
-            passengers = Passenger.query.filter_by(booking_id=booking.id).all()
-            for passenger in passengers:
-                if email.lower() in passenger.full_name.lower():
-                    flight = Flight.query.get(booking.flight_id)
-                    
-                    return render_template('Manage.html', 
-                                          booking_found=True,
-                                          booking=booking,
-                                          passengers=passengers,
-                                          flight=flight,
-                                          has_bookings=has_bookings,
-                                          latest_booking_id=latest_booking_id)
-            
-            flash("Booking found but email doesn't match. Please try again.", "error")
-        else:
-            flash("Booking not found. Please check your reference number.", "error")
-        
-        return redirect(url_for('manage'))
-    
-    # GET request - show the form
-    return render_template("Manage.html", 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-@app.route("/travel")
-def travel():
-    has_bookings = False
-    latest_booking_id = None
-    
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        # Get the most recent booking ID for the View Ticket link
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    return render_template("travel_info.html", 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-@app.route("/explore")
-def explore():
-    # Get has_bookings and latest_booking_id for header
-    has_bookings = False
-    latest_booking_id = None
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    return render_template("Explore.html", 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-# ==================== VIEW TICKET API ROUTES (MULTI-TICKET SUPPORT) ====================
-
-@app.route('/view_ticket')
-def view_ticket():
-    """Render the view ticket page (multi-ticket carousel)"""
-    booking_id = request.args.get('id')
-    if not booking_id:
-        flash('No ticket ID provided')
-        return redirect(url_for('user_dashboard'))
-    
-    # Verify booking exists
-    booking = Booking.query.get(booking_id)
+@app.route('/api/checkin_status/<booking_reference>')
+def api_checkin_status(booking_reference):
+    booking = Booking.query.filter_by(booking_reference=booking_reference).first()
     if not booking:
-        flash('Ticket not found')
-        return redirect(url_for('user_dashboard'))
-    
-    # Check authorization (user owns ticket or is admin)
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        flash('Access denied')
-        return redirect(url_for('user_dashboard'))
-    
-    # Get has_bookings and latest_booking_id for header
-    has_bookings = False
-    latest_booking_id = None
-    if session.get('user_id'):
-        user_id = session.get('user_id')
-        booking_count = Booking.query.filter_by(user_id=user_id).count()
-        has_bookings = booking_count > 0
-        
-        latest_booking = Booking.query.filter_by(user_id=user_id).order_by(Booking.id.desc()).first()
-        if latest_booking:
-            latest_booking_id = latest_booking.id
-    
-    return render_template('view_ticket.html', 
-                          has_bookings=has_bookings,
-                          latest_booking_id=latest_booking_id)
-
-# NEW: Get full booking with all passengers (for carousel)
-@app.route('/api/booking/<int:booking_id>')
-def api_get_booking(booking_id):
-    """Return booking details with all passengers and flight info"""
-    booking = Booking.query.get_or_404(booking_id)
-    # Authorization: only the booking owner or admin
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    passengers = Passenger.query.filter_by(booking_id=booking.id).all()
-    flight = Flight.query.get(booking.flight_id)
+        return jsonify({'error': 'Booking not found'}), 404
     
     return jsonify({
-        'booking': {
-            'id': booking.id,
-            'booking_reference': booking.booking_reference,
-            'cabin_class': booking.cabin_class,
-            'status': booking.status,
-            'total_price': booking.total_price
-        },
-        'passengers': [{
-            'id': p.id,
-            'full_name': p.full_name,
-            'seat_number': p.seat_number,
-            'passenger_type': p.passenger_type
-        } for p in passengers],
-        'flight': {
-            'id': flight.id,
-            'flight_number': flight.flight_number,
-            'origin': flight.origin,
-            'destination': flight.destination,
-            'departure_date': flight.departure_date,
-            'departure_time': flight.departure_time,
-            'arrival_time': flight.arrival_time,
-            'gate': flight.gate,
-            'status': flight.status
-        }
-    })
-
-# NEW: Update a specific passenger's name
-@app.route('/api/passenger/<int:passenger_id>', methods=['PUT'])
-def api_update_passenger(passenger_id):
-    data = request.get_json()
-    new_name = data.get('name')
-    if not new_name:
-        return jsonify({'error': 'Name required'}), 400
-    passenger = Passenger.query.get_or_404(passenger_id)
-    booking = Booking.query.get(passenger.booking_id)
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        return jsonify({'error': 'Unauthorized'}), 403
-    passenger.full_name = new_name.upper()
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Passenger updated'})
-
-# NEW: Update a specific passenger's seat
-@app.route('/api/passenger/<int:passenger_id>/seat', methods=['PUT'])
-def api_update_passenger_seat(passenger_id):
-    data = request.get_json()
-    new_seat = data.get('seat')
-    if not new_seat:
-        return jsonify({'error': 'Seat required'}), 400
-    passenger = Passenger.query.get_or_404(passenger_id)
-    booking = Booking.query.get(passenger.booking_id)
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        return jsonify({'error': 'Unauthorized'}), 403
-    passenger.seat_number = new_seat
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Seat updated'})
-
-# NEW: Delete a specific passenger (cancel individual ticket)
-@app.route('/api/passenger/<int:passenger_id>', methods=['DELETE'])
-def api_delete_passenger(passenger_id):
-    passenger = Passenger.query.get_or_404(passenger_id)
-    booking = Booking.query.get(passenger.booking_id)
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        return jsonify({'error': 'Unauthorized'}), 403
-    db.session.delete(passenger)
-    # If no passengers left, cancel the entire booking
-    if Passenger.query.filter_by(booking_id=booking.id).count() == 0:
-        booking.status = 'Cancelled'
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Passenger ticket cancelled'})
-
-# (Optional) Keep the old /api/ticket/<booking_id> for backward compatibility (returns first passenger)
-@app.route('/api/ticket/<int:booking_id>')
-def api_get_ticket(booking_id):
-    """Legacy endpoint: returns first passenger for backward compatibility"""
-    booking = Booking.query.get_or_404(booking_id)
-    if booking.user_id != session.get('user_id') and not session.get('is_admin'):
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    passenger = Passenger.query.filter_by(booking_id=booking.id).first()
-    if not passenger:
-        return jsonify({'error': 'Passenger not found'}), 404
-    
-    flight = Flight.query.get(booking.flight_id)
-    return jsonify({
-        'booking': {
-            'id': booking.id,
-            'booking_reference': booking.booking_reference,
-            'cabin_class': booking.cabin_class,
-            'status': booking.status,
-            'total_price': booking.total_price
-        },
-        'passenger': {
-            'id': passenger.id,
-            'full_name': passenger.full_name,
-            'seat_number': passenger.seat_number,
-            'passenger_type': passenger.passenger_type
-        },
-        'flight': {
-            'id': flight.id,
-            'flight_number': flight.flight_number,
-            'origin': flight.origin,
-            'destination': flight.destination,
-            'departure_date': flight.departure_date,
-            'departure_time': flight.departure_time,
-            'arrival_time': flight.arrival_time,
-            'gate': flight.gate,
-            'status': flight.status
-        }
+        'checked_in': booking.checked_in,
+        'check_in_time': booking.check_in_time.isoformat() if booking.check_in_time else None,
+        'can_check_in': not booking.checked_in
     })
 
 # ==================== DATABASE INITIALIZATION ====================
 
 if __name__ == "__main__":
     with app.app_context():
+        # Add missing columns if they don't exist
+        try:
+            db.session.execute('ALTER TABLE all_users ADD COLUMN is_active BOOLEAN DEFAULT 1')
+            db.session.commit()
+        except:
+            pass
+        
+        try:
+            db.session.execute('ALTER TABLE promo_codes ADD COLUMN description VARCHAR(200)')
+            db.session.commit()
+        except:
+            pass
+        
+        try:
+            db.session.execute('ALTER TABLE promo_codes ADD COLUMN valid_from DATETIME')
+            db.session.commit()
+        except:
+            pass
+        
         db.create_all()
         create_sample_flights()
         
+        # Create sample promo codes for testing
+        if not PromoCode.query.filter_by(code="WELCOME10").first():
+            sample_promo = PromoCode(
+                code="WELCOME10",
+                description="Welcome discount for new users",
+                discount_type="percentage",
+                discount_value=10.0,
+                valid_from=datetime.utcnow(),
+                valid_until=datetime.utcnow() + timedelta(days=30),
+                max_uses=100,
+                min_amount=500,
+                is_active=True
+            )
+            db.session.add(sample_promo)
+            db.session.commit()
+            print("✅ Sample promo code created: WELCOME10 (10% off)")
+        
+        if not PromoCode.query.filter_by(code="SUMMER25").first():
+            summer_promo = PromoCode(
+                code="SUMMER25",
+                description="Summer Sale - 25% off on all flights",
+                discount_type="percentage",
+                discount_value=25.0,
+                valid_from=datetime.utcnow(),
+                valid_until=datetime.utcnow() + timedelta(days=60),
+                max_uses=500,
+                min_amount=1000,
+                is_active=True
+            )
+            db.session.add(summer_promo)
+            db.session.commit()
+            print("✅ Sample promo code created: SUMMER25 (25% off)")
+        
+        # Create admin user if not exists
         if not User.query.filter_by(email="admin@aeroticket.com").first():
             admin = User(
-                fullname="Admin",
+                fullname="Administrator",
                 email="admin@aeroticket.com",
                 password=generate_password_hash("admin123"),
-                is_admin=True
+                is_admin=True,
+                is_active=True
             )
             db.session.add(admin)
             db.session.commit()
             print("✅ Admin user created: admin@aeroticket.com / admin123")
+    
     app.run(debug=True)

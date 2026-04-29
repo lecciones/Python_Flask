@@ -12,6 +12,176 @@ body {
     color: var(--text-main);
 }
 
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4dbbee;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 15px;
+    color: #4dbbee;
+    font-weight: 500;
+}
+
+/* Toast Notification */
+.toast-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+    font-weight: 500;
+}
+
+.toast-popup.error {
+    background: #ef4444;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Discount Badge */
+.discount-badge {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    margin-left: 10px;
+}
+
+.discount-badge.fixed {
+    background: #f59e0b;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+/* Promo code applied indicator */
+.promo-applied {
+    background: #10b981 !important;
+    color: white !important;
+    border-color: #10b981 !important;
+}
+
+/* Clear promo button */
+.clear-promo {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+    font-size: 14px;
+    display: none;
+}
+
+.clear-promo:hover {
+    color: #ef4444;
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    color: #888;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #c8e8f8;
+    margin-bottom: 20px;
+}
+
+.empty-state h2 {
+    font-size: 1.4rem;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    max-width: 420px;
+    line-height: 1.6;
+}
+
+.empty-state a {
+    background: #4CB9F0;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.empty-state a:hover { background: #3da0d0; }
+
+/* Flash messages */
+.flash-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #c3e6cb;
+    margin: 0;
+}
+
+.flash-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border-bottom: 1px solid #f5c6cb;
+}
+
+/* Header Styles */
 .main-header {
     background-color: #ffffff;
     padding: 5px 0; 
@@ -60,13 +230,17 @@ body {
     flex: 1;
 }
 
-.nav-links a {
+.nav-links a, .dropbtn {
     text-decoration: none;
     color: #4dbbee;
     font-weight: 700;
     font-size: 1.1rem;
     line-height: 1;
-    white-space: nowrap; 
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
 .header-right {
@@ -74,15 +248,7 @@ body {
     justify-content: flex-end;
     gap: 25px;
     flex: 1;
-}
-
-.login-link {
-    text-decoration: none;
-    color: #4dbbee;
-    font-weight: 700;
-    display: flex;
     align-items: center;
-    gap: 8px;
 }
 
 .search-icon {
@@ -91,9 +257,154 @@ body {
     cursor: pointer;
 }
 
+/* Dropdown Styles */
+.dropdown { position: relative; display: inline-block; }
+
+.dropdown-content {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    min-width: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 15px;
+    padding: 20px;
+    gap: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    margin-top: 10px;
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+    opacity: 1;
+    visibility: visible;
+    margin-top: 0;
+}
+
+.dropdown-content a {
+    color: #4a4a4a;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 15px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    gap: 10px;
+    min-width: 100px;
+}
+
+.dropdown-content a .menu-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4eb8e9 0%, #2c8fbb 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(46, 143, 187, 0.3);
+}
+
+.dropdown-content a .menu-icon i { color: white; font-size: 24px; }
+.dropdown-content a:hover { background: #f0f9ff; transform: translateY(-5px); }
+.dropdown-content a:hover .menu-icon { transform: scale(1.1); box-shadow: 0 6px 16px rgba(46, 143, 187, 0.4); }
+
+.manage-dropdown {
+    flex-direction: column !important;
+    min-width: 200px !important;
+    padding: 8px 0 !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    margin-top: 10px !important;
+}
+
+.manage-dropdown a {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 10px 20px !important;
+    min-width: auto !important;
+    border-radius: 0 !important;
+}
+
+.settings-dropdown {
+    flex-direction: column !important;
+    min-width: 210px !important;
+    padding: 8px 0 !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    margin-top: 10px !important;
+}
+
+.settings-dropdown a {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 10px 20px !important;
+    min-width: auto !important;
+    border-radius: 0 !important;
+}
+
+.settings-dropdown a .menu-icon {
+    width: 28px !important;
+    height: 28px !important;
+    background: none !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+}
+
+.settings-dropdown a .menu-icon i { color: #4eb8e9 !important; font-size: 18px !important; }
+.settings-dropdown a:hover { background: #f0f9ff !important; transform: none !important; }
+
+.account-dropdown {
+    flex-direction: column !important;
+    min-width: 160px !important;
+    padding: 8px 0 !important;
+    left: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    margin-top: 10px !important;
+}
+
+.account-dropdown a {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 10px 20px !important;
+    min-width: auto !important;
+    border-radius: 0 !important;
+    color: #4a4a4a;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.account-dropdown a i { width: 20px; color: #4eb8e9; }
+.account-dropdown a:hover { background: #f0f9ff !important; }
+
+/* Container */
 .container {
-    max-width: 1100px; 
+    max-width: 1200px;
     margin: 20px auto;
+    padding: 0 20px;
+}
+
+/* FIX: Flight results container - prevents overlapping */
+#flight-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
 .section-title {
@@ -103,13 +414,14 @@ body {
     margin-bottom: 40px;
 }
 
+/* Flight Card Styles */
 .flight-card {
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    margin-bottom: 30px;
     background-color: #E7F7FF;
     position: relative;
     overflow: hidden;
+    width: 100%;
 }
 
 .badge {
@@ -123,6 +435,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 10px 10px;
     font-weight: 300;
+    z-index: 2;
 }
 
 .card-body {
@@ -130,6 +443,7 @@ body {
     padding: 40px 30px 15px 30px;
     align-items: center;
     background-color: #E7F7FF;
+    flex-wrap: wrap;
 }
 
 .airline-logo {
@@ -151,6 +465,8 @@ body {
     display: flex;
     align-items: center;
     flex: 3;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .time-block .time {
@@ -161,6 +477,7 @@ body {
 .time-block {
     display: flex;
     flex-direction: column;
+    min-width: 100px;
 }
 
 .time-block .city {
@@ -174,11 +491,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 80px;
 }
 
+/* FIX: Responsive line width - prevents overlapping */
 .line {
     display: block;
-    width: 366px; 
+    width: 100%;
+    max-width: 366px;
+    min-width: 80px;
     height: 2px; 
     background-image: repeating-linear-gradient(
         to right,
@@ -210,6 +531,7 @@ body {
     flex: 1;
     text-align: right;
     padding-left: 30px;
+    min-width: 180px;
 }
 
 .currency { font-size: 0.8rem; }
@@ -255,9 +577,10 @@ body {
     color: var(--text-muted);
     background-color: #E7F7FF;
     border-top: 0.5px solid rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
 }
 
-/* FOOTER DESIGN UPDATES */
+/* FOOTER DESIGN */
 .footer-design {
     position: relative; 
     width: 100%;
@@ -309,7 +632,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* Updated Promo Code Type Box - Permanently White */
+/* Promo Code Input */
 .promo-input {
     background-color: white;
     color: #4CB9F0;
@@ -435,3 +758,68 @@ body {
 }
 
 .panel-divider { border: 0; border-top: 1px solid #eee; margin: 15px 0; }
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .card-footer {
+        gap: 100px;
+    }
+}
+
+@media (max-width: 992px) {
+    .flight-info {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .price-section {
+        text-align: left;
+        width: 100%;
+    }
+    
+    .card-footer {
+        gap: 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .flight-info {
+        flex-direction: column;
+    }
+    
+    .duration-line {
+        margin: 10px 0;
+    }
+    
+    .line {
+        margin-top: 0;
+    }
+    
+    .price-section {
+        text-align: center;
+        padding-left: 0;
+    }
+    
+    .card-footer {
+        gap: 20px;
+        justify-content: center;
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .footer-design {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+    
+    .vertical-divider {
+        display: none;
+    }
+}
